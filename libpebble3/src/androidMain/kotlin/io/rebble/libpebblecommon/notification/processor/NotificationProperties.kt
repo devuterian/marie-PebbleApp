@@ -10,6 +10,7 @@ enum class NotificationProperties(
     val addShowsUserInterfaceActions: Boolean = false,
     val showLocalOnlyNotifications: Boolean = false,
     val allowDuplicates: Boolean = false,
+    val useContrastingText: Boolean = false,
 ) {
     Gmail(pkgName = "com.google.android.gm", color = TimelineColor.Red, icon = TimelineIcon.NotificationGmail),
     GoogleQuickSearchBox(pkgName = "com.google.android.googlequicksearchbox", color = TimelineColor.BlueMoon, icon = null),
@@ -81,6 +82,23 @@ enum class NotificationProperties(
     Ring(pkgName = "com.ringapp"),
     Zwift(pkgName = "com.zwift.zwiftgame", addShowsUserInterfaceActions = true),
     Shortwave(pkgName = "com.shortwave.android", addShowsUserInterfaceActions = true),
+    ChatGPT(pkgName = "com.openai.chatgpt", color = TimelineColor.DarkGray, icon = TimelineIcon.NotificationChatGPT, useContrastingText = true),
+    NAVER(pkgName = "com.nhn.android.search", color = TimelineColor.JaegerGreen, icon = TimelineIcon.NotificationNAVER, useContrastingText = true),
+    NAVERCafe(pkgName = "com.nhn.android.navercafe", color = TimelineColor.JaegerGreen, icon = TimelineIcon.NotificationNAVERCafe, useContrastingText = true),
+    Karrot(pkgName = "com.towneers.www", color = TimelineColor.Orange, icon = TimelineIcon.NotificationKarrot, useContrastingText = true),
+    Toss(pkgName = "viva.republica.toss", color = TimelineColor.BlueMoon, icon = TimelineIcon.NotificationToss, useContrastingText = true),
+    Joonggonara(pkgName = "com.elz.secondhandstore", color = TimelineColor.JaegerGreen, icon = TimelineIcon.NotificationJoonggonara, useContrastingText = true),
+    NAVERPay(pkgName = "com.naverfin.payapp", color = TimelineColor.JaegerGreen, icon = TimelineIcon.NotificationNAVERPay, useContrastingText = true),
+    KakaoPay(pkgName = "com.kakaopay.app", color = TimelineColor.Yellow, icon = TimelineIcon.NotificationKakaoPay, useContrastingText = true),
+    CoupangEats(pkgName = "com.coupang.mobile.eats", color = TimelineColor.WindsorTan, icon = TimelineIcon.NotificationCoupangEats, useContrastingText = true),
+    DCInside(pkgName = "com.dcinside.app.android", color = TimelineColor.Liberty, icon = TimelineIcon.NotificationDCInside, useContrastingText = true),
+    Fallcent(pkgName = "com.deaguowl.fallcent", color = TimelineColor.VividCerulean, icon = TimelineIcon.NotificationFallcent, useContrastingText = true),
+    HanaPay(pkgName = "com.hanaskcard.paycla", color = TimelineColor.TiffanyBlue, icon = TimelineIcon.NotificationHanaPay, useContrastingText = true),
+    Banksalad(pkgName = "com.rainist.banksalad2", color = TimelineColor.JaegerGreen, icon = TimelineIcon.NotificationBanksalad, useContrastingText = true),
+    Setlog(pkgName = "com.newchat.setlog", color = TimelineColor.BabyBlueEyes, icon = TimelineIcon.NotificationSetlog, useContrastingText = true),
+    NagramXF(pkgName = "fork.risin42.nagramx", color = TimelineColor.VividCerulean, icon = TimelineIcon.NotificationTelegram, useContrastingText = true),
+    Aliucord(pkgName = "com.aliucord", color = TimelineColor.Indigo, icon = TimelineIcon.NotificationDiscord, useContrastingText = true),
+    Reddit(pkgName = "com.reddit.frontpage", color = TimelineColor.Orange, icon = TimelineIcon.NotificationReddit, useContrastingText = true),
     ;
 
     companion object {

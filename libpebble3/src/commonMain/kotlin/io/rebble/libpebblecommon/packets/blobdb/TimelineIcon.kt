@@ -120,6 +120,21 @@ enum class TimelineIcon(val id: UInt, val code: String) {
     NotificationYoutube(134u, "system://images/NOTIFICATION_YOUTUBE"),
     NotificationSignal(135u, "system://images/NOTIFICATION_SIGNAL"),
     NotificationTwitch(136u, "system://images/NOTIFICATION_TWITCH"),
+    NotificationChatGPT(141u, "system://images/NOTIFICATION_CHATGPT"),
+    NotificationNAVER(142u, "system://images/NOTIFICATION_NAVER"),
+    NotificationNAVERCafe(143u, "system://images/NOTIFICATION_NAVER_CAFE"),
+    NotificationKarrot(144u, "system://images/NOTIFICATION_KARROT"),
+    NotificationToss(145u, "system://images/NOTIFICATION_TOSS"),
+    NotificationJoonggonara(146u, "system://images/NOTIFICATION_JOONGGONARA"),
+    NotificationNAVERPay(147u, "system://images/NOTIFICATION_NAVER_PAY"),
+    NotificationKakaoPay(148u, "system://images/NOTIFICATION_KAKAOPAY"),
+    NotificationCoupangEats(149u, "system://images/NOTIFICATION_COUPANG_EATS"),
+    NotificationDCInside(150u, "system://images/NOTIFICATION_DCINSIDE"),
+    NotificationFallcent(151u, "system://images/NOTIFICATION_FALLCENT"),
+    NotificationHanaPay(152u, "system://images/NOTIFICATION_HANA_PAY"),
+    NotificationBanksalad(153u, "system://images/NOTIFICATION_BANKSALAD"),
+    NotificationSetlog(154u, "system://images/NOTIFICATION_SETLOG"),
+    NotificationReddit(138u, "system://images/NOTIFICATION_REDDIT"),
     ;
 
     companion object {

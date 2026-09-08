@@ -18,6 +18,7 @@ import io.rebble.libpebblecommon.notification.processor.NotificationProperties
 import io.rebble.libpebblecommon.packets.blobdb.TimelineAttribute
 import io.rebble.libpebblecommon.packets.blobdb.TimelineIcon
 import io.rebble.libpebblecommon.packets.blobdb.TimelineItem
+import io.rebble.libpebblecommon.util.notificationTextColor
 import io.rebble.libpebblecommon.util.toPebbleColor
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
@@ -124,6 +125,9 @@ data class LibPebbleNotification(
             }
             color?.let {
                 backgroundColor { it.toPebbleColor() }
+                if (NotificationProperties.lookup(packageName)?.useContrastingText == true) {
+                    primaryColor { it.notificationTextColor().toPebbleColor() }
+                }
             }
             vibrationPattern?.let {
                 vibrationPattern { it }
