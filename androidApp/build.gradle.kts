@@ -121,7 +121,7 @@ androidComponents {
     onVariants { variant ->
         variant.outputs.forEach {
             it.versionCode.set(gitVersionCode)
-            it.versionName.set(gitVersionName)
+            it.versionName.set(gitVersionName.map { "$it-marie-ver003" })
         }
     }
 }
