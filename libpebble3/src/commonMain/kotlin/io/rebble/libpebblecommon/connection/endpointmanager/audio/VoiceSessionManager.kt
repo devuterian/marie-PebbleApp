@@ -1,6 +1,7 @@
 package io.rebble.libpebblecommon.connection.endpointmanager.audio
 
 import co.touchlab.kermit.Logger
+import io.rebble.libpebblecommon.voice.forWatch
 import io.rebble.libpebblecommon.SystemAppIDs
 import io.rebble.libpebblecommon.WatchConfigFlow
 import io.rebble.libpebblecommon.di.ConnectionCoroutineScope
@@ -152,10 +153,14 @@ class VoiceSessionManager(
                     logger.e(e) { "Error during transcription: ${e.message}" }
                     TranscriptionResult.Error("Transcription error: ${e.message}")
                 }
+                val watchResult = result.forWatch()
+                if (watchResult != result) {
+                    logger.w { "Normalized transcription for watch protocol" }
+                }
                 logger.i { "Voice session completed with result: ${
-                    when (result) {
-                        is TranscriptionResult.Success -> "Success, ${result.words.size} words"
-                        is TranscriptionResult.Error -> "Error, ${result.message}"
+                    when (watchResult) {
+                        is TranscriptionResult.Success -> "Success, ${watchResult.words.size} words"
+                        is TranscriptionResult.Error -> "Error, ${watchResult.message}"
                         is TranscriptionResult.Disabled -> "Disabled"
                         is TranscriptionResult.Failed -> "Failed"
                         is TranscriptionResult.ConnectionError -> "ConnectionError"
@@ -168,12 +173,12 @@ class VoiceSessionManager(
                 voiceService.send(
                     makeDictationResult(
                         sessionId = setupRequest.sessionId.toUShort(),
-                        result = result.toProtocol(),
-                        words = (result as? TranscriptionResult.Success)?.words,
+                        result = watchResult.toProtocol(),
+                        words = (watchResult as? TranscriptionResult.Success)?.words,
                         appUuid = setupRequest.appUuid
                     )
                 )
-                resultCompletable.complete(result)
+                resultCompletable.complete(watchResult)
                 _currentSession.value = null
             }
         }

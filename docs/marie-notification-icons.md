@@ -79,3 +79,21 @@ and REST recognition; the watch microphone/Bluetooth capture path needs a live
 watch dictation attempt. The temporary test APK and sample were removed afterward.
 The instrumentation test skips unless koreanPcmFixture names a synthetic PCM
 file in the target app's cache; it never records audio or sends a reply.
+
+## Dictation wire-format follow-up
+
+In ver006, live phone logs showed Wispr success for several watch recordings,
+while decoded ver004 firmware logs contained “Unrecognized transcription format
+received”. A later short recording produced Success with zero words. The exact
+contents of the other rejected transcripts were not captured.
+
+App ver007 normalizes whitespace/control separators before creating voice words
+and treats an empty result as a recognition failure instead of transmitting an
+invalid zero-word sentence. The firmware explicitly rejects zero-length words
+and control bytes other than the punctuation backspace marker. Recognition text
+is not logged; a diagnostic records only whether normalization changed a result.
+
+Validated 231 libpebble3 host tests, including Korean UTF-8 wire payloads,
+multiline/tab/NUL separators, empty results, and punctuation. Built and installed
+ver007 on CPH2653. A successful watch dictation retry is still needed to confirm
+that this resolves the user's full symptom.
