@@ -20,7 +20,15 @@ class GitHubFirmware(private val httpClient: PebbleHttpClient) {
             ?: FirmwareUpdateCheckResult.UpdateCheckFailed("공식 펌웨어를 확인하지 못했어요. 잠시 후 다시 시도해주세요.")
     }
 
-    suspend fun getLatestFirmware(watch: WatchInfo): FirmwareUpdateCheckResult {
+    suspend fun getLatestFirmware(watch: WatchInfo, includePrereleases: Boolean = false): FirmwareUpdateCheckResult {
+        if (includePrereleases) {
+            val releases: List<GitHubFirmwareRelease>? = httpClient.get(
+                "https://api.github.com/repos/devuterian/PebbleOAO/releases?per_page=100",
+                auth = HttpClientAuthType.None,
+            )
+            return releases?.latestUpdateFor(watch.platform.revision, watch.runningFwVersion)
+                ?: FirmwareUpdateCheckResult.UpdateCheckFailed("깃허브에서 펌웨어 업데이트를 확인하지 못했어요. 잠시 후 다시 시도해주세요.")
+        }
         val release: GitHubFirmwareRelease? = httpClient.get(
             "https://api.github.com/repos/devuterian/PebbleOAO/releases/latest",
             auth = HttpClientAuthType.None,
@@ -37,6 +45,7 @@ internal data class GitHubFirmwareRelease(
     val prerelease: Boolean,
     val body: String? = null,
     val assets: List<GitHubFirmwareAsset>,
+    @SerialName("published_at") val publishedAt: String? = null,
 ) {
     fun officialUpdateFor(
         hardware: String,
@@ -59,8 +68,8 @@ internal data class GitHubFirmwareRelease(
         }
     }
 
-    fun updateFor(hardware: String, running: FirmwareVersion): FirmwareUpdateCheckResult {
-        if (draft || prerelease) return FirmwareUpdateCheckResult.FoundNoUpdate
+    fun updateFor(hardware: String, running: FirmwareVersion, includePrereleases: Boolean = false): FirmwareUpdateCheckResult {
+        if (draft || (prerelease && !includePrereleases)) return FirmwareUpdateCheckResult.FoundNoUpdate
         val revision = marieRevision(tag)
             ?: return FirmwareUpdateCheckResult.UpdateCheckFailed("릴리즈의 펌웨어 버전을 읽지 못했어요.")
         val asset = assets.singleOrNull { it.name == "normal_${hardware}_${tag}.pbz" }
@@ -96,3 +105,18 @@ private fun marieRevision(tag: String): Int? =
     MARIE_VERSION.matchEntire(tag)?.groupValues?.get(1)?.toIntOrNull()
 
 internal fun FirmwareVersion.isMarieFirmware(): Boolean = marieRevision(stringVersion) != null
+
+internal fun List<GitHubFirmwareRelease>.latestUpdateFor(
+    hardware: String,
+    running: FirmwareVersion,
+): FirmwareUpdateCheckResult {
+    return asSequence()
+        .filter { !it.draft && it.publishedAt != null }
+        .mapNotNull { release ->
+            val published = runCatching { Instant.parse(release.publishedAt!!) }.getOrNull()
+                ?: return@mapNotNull null
+            val result = release.updateFor(hardware, running, includePrereleases = true)
+            if (result is FirmwareUpdateCheckResult.FoundUpdate) published to result else null
+        }
+        .maxByOrNull { it.first }?.second ?: FirmwareUpdateCheckResult.FoundNoUpdate
+}

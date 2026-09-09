@@ -97,3 +97,17 @@ Validated 231 libpebble3 host tests, including Korean UTF-8 wire payloads,
 multiline/tab/NUL separators, empty results, and punctuation. Built and installed
 ver007 on CPH2653. A successful watch dictation retry is still needed to confirm
 that this resolves the user's full symptom.
+
+## Opt-in firmware previews
+
+App ver010 adds a per-watch prerelease option to the firmware source dialog.
+It defaults off. Enabling requires the tester warning's confirmation; dismissing
+or cancelling leaves it off. Disabling takes effect immediately. Official OTA
+continues to use its existing stable source regardless of this preference.
+The custom preview channel checks published releases, skips drafts, malformed
+publication dates and missing/ambiguous device bundles, and selects the latest
+published eligible update. Version comparisons still prohibit downgrades.
+The update cache includes the channel, and toggling forces a fresh check.
+
+Validated Android debug assembly and 13 GitHub firmware host tests. No phone
+installation or physical watch OTA session was performed for this build.

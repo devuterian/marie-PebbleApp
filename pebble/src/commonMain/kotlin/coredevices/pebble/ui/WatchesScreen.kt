@@ -1279,6 +1279,7 @@ fun WatchItem(
 @Composable
 fun WatchMenu(watch: PebbleDevice, navBarNav: NavBarNav) {
     var showFirmwareSource by remember { mutableStateOf(false) }
+    var showPrereleaseWarning by remember { mutableStateOf(false) }
     var showMenu by remember { mutableStateOf(false) }
     var debugMenuExpanded by remember { mutableStateOf(false) }
     var showRenameDialog by remember { mutableStateOf(false) }
@@ -1746,15 +1747,49 @@ fun WatchMenu(watch: PebbleDevice, navBarNav: NavBarNav) {
             onDismissRequest = { showFirmwareSource = false },
             title = { Text("펌웨어 업데이트 경로") },
             text = {
-                Text("현재: ${if (official) "공식 PebbleOS" else "Pebbleㅇㅅㅇ;;"}\n\n" +
-                    "선택한 경로에서 앞으로 업데이트를 찾아요. 공식 펌웨어로 돌아가면 " +
-                    "내장 한글과 커스텀 기능은 없어집니다. 설치는 업데이트 화면에서 따로 시작해요.")
+                Column {
+                    Text("현재: ${if (official) "공식 PebbleOS" else "Pebbleㅇㅅㅇ;;"}\n\n" +
+                        "선택한 경로에서 앞으로 업데이트를 찾아요. 공식 펌웨어로 돌아가면 " +
+                        "내장 한글과 커스텀 기능은 없어집니다. 설치는 업데이트 화면에서 따로 시작해요.")
+                    if (!official) {
+                        val prereleases = serial in config.prereleaseFirmwareWatches
+                        TextButton(onClick = {
+                            if (prereleases) {
+                                val current = holder.config.value
+                                holder.update(current.copy(prereleaseFirmwareWatches = current.prereleaseFirmwareWatches - serial))
+                                watch.checkforFirmwareUpdate(true)
+                            } else {
+                                showPrereleaseWarning = true
+                            }
+                        }) { Text("프리릴리즈 받기: ${if (prereleases) "켜짐" else "꺼짐"}") }
+                    }
+                }
             },
             confirmButton = {
                 TextButton(onClick = { selectSource(true) }) { Text("공식 PebbleOS") }
             },
             dismissButton = {
                 TextButton(onClick = { selectSource(false) }) { Text("Pebbleㅇㅅㅇ;;") }
+            },
+        )
+    }
+    if (showPrereleaseWarning && watch is ConnectedPebbleDevice) {
+        val holder = koinInject<CoreConfigHolder>()
+        AlertDialog(
+            onDismissRequest = { showPrereleaseWarning = false },
+            title = { Text("프리릴리즈를 받을까요?") },
+            text = { Text("당신은 테스터가 됩니다. 안 그래도 간당간당한 페블의 삶이 더 위험해질 수 있습니다. 그래도 정말 하시겠습니까?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    val current = holder.config.value
+                    holder.update(current.copy(prereleaseFirmwareWatches = current.prereleaseFirmwareWatches + watch.watchInfo.serial))
+                    showPrereleaseWarning = false
+                    showFirmwareSource = false
+                    watch.checkforFirmwareUpdate(true)
+                }) { Text("네, 테스터로 참여할게요") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPrereleaseWarning = false }) { Text("취소") }
             },
         )
     }

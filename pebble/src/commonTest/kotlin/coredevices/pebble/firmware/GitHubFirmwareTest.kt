@@ -118,4 +118,30 @@ class GitHubFirmwareTest {
             assertEquals(false, running(tag).isMarieFirmware())
         }
     }
+    @Test
+    fun prereleaseChannelUsesPublishedEligibleReleaseAndSkipsDrafts() {
+        val stable = release("v4.37.0-ver005-egg-salad").copy(publishedAt = "2026-09-09T05:00:00Z")
+        val preview = release("v4.37.0-ver006-financier").copy(prerelease = true, publishedAt = "2026-09-09T09:00:00Z")
+        val draft = release("v4.37.0-ver007-g").copy(draft = true, publishedAt = "2026-09-09T10:00:00Z")
+        val otherWatch = release("v4.37.0-ver008-h").copy(assets = emptyList(), publishedAt = "2026-09-09T11:00:00Z")
+        val result = assertIs<FirmwareUpdateCheckResult.FoundUpdate>(
+            listOf(otherWatch, stable, draft, preview).latestUpdateFor("obelix_pvt", running("v4.37.0-ver004-donut")))
+        assertEquals(preview.tag, result.version.stringVersion)
+        assertEquals(FirmwareUpdateCheckResult.FoundNoUpdate,
+            preview.updateFor("obelix_pvt", running("v4.37.0-ver005-egg-salad")))
+        assertEquals(FirmwareUpdateCheckResult.FoundNoUpdate,
+            listOf(preview).latestUpdateFor("obelix_pvt", running(preview.tag)))
+    }
+
+    @Test
+    fun prereleaseChannelRejectsUnpublishedInvalidDatesAndNeverDowngrades() {
+        val preview = release().copy(prerelease = true)
+        for (date in listOf(null, "bad date")) {
+            assertEquals(FirmwareUpdateCheckResult.FoundNoUpdate,
+                listOf(preview.copy(publishedAt = date)).latestUpdateFor("obelix_pvt", running("v4.37.0")))
+        }
+        assertEquals(FirmwareUpdateCheckResult.FoundNoUpdate,
+            listOf(preview.copy(publishedAt = "2026-09-09T05:00:00Z"))
+                .latestUpdateFor("obelix_pvt", running("v4.37.0-ver005-egg-salad")))
+    }
 }

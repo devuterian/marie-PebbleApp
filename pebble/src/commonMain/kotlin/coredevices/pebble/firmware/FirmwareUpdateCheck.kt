@@ -32,6 +32,7 @@ class FirmwareUpdateCheck(
         val platform: WatchHardwarePlatform,
         val serial: String,
         val official: Boolean,
+        val prereleases: Boolean,
     )
 
     /**
@@ -50,7 +51,8 @@ class FirmwareUpdateCheck(
 
     suspend fun checkForUpdates(watch: WatchInfo, force: Boolean): FirmwareUpdateCheckResult {
         val official = watch.serial in coreConfig.value.officialFirmwareWatches
-        val key = CacheKey(platform = watch.platform, serial = watch.serial, official = official)
+        val prereleases = !official && watch.serial in coreConfig.value.prereleaseFirmwareWatches
+        val key = CacheKey(platform = watch.platform, serial = watch.serial, official = official, prereleases = prereleases)
         val fwVersion = watch.runningFwVersion.stringVersion
         val isRecovery = watch.runningFwVersion.isRecovery
         val now = clock.now()
@@ -65,7 +67,7 @@ class FirmwareUpdateCheck(
                     }
             }
         }
-        val result = doCheck(watch, official)
+        val result = doCheck(watch, official, prereleases)
         // Only cache definitive answers — transient failures (network, rate limit)
         // must retry on the next connect, not be locked in for the TTL.
         if (result !is FirmwareUpdateCheckResult.UpdateCheckFailed) {
@@ -76,9 +78,9 @@ class FirmwareUpdateCheck(
         return result
     }
 
-    private suspend fun doCheck(watch: WatchInfo, official: Boolean): FirmwareUpdateCheckResult = when {
+    private suspend fun doCheck(watch: WatchInfo, official: Boolean, prereleases: Boolean): FirmwareUpdateCheckResult = when {
         watch.platform == UNKNOWN -> FirmwareUpdateCheckResult.UpdateCheckFailed("Unknown platform")
-        watch.platform == CORE_OBELIX_PVT && !official -> githubFirmware.getLatestFirmware(watch)
+        watch.platform == CORE_OBELIX_PVT && !official -> githubFirmware.getLatestFirmware(watch, prereleases)
         watch.platform.isCoreDevice() -> coreDeviceCheck(watch, official && watch.runningFwVersion.isMarieFirmware())
         else -> cohorts.getLatestFirmware(watch)
     }
