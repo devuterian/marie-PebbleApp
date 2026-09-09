@@ -59,3 +59,23 @@ Existing timeline pins receive the new text on the next weather/calendar sync.
 Validation: 326 Android host tests passed, including a Korean calendar pin test
 that checks action identifiers and preservation of event text, plus actual
 server weather-template translation cases. Android debug assembly passed.
+
+## Cloud dictation repair
+
+App version 1.12.0.1-marie-ver006 restores the public Wispr token-service and
+Kirinki fallback URLs used by the official 1.11.0.3 APK. The existing
+wisprAuthUrl/kirinkiUrl Gradle properties can override these defaults.
+These are service addresses, not API credentials. Requests still authenticate
+with the signed-in user's Firebase account. No tokens were copied into the build.
+
+Previous Marie builds omitted both URLs, making the default RemoteOnly mode
+unavailable even when Spoken Language was already set to Korean (ko).
+
+Validated on the owner's CPH2653 using KoreanWisprTest against the live Wispr
+service with the existing login. A synthetic Korean sentence, “내일 오후 세 시에
+카페에서 만나자”, was supplied as 16 kHz mono PCM16; expected Korean words were
+recognized. The device test passed in 4.252 seconds. This verifies authentication
+and REST recognition; the watch microphone/Bluetooth capture path needs a live
+watch dictation attempt. The temporary test APK and sample were removed afterward.
+The instrumentation test skips unless koreanPcmFixture names a synthetic PCM
+file in the target app's cache; it never records audio or sends a reply.
