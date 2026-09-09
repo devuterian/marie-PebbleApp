@@ -1,5 +1,6 @@
 package coredevices.pebble.weather
 
+import io.rebble.libpebblecommon.util.watchText
 import androidx.compose.ui.text.intl.Locale
 import co.touchlab.kermit.Logger
 import com.russhwolf.settings.Settings
@@ -234,7 +235,7 @@ class WeatherFetcher(
             lastUpdateTimeUtcSecs = clock.now().epochSeconds,
             isCurrentLocation = location.currentLocation,
             locationName = location.name,
-            forecastShort = current.phrase32Char,
+            forecastShort = weatherText(current.phrase32Char),
             todayFeelsLikeTemp = currentTemps.feelsLike.toShort(),
             latitude = location.latitude,
             longitude = location.longitude,
@@ -264,11 +265,11 @@ class WeatherFetcher(
                 if (dayForecast == null) {
                     null
                 } else {
-                    "${it.location.name}\n${dayForecast.temp}/${it.forecast.night.temp}, ${dayForecast.phrase12Char}"
+                    "${it.location.name}\n${dayForecast.temp}/${it.forecast.night.temp}, ${weatherText(dayForecast.phrase12Char)}"
                 }
             }.ifEmpty { null }?.joinToString("\n—\n")
             createTimelinePin(
-                title = "Sunrise",
+                title = watchText("Sunrise", "일출"),
                 subtitle = "${primaryForecast.day.temp}°/${primaryForecast.night.temp}°",
                 dayOrNight = primaryForecast.day,
                 timestamp = primaryForecast.sunrise,
@@ -287,11 +288,11 @@ class WeatherFetcher(
             if (nightForecast == null) {
                 null
             } else {
-                "${it.location.name}\n$otherDayTempString/${it.forecast.night.temp}, ${nightForecast.phrase12Char}"
+                "${it.location.name}\n$otherDayTempString/${it.forecast.night.temp}, ${weatherText(nightForecast.phrase12Char)}"
             }
         }.ifEmpty { null }?.joinToString("\n—\n")
         createTimelinePin(
-            title = "Sunset",
+            title = watchText("Sunset", "일몰"),
             subtitle = "$dayTempString/${primaryForecast.night.temp}°",
             dayOrNight = primaryForecast.night,
             timestamp = primaryForecast.sunset,
@@ -320,7 +321,7 @@ class WeatherFetcher(
             attributes {
                 title { title }
                 subtitle { subtitle }
-                body { dayOrNight.narrative }
+                body { weatherText(dayOrNight.narrative) }
                 tinyIcon { dayOrNight.iconCode.toWeatherType().toWeatherIcon() }
                 largeIcon { dayOrNight.iconCode.toWeatherType().toWeatherIcon() }
                 lastUpdated { clock.now() }
@@ -332,7 +333,7 @@ class WeatherFetcher(
             }
             actions {
                 action(TimelineItem.Action.Type.OpenWatchapp) {
-                    attributes { title { "More" } }
+                    attributes { title { watchText("More", "더 보기") } }
                 }
             }
         }

@@ -1,5 +1,6 @@
 package io.rebble.libpebblecommon.calendar
 
+import io.rebble.libpebblecommon.util.watchText
 import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.ContentValues
@@ -22,9 +23,9 @@ class AndroidCalendarActionHandler(
             ?: return failed("No backing id on pin ${pin.itemId}")
 
         return when (internalType) {
-            CalendarPinInternalType.ACCEPT -> rsvp(backing.eventId, backing.calendarId, CalendarContract.Attendees.ATTENDEE_STATUS_ACCEPTED, "Accepted")
-            CalendarPinInternalType.MAYBE -> rsvp(backing.eventId, backing.calendarId, CalendarContract.Attendees.ATTENDEE_STATUS_TENTATIVE, "Maybe")
-            CalendarPinInternalType.DECLINE -> rsvp(backing.eventId, backing.calendarId, CalendarContract.Attendees.ATTENDEE_STATUS_DECLINED, "Declined")
+            CalendarPinInternalType.ACCEPT -> rsvp(backing.eventId, backing.calendarId, CalendarContract.Attendees.ATTENDEE_STATUS_ACCEPTED, watchText("Accepted", "참석으로 답했어요"))
+            CalendarPinInternalType.MAYBE -> rsvp(backing.eventId, backing.calendarId, CalendarContract.Attendees.ATTENDEE_STATUS_TENTATIVE, watchText("Maybe", "미정으로 답했어요"))
+            CalendarPinInternalType.DECLINE -> rsvp(backing.eventId, backing.calendarId, CalendarContract.Attendees.ATTENDEE_STATUS_DECLINED, watchText("Declined", "불참으로 답했어요"))
             CalendarPinInternalType.CANCEL -> cancel(backing.eventId, backing.startMillis)
             else -> failed("Unknown calendar internal type: $internalType")
         }
@@ -75,7 +76,7 @@ class AndroidCalendarActionHandler(
             return failed("Permission denied")
         }
         return if (rows > 0) {
-            TimelineActionResult(success = true, icon = TimelineIcon.ResultSent, title = "Canceled")
+            TimelineActionResult(success = true, icon = TimelineIcon.ResultSent, title = watchText("Canceled", "취소했어요"))
         } else {
             failed("Failed to cancel event $eventId")
         }
@@ -111,7 +112,7 @@ class AndroidCalendarActionHandler(
 
     private fun failed(reason: String): TimelineActionResult {
         logger.w { reason }
-        return TimelineActionResult(success = false, icon = TimelineIcon.ResultFailed, title = "Failed")
+        return TimelineActionResult(success = false, icon = TimelineIcon.ResultFailed, title = watchText("Failed", "실패했어요"))
     }
 
     private data class ParsedBackingId(val calendarId: Long, val eventId: Long, val startMillis: Long)

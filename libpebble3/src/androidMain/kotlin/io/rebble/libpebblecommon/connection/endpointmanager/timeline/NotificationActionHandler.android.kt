@@ -1,5 +1,6 @@
 package io.rebble.libpebblecommon.connection.endpointmanager.timeline
 
+import io.rebble.libpebblecommon.util.watchText
 import android.app.ActivityOptions
 import android.app.PendingIntent
 import android.app.RemoteInput
@@ -32,7 +33,7 @@ class AndroidNotificationActionHandler(
             return TimelineActionResult(
                 success = false,
                 icon = TimelineIcon.ResultFailed,
-                title = "Failed"
+                title = watchText("Failed", "실패했어요")
             )
         }
     }
@@ -85,7 +86,7 @@ class AndroidNotificationActionHandler(
         return TimelineActionResult(
             success = true,
             icon = TimelineIcon.ResultSent,
-            title = "Replied"
+            title = watchText("Replied", "답장했어요")
         )
     }
 
@@ -98,7 +99,7 @@ class AndroidNotificationActionHandler(
         return TimelineActionResult(
             success = true,
             icon = TimelineIcon.GenericConfirmation,
-            title = "Complete"
+            title = watchText("Complete", "완료했어요")
         )
     }
 
@@ -107,7 +108,7 @@ class AndroidNotificationActionHandler(
         return TimelineActionResult(
             success = true,
             icon = TimelineIcon.ResultDismissed,
-            title = "Dismissed"
+            title = watchText("Dismissed", "알림을 지웠어요")
         )
     }
 
@@ -119,7 +120,7 @@ class AndroidNotificationActionHandler(
         return TimelineActionResult(
             success = true,
             icon = TimelineIcon.ResultMute,
-            title = "Muted"
+            title = watchText("Muted", "알림을 껐어요")
         )
     }
 
@@ -133,7 +134,7 @@ class AndroidNotificationActionHandler(
         return TimelineActionResult(
             success = true,
             icon = TimelineIcon.ResultMute,
-            title = "Muted"
+            title = watchText("Muted", "알림을 껐어요")
         )
     }
 

@@ -1,5 +1,6 @@
 package io.rebble.libpebblecommon.connection.endpointmanager.timeline
 
+import io.rebble.libpebblecommon.util.watchText
 import co.touchlab.kermit.Logger
 import io.rebble.libpebblecommon.SystemAppIDs.CALENDAR_APP_UUID
 import io.rebble.libpebblecommon.calendar.PlatformCalendarActionHandler
@@ -62,7 +63,7 @@ class TimelineActionManager(
                 TimelineActionResult(
                     success = true,
                     icon = TimelineIcon.ResultDeleted,
-                    title = "Removed",
+                    title = watchText("Removed", "삭제했어요"),
                 )
             }
             pin.content.parentId == CALENDAR_APP_UUID -> calendarActionHandler(pin, action)
@@ -120,7 +121,7 @@ class TimelineActionManager(
     private fun failedResult() = TimelineActionResult(
         success = false,
         icon = TimelineIcon.ResultFailed,
-        title = "Failed",
+        title = watchText("Failed", "실패했어요"),
     )
 }
 

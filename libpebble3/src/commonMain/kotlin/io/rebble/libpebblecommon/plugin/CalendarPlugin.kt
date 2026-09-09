@@ -1,5 +1,6 @@
 package io.rebble.libpebblecommon.plugin
 
+import io.rebble.libpebblecommon.util.watchText
 import io.rebble.libpebblecommon.calendar.CalendarEvent
 import io.rebble.libpebblecommon.calendar.SystemCalendar
 import io.rebble.libpebblecommon.connection.endpointmanager.blobdb.TimeProvider
@@ -160,7 +161,7 @@ class CalendarPlugin(
         const val PROPERTY_CALENDAR = "calendar"
 
         private const val PERMISSION = "Calendar"
-        private const val ALL_DAY_LABEL = "All day"
+        private val ALL_DAY_LABEL get() = watchText("All day", "하루 종일")
         private const val MAX_EVENTS = 10
         private val WINDOW = 7.days
         private val REFRESH_INTERVAL = 1.minutes

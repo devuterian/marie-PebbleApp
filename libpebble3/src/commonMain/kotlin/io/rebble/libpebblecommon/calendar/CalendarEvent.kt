@@ -1,5 +1,6 @@
 package io.rebble.libpebblecommon.calendar
 
+import io.rebble.libpebblecommon.util.watchText
 import io.rebble.libpebblecommon.SystemAppIDs.CALENDAR_APP_UUID
 import io.rebble.libpebblecommon.database.entity.CalendarEntity
 import io.rebble.libpebblecommon.database.entity.TimelinePin
@@ -105,12 +106,12 @@ object CalendarPinInternalType {
     const val CANCEL = "calendar_cancel"
 }
 
-/** Default English titles shown on the watch. Safe to localize without affecting dispatch. */
+/** Display titles; action dispatch uses CalendarPinInternalType. */
 private object DefaultTitles {
-    const val ACCEPT = "Accept"
-    const val MAYBE = "Maybe"
-    const val DECLINE = "Decline"
-    const val CANCEL = "Cancel"
+    val ACCEPT get() = watchText("Accept", "참석")
+    val MAYBE get() = watchText("Maybe", "미정")
+    val DECLINE get() = watchText("Decline", "불참")
+    val CANCEL get() = watchText("Cancel", "일정 취소")
 }
 
 fun CalendarEvent.toTimelinePin(
@@ -148,23 +149,29 @@ fun CalendarEvent.toTimelinePin(
                 }
             }.joinToString(", ")
             if (attendeesString.isNotBlank()) {
-                headings.add("Attendees")
+                headings.add(watchText("Attendees", "참석자"))
                 paragraphs.add(attendeesString)
             }
 
             val selfAttendee = attendees.find { it.isCurrentUser }
             if (selfAttendee?.attendanceStatus != null) {
-                headings.add("Status")
-                paragraphs.add(selfAttendee.attendanceStatus.name)
+                headings.add(watchText("Status", "참석 여부"))
+                paragraphs.add(when (selfAttendee.attendanceStatus) {
+                    EventAttendee.AttendanceStatus.None -> watchText("None", "응답 없음")
+                    EventAttendee.AttendanceStatus.Accepted -> watchText("Accepted", "참석")
+                    EventAttendee.AttendanceStatus.Declined -> watchText("Declined", "불참")
+                    EventAttendee.AttendanceStatus.Invited -> watchText("Invited", "응답 대기")
+                    EventAttendee.AttendanceStatus.Tentative -> watchText("Tentative", "미정")
+                })
             }
         }
 
         if (recurs) {
-            headings.add("Recurrence")
-            paragraphs.add("Recurs")
+            headings.add(watchText("Recurrence", "반복"))
+            paragraphs.add(watchText("Recurs", "반복 일정"))
         }
 
-        headings.add("Calendar")
+        headings.add(watchText("Calendar", "캘린더"))
         paragraphs.add(calendar.name)
 
         tinyIcon { TimelineIcon.TimelineCalendar }

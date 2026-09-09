@@ -45,3 +45,17 @@ Brand SVGs: https://github.com/devuterian/iconography
 Firmware: https://github.com/devuterian/marie-PebbleOS
 
 Changes were made with AI assistance (GPT-6 Astra).
+
+## Korean watch text
+
+App version 1.12.0.1-marie-ver005 localizes phone-generated watch text when the
+phone/app locale is Korean: sunrise/sunset pins, weather conditions and the
+Open-Meteo forecast template, calendar headings and RSVP actions, all-day labels,
+and notification actions/results. Event titles, names, notification content and
+internal action identifiers remain unchanged. Other locales retain English.
+Unrecognized server forecast prose is preserved rather than partially rewritten.
+Existing timeline pins receive the new text on the next weather/calendar sync.
+
+Validation: 326 Android host tests passed, including a Korean calendar pin test
+that checks action identifiers and preservation of event text, plus actual
+server weather-template translation cases. Android debug assembly passed.

@@ -1,5 +1,6 @@
 package io.rebble.libpebblecommon.io.rebble.libpebblecommon.notification
 
+import io.rebble.libpebblecommon.util.watchText
 import android.app.Notification
 import android.app.Notification.Action
 import android.app.PendingIntent
@@ -92,7 +93,7 @@ data class LibPebbleNotificationAction(
             val pendingIntent = notification.contentIntent ?: return null
             return LibPebbleNotificationAction(
                 packageName = packageName,
-                title = "Open on phone",
+                title = watchText("Open on phone", "휴대폰에서 열기"),
                 semanticAction = SemanticAction.None,
                 pendingIntent = pendingIntent,
                 type = ActionType.OpenOnPhone,
@@ -106,7 +107,7 @@ data class LibPebbleNotificationAction(
         ): LibPebbleNotificationAction? {
             return LibPebbleNotificationAction(
                 packageName = packageName,
-                title = "Dismiss",
+                title = watchText("Dismiss", "알림 지우기"),
                 semanticAction = SemanticAction.None,
                 pendingIntent = null,
                 type = ActionType.Dismiss,
@@ -117,7 +118,7 @@ data class LibPebbleNotificationAction(
         fun muteActionFrom(app: NotificationAppItem): LibPebbleNotificationAction? {
             return LibPebbleNotificationAction(
                 packageName = app.packageName,
-                title = "Mute ${app.name}",
+                title = watchText("Mute ${app.name}", "${app.name} 알림 끄기"),
                 semanticAction = SemanticAction.Mute,
                 pendingIntent = null,
                 type = ActionType.MuteApp,
@@ -132,7 +133,7 @@ data class LibPebbleNotificationAction(
             if (channel == null) return null
             return LibPebbleNotificationAction(
                 packageName = app.packageName,
-                title = "Mute Channel ${channel.name}",
+                title = watchText("Mute Channel ${channel.name}", "${channel.name} 채널 알림 끄기"),
                 semanticAction = SemanticAction.Mute,
                 pendingIntent = null,
                 type = ActionType.MuteChannel,

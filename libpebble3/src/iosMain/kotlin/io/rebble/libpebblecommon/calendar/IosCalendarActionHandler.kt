@@ -1,5 +1,6 @@
 package io.rebble.libpebblecommon.calendar
 
+import io.rebble.libpebblecommon.util.watchText
 import co.touchlab.kermit.Logger
 import io.rebble.libpebblecommon.database.entity.BaseAction
 import io.rebble.libpebblecommon.database.entity.TimelinePin
@@ -19,7 +20,7 @@ class IosCalendarActionHandler : PlatformCalendarActionHandler {
         return TimelineActionResult(
             success = false,
             icon = TimelineIcon.ResultFailed,
-            title = "Unsupported"
+            title = watchText("Unsupported", "지원하지 않아요")
         )
     }
 }

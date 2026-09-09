@@ -1,5 +1,6 @@
 package coredevices.pebble.weather
 
+import io.rebble.libpebblecommon.util.watchText
 import coredevices.database.WeatherLocationDao
 import coredevices.database.WeatherLocationEntity
 import io.rebble.libpebblecommon.connection.LibPebble
@@ -287,15 +288,15 @@ class WeatherPlugin(
         mapOf(SourceShapeNames.LONG_TEXT to encode(LongTextShape(conditionCodeOf(code))))
 
     private fun conditionName(code: Byte) = when (WeatherType.entries.firstOrNull { it.code == code }) {
-        WeatherType.PartlyCloudy -> "Partly cloudy"
-        WeatherType.CloudyDay -> "Cloudy"
-        WeatherType.LightSnow -> "Light snow"
-        WeatherType.LightRain -> "Light rain"
-        WeatherType.HeavyRain -> "Heavy rain"
-        WeatherType.HeavySnow -> "Heavy snow"
-        WeatherType.Sun -> "Sunny"
-        WeatherType.RainAndSnow -> "Rain and snow"
-        else -> "Unknown"
+        WeatherType.PartlyCloudy -> watchText("Partly cloudy", "구름 조금")
+        WeatherType.CloudyDay -> watchText("Cloudy", "흐림")
+        WeatherType.LightSnow -> watchText("Light snow", "약한 눈")
+        WeatherType.LightRain -> watchText("Light rain", "약한 비")
+        WeatherType.HeavyRain -> watchText("Heavy rain", "강한 비")
+        WeatherType.HeavySnow -> watchText("Heavy snow", "많은 눈")
+        WeatherType.Sun -> watchText("Sunny", "맑음")
+        WeatherType.RainAndSnow -> watchText("Rain and snow", "비와 눈")
+        else -> watchText("Unknown", "알 수 없음")
     }
 
     private inline fun <reified T> encode(value: T): JsonElement = Json.encodeToJsonElement(value)
