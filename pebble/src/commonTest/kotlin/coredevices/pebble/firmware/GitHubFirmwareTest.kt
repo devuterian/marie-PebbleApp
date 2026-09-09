@@ -121,7 +121,7 @@ class GitHubFirmwareTest {
     @Test
     fun prereleaseChannelUsesPublishedEligibleReleaseAndSkipsDrafts() {
         val stable = release("v4.37.0-ver005-egg-salad").copy(publishedAt = "2026-09-09T05:00:00Z")
-        val preview = release("v4.37.0-ver006-financier").copy(prerelease = true, publishedAt = "2026-09-09T09:00:00Z")
+        val preview = release("v4.37.0-ver006-flan").copy(prerelease = true, publishedAt = "2026-09-09T09:00:00Z")
         val draft = release("v4.37.0-ver007-g").copy(draft = true, publishedAt = "2026-09-09T10:00:00Z")
         val otherWatch = release("v4.37.0-ver008-h").copy(assets = emptyList(), publishedAt = "2026-09-09T11:00:00Z")
         val result = assertIs<FirmwareUpdateCheckResult.FoundUpdate>(
@@ -144,4 +144,13 @@ class GitHubFirmwareTest {
             listOf(preview.copy(publishedAt = "2026-09-09T05:00:00Z"))
                 .latestUpdateFor("obelix_pvt", running("v4.37.0-ver005-egg-salad")))
     }
+    @Test
+    fun newerStableReleaseWinsOverEarlierPreview() {
+        val preview = release("v4.37.0-ver006-flan").copy(prerelease = true, publishedAt = "2026-09-09T09:00:00Z")
+        val stable = release("v4.37.0-ver007-gelato").copy(publishedAt = "2026-09-10T09:00:00Z")
+        val result = assertIs<FirmwareUpdateCheckResult.FoundUpdate>(
+            listOf(preview, stable).latestUpdateFor("obelix_pvt", running(preview.tag)))
+        assertEquals(stable.tag, result.version.stringVersion)
+    }
+
 }
