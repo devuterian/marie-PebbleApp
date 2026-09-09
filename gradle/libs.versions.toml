@@ -49,6 +49,7 @@ mixpanel-android = "8.9.0"
 buildkonfig = "0.22.0"
 webview = "2.0.3"
 coil = "3.5.0"
+markdown = "0.43.0"
 uri = "0.0.21"
 algolia = "3.46.0"
 coredevices-speex = "c61d18a"
@@ -83,6 +84,8 @@ androidKotlinMultiplatformLibrary = { id = "com.android.kotlin.multiplatform.lib
 androidLint = { id = "com.android.lint", version.ref = "agp" }
 
 [libraries]
+markdown-m3 = { module = "com.mikepenz:multiplatform-markdown-renderer-m3", version.ref = "markdown" }
+markdown-coil3 = { module = "com.mikepenz:multiplatform-markdown-renderer-coil3", version.ref = "markdown" }
 # We need 1.10.x for floating action menu. 1.11.x alpha seems to be broken (search doesn't bring up keyboard)
 compose-material3 = { module = "org.jetbrains.compose.material3:material3", version = "1.10.0-alpha05" }
 backhandler = { module = "org.jetbrains.compose.ui:ui-backhandler", version.ref = "compose-multiplatform" }

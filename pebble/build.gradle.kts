@@ -98,6 +98,8 @@ kotlin {
                 implementation(libs.ktor.client.contentNegotiation)
                 implementation(libs.ktor.client.serialization.json)
                 implementation(libs.coil)
+                implementation(libs.markdown.m3)
+                implementation(libs.markdown.coil3)
                 implementation(libs.coil.ktor)
                 implementation(libs.webview)
                 implementation(libs.backhandler)

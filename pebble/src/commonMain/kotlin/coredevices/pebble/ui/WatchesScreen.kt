@@ -2200,7 +2200,7 @@ fun WatchDetails(
                 title = { Text("Install PebbleOS ${firmwareUpdateAvailable.version.stringVersion}") },
                 text = {
                     Column(Modifier.verticalScroll(rememberScrollState())) {
-                        Text(firmwareUpdateAvailable.notes)
+                        FirmwareReleaseNotes(firmwareUpdateAvailable.notes)
                     }
                 },
                 confirmButton = {

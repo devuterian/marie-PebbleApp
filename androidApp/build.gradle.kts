@@ -120,8 +120,8 @@ dependencies {
 androidComponents {
     onVariants { variant ->
         variant.outputs.forEach {
-            it.versionCode.set(gitVersionCode.map { it + 8 })
-            it.versionName.set(gitVersionName.map { "$it-marie-ver010" })
+            it.versionCode.set(gitVersionCode.map { it + 9 })
+            it.versionName.set(gitVersionName.map { "$it-marie-ver011" })
         }
     }
 }
