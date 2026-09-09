@@ -27,6 +27,20 @@ or account data were extracted. Fresh login, developer cloud connections and
 other credential-backed services have not been verified on a device. Other
 optional proprietary build credentials are not included.
 
+## Firmware updates
+
+Starting with app version 1.12.0.1-marie-ver004, Pebble Time 2 (obelix_pvt)
+checks the latest published stable release at devuterian/PebbleOAO on GitHub.
+It uses the release tag and the exact normal_obelix_pvt_<tag>.pbz asset;
+renaming the release title does not affect version checks. Drafts and
+prereleases are excluded. Base firmware versions and numeric ver revisions
+prevent repeated offers of the installed version or automatic downgrades.
+Other watch models keep their existing update sources.
+
+The public GitHub API needs no account token. Failed checks are retried on the
+next check; successful results use the existing 15-minute cache, which the
+manual update check bypasses.
+
 Brand SVGs: https://github.com/devuterian/iconography
 Firmware: https://github.com/devuterian/marie-PebbleOS
 

@@ -21,6 +21,7 @@ class FirmwareUpdateCheck(
     private val memfault: Memfault,
     private val engDashOta: EngDashOta,
     private val cohorts: Cohorts,
+    private val githubFirmware: GitHubFirmware,
     private val coreConfig: CoreConfigFlow,
     private val coreAnalytics: CoreAnalytics,
     private val clock: Clock = Clock.System,
@@ -75,6 +76,7 @@ class FirmwareUpdateCheck(
 
     private suspend fun doCheck(watch: WatchInfo): FirmwareUpdateCheckResult = when {
         watch.platform == UNKNOWN -> FirmwareUpdateCheckResult.UpdateCheckFailed("Unknown platform")
+        watch.platform == CORE_OBELIX_PVT -> githubFirmware.getLatestFirmware(watch)
         watch.platform.isCoreDevice() -> coreDeviceCheck(watch)
         else -> cohorts.getLatestFirmware(watch)
     }
