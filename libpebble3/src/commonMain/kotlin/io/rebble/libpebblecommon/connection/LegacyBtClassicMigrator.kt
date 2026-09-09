@@ -30,6 +30,7 @@ class LegacyBtClassicMigrator(
             if (row.transportType != TransportType.BluetoothLe) continue
             val watchType = WatchHardwarePlatform.fromHWRevision(row.watchType).watchType
             if (!watchType.supportsBtClassic()) continue
+            if (row.runningFwVersion.isMarieTimeFirmware()) continue
             try {
                 knownWatchDao.remove(row.transportIdentifier)
                 knownWatchDao.insertOrUpdate(
@@ -54,3 +55,6 @@ class LegacyBtClassicMigrator(
         private val logger = Logger.withTag("LegacyBtClassicMigrator")
     }
 }
+
+internal fun String.isMarieTimeFirmware(): Boolean =
+    startsWith("v4.3.0-ver") || startsWith("4.3.0-ver")

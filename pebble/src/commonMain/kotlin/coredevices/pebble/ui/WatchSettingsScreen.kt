@@ -917,8 +917,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { pebbleFeatures.supportsNotificationFiltering() },
                 ),
                 basicSettingsToggleItem(
-                    title = "Show legacy watches in BLE scan",
-                    description = "Allow Aplite/Basalt/Chalk watches to appear in BLE scan results. By default these only show via the Bluetooth Classic scan option.",
+                    title = "다른 구형 페블도 BLE 검색에 표시",
+                    description = "페블·페블 스틸·타임 라운드를 BLE 검색에도 표시합니다. 타임과 타임 스틸은 이 옵션과 관계없이 표시됩니다.",
                     topLevelType = TopLevelType.Phone,
                     section = Section.Connectivity,
                     checked = libPebbleConfig.watchConfig.allowLegacyWatchesInBleScan,

@@ -14,6 +14,7 @@ import io.rebble.libpebblecommon.connection.bt.ble.transport.BleScanner
 import io.rebble.libpebblecommon.connection.bt.classic.transport.ClassicScanner
 import io.rebble.libpebblecommon.di.LibPebbleCoroutineScope
 import io.rebble.libpebblecommon.metadata.WatchHardwarePlatform
+import io.rebble.libpebblecommon.metadata.WatchType
 import io.rebble.libpebblecommon.metadata.supportsBtClassic
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Job
@@ -160,7 +161,7 @@ class RealScanning(
     }
 
     /**
-     * Hide Aplite/Basalt/Chalk watches from BLE scan results on platforms that support BT Classic
+     * Hide Aplite/Chalk watches from BLE scan results on platforms that support BT Classic
      * (Android), so users go through the dedicated Classic scan instead. Older firmware without
      * extendedInfo can't be classified — we let those through pessimistically.
      */
@@ -169,7 +170,8 @@ class RealScanning(
         if (watchConfig.value.allowLegacyWatchesInBleScan) return false
         val hardwarePlatform = record.extendedInfo?.hardwarePlatform ?: return false
         val watchType = WatchHardwarePlatform.fromProtocolNumber(hardwarePlatform.toUByte()).watchType
-        return watchType.supportsBtClassic()
+        // Time/Steel custom firmware uses BLE even though the hardware supports Classic.
+        return shouldHideWatchFromBleScan(watchType)
     }
 
     companion object {
@@ -180,3 +182,6 @@ class RealScanning(
         private val CLASSIC_SCANNING_TIMEOUT = 30.seconds
     }
 }
+
+internal fun shouldHideWatchFromBleScan(watchType: WatchType): Boolean =
+    watchType != WatchType.BASALT && watchType.supportsBtClassic()

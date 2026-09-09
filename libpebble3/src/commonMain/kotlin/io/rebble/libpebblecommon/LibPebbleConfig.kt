@@ -89,7 +89,8 @@ data class WatchConfig(
     val unknownWatchTypePlatform: WatchType = WatchType.EMERY,
     /**
      * When true, BLE scan results include legacy classic-supporting Pebbles
-     * (Aplite/Basalt/Chalk). By default these are hidden so users go through the dedicated
+     * (Aplite/Chalk). Time and Time Steel are always visible for BLE-only firmware.
+     * By default Aplite/Chalk are hidden so users go through the dedicated
      * Bluetooth Classic scan instead.
      */
     val allowLegacyWatchesInBleScan: Boolean = false,
