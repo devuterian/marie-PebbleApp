@@ -35,12 +35,12 @@ class Memfault(
 ) {
     private val logger = Logger.withTag("Memfault")
 
-    suspend fun getLatestFirmware(watch: WatchInfo): FirmwareUpdateCheckResult {
+    suspend fun getLatestFirmware(watch: WatchInfo, reinstall: Boolean = false): FirmwareUpdateCheckResult {
         val token = CommonBuildKonfig.MEMFAULT_TOKEN
         if (token == null) {
             return FirmwareUpdateCheckResult.UpdateCheckFailed("No Memfault token")
         }
-        val versionString = if (watch.runningFwVersion.isRecovery) {
+        val versionString = if (watch.runningFwVersion.isRecovery || reinstall) {
             null
         } else {
             ensureVersionPrefix(watch.runningFwVersion.stringVersion)
@@ -86,7 +86,8 @@ class Memfault(
                     FirmwareUpdateCheckResult.FoundUpdate(
                         version = fwVersion,
                         notes = result.notes,
-                        url = result.artifacts.first().url
+                        url = result.artifacts.first().url,
+                        canDowngrade = reinstall
                     )
                 }
             } catch (e: NoTransformationFoundException) {

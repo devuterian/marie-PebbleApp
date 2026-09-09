@@ -155,6 +155,8 @@ import coredevices.ui.M3Dialog
 import coredevices.ui.PebbleElevatedButton
 import coredevices.util.CompanionDevice
 import coredevices.util.CoreConfig
+import io.rebble.libpebblecommon.metadata.WatchHardwarePlatform
+import coredevices.util.CoreConfigHolder
 import coredevices.util.CoreConfigFlow
 import coredevices.util.Permission
 import coredevices.util.PermissionRequester
@@ -1276,6 +1278,7 @@ fun WatchItem(
 
 @Composable
 fun WatchMenu(watch: PebbleDevice, navBarNav: NavBarNav) {
+    var showFirmwareSource by remember { mutableStateOf(false) }
     var showMenu by remember { mutableStateOf(false) }
     var debugMenuExpanded by remember { mutableStateOf(false) }
     var showRenameDialog by remember { mutableStateOf(false) }
@@ -1358,6 +1361,19 @@ fun WatchMenu(watch: PebbleDevice, navBarNav: NavBarNav) {
                         }
                     )
                 }
+            }
+
+            if (watch is ConnectedPebbleDevice &&
+                watch.watchInfo.platform == WatchHardwarePlatform.CORE_OBELIX_PVT) {
+                DropdownMenuItem(
+                    text = { Text("펌웨어 업데이트 경로") },
+                    enabled = !watch.firmwareUpdateAvailable.checkingForUpdates &&
+                        watch.firmwareUpdateState is FirmwareUpdater.FirmwareUpdateStatus.NotInProgress,
+                    onClick = {
+                        showMenu = false
+                        showFirmwareSource = true
+                    },
+                )
             }
 
             HorizontalDivider()
@@ -1711,6 +1727,35 @@ fun WatchMenu(watch: PebbleDevice, navBarNav: NavBarNav) {
                 }
             },
             confirmText = "OK",
+        )
+    }
+    if (showFirmwareSource && watch is ConnectedPebbleDevice) {
+        val holder = koinInject<CoreConfigHolder>()
+        val config by holder.config.collectAsState()
+        val serial = watch.watchInfo.serial
+        val official = serial in config.officialFirmwareWatches
+        fun selectSource(useOfficial: Boolean) {
+            val current = holder.config.value
+            holder.update(current.copy(officialFirmwareWatches =
+                if (useOfficial) current.officialFirmwareWatches + serial
+                else current.officialFirmwareWatches - serial))
+            showFirmwareSource = false
+            watch.checkforFirmwareUpdate(true)
+        }
+        AlertDialog(
+            onDismissRequest = { showFirmwareSource = false },
+            title = { Text("펌웨어 업데이트 경로") },
+            text = {
+                Text("현재: ${if (official) "공식 PebbleOS" else "Pebbleㅇㅅㅇ;;"}\n\n" +
+                    "선택한 경로에서 앞으로 업데이트를 찾아요. 공식 펌웨어로 돌아가면 " +
+                    "내장 한글과 커스텀 기능은 없어집니다. 설치는 업데이트 화면에서 따로 시작해요.")
+            },
+            confirmButton = {
+                TextButton(onClick = { selectSource(true) }) { Text("공식 PebbleOS") }
+            },
+            dismissButton = {
+                TextButton(onClick = { selectSource(false) }) { Text("Pebbleㅇㅅㅇ;;") }
+            },
         )
     }
     if (showForgetDialog && watch is KnownPebbleDevice) {

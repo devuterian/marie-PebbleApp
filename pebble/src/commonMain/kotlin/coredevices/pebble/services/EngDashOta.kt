@@ -30,7 +30,7 @@ class EngDashOta(
 ) {
     private val logger = Logger.withTag("EngDashOta")
 
-    suspend fun getLatestFirmware(watch: WatchInfo): FirmwareUpdateCheckResult {
+    suspend fun getLatestFirmware(watch: WatchInfo, reinstall: Boolean = false): FirmwareUpdateCheckResult {
         val baseUrl = CommonBuildKonfig.BUG_URL
             ?: return FirmwareUpdateCheckResult.UpdateCheckFailed("No eng-dash URL configured")
         val token = pebbleHttpClient.authFor(HttpClientAuthType.Core)
@@ -39,7 +39,7 @@ class EngDashOta(
                 token?.let { bearerAuth(token) }
                 parameter("device_serial", watch.serialForMemfault())
                 parameter("hardware_version", watch.platform.revision)
-                if (!watch.runningFwVersion.isRecovery) {
+                if (!watch.runningFwVersion.isRecovery && !reinstall) {
                     parameter(
                         "current_version",
                         ensureVersionPrefix(watch.runningFwVersion.stringVersion),
@@ -69,7 +69,7 @@ class EngDashOta(
                         version = fwVersion,
                         notes = result.notes.orEmpty(),
                         url = result.artifacts.first().url,
-                        canDowngrade = result.isDowngrade,
+                        canDowngrade = result.isDowngrade || reinstall,
                     )
                 }
             } catch (e: NoTransformationFoundException) {

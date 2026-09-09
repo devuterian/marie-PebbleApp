@@ -99,6 +99,7 @@ data class CoreConfig(
     val showWatchConnectionDebugInfo: Boolean = false,
     val notifyWatchFullyCharged: Boolean = true,
     val useEngDashOta: Boolean = true,
+    val officialFirmwareWatches: Set<String> = emptySet(),
 )
 
 @Serializable

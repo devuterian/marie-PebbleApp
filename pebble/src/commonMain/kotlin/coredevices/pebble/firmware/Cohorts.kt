@@ -19,7 +19,7 @@ class Cohorts(
 ) {
     private val logger = Logger.withTag("Cohorts")
 
-    suspend fun getLatestFirmware(watch: WatchInfo): FirmwareUpdateCheckResult {
+    suspend fun getLatestFirmware(watch: WatchInfo, reinstall: Boolean = false): FirmwareUpdateCheckResult {
         logger.v { "getLatestFirmware" }
         val hardware = watch.platform.revision
         val platform = bootConfigPlatform()
@@ -57,11 +57,12 @@ class Cohorts(
             logger.e { "Couldn't parse firmware version from response" }
             return FirmwareUpdateCheckResult.UpdateCheckFailed("Failed to check for PebbleOS update")
         }
-        if (watch.runningFwVersion.isRecovery || latestFwVersion > watch.runningFwVersion) {
+        if (reinstall || watch.runningFwVersion.isRecovery || latestFwVersion > watch.runningFwVersion) {
             return FirmwareUpdateCheckResult.FoundUpdate(
                 version = latestFwVersion,
                 url = normalFw.url,
                 notes = normalFw.notes.orEmpty(),
+                canDowngrade = reinstall,
             )
         } else {
             return FirmwareUpdateCheckResult.FoundNoUpdate

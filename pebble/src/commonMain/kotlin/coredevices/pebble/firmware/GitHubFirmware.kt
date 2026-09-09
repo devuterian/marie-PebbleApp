@@ -11,6 +11,15 @@ import kotlinx.serialization.Serializable
 import kotlin.time.Instant
 
 class GitHubFirmware(private val httpClient: PebbleHttpClient) {
+    suspend fun getLatestOfficialFirmware(watch: WatchInfo, reinstall: Boolean): FirmwareUpdateCheckResult {
+        val release: GitHubFirmwareRelease? = httpClient.get(
+            "https://api.github.com/repos/coredevices/PebbleOS/releases/latest",
+            auth = HttpClientAuthType.None,
+        )
+        return release?.officialUpdateFor(watch.platform.revision, watch.runningFwVersion, reinstall)
+            ?: FirmwareUpdateCheckResult.UpdateCheckFailed("공식 펌웨어를 확인하지 못했어요. 잠시 후 다시 시도해주세요.")
+    }
+
     suspend fun getLatestFirmware(watch: WatchInfo): FirmwareUpdateCheckResult {
         val release: GitHubFirmwareRelease? = httpClient.get(
             "https://api.github.com/repos/devuterian/PebbleOAO/releases/latest",
@@ -29,6 +38,27 @@ internal data class GitHubFirmwareRelease(
     val body: String? = null,
     val assets: List<GitHubFirmwareAsset>,
 ) {
+    fun officialUpdateFor(
+        hardware: String,
+        running: FirmwareVersion,
+        reinstall: Boolean,
+    ): FirmwareUpdateCheckResult {
+        if (draft || prerelease) return FirmwareUpdateCheckResult.FoundNoUpdate
+        if (!Regex("""^v\d+\.\d+\.\d+$""").matches(tag)) {
+            return FirmwareUpdateCheckResult.UpdateCheckFailed("공식 릴리즈의 버전을 읽지 못했어요.")
+        }
+        val asset = assets.singleOrNull { it.name == "normal_${hardware}_${tag}.pbz" }
+            ?: return FirmwareUpdateCheckResult.UpdateCheckFailed("공식 릴리즈에 이 시계용 펌웨어가 없어요.")
+        val version = FirmwareVersion.from(tag, false, "", Instant.fromEpochSeconds(0), false, false)
+            ?: return FirmwareUpdateCheckResult.UpdateCheckFailed("공식 릴리즈의 버전을 읽지 못했어요.")
+        val newer = compareValuesBy(version, running, { it.major }, { it.minor }, { it.patch }) > 0
+        return if (reinstall || running.isRecovery || newer) {
+            FirmwareUpdateCheckResult.FoundUpdate(version, asset.url, body.orEmpty(), canDowngrade = reinstall)
+        } else {
+            FirmwareUpdateCheckResult.FoundNoUpdate
+        }
+    }
+
     fun updateFor(hardware: String, running: FirmwareVersion): FirmwareUpdateCheckResult {
         if (draft || prerelease) return FirmwareUpdateCheckResult.FoundNoUpdate
         val revision = marieRevision(tag)
@@ -64,3 +94,5 @@ private val MARIE_VERSION = Regex("""^v?\d+\.\d+\.\d+-ver(\d+)-[a-z][a-z0-9-]*$"
 
 private fun marieRevision(tag: String): Int? =
     MARIE_VERSION.matchEntire(tag)?.groupValues?.get(1)?.toIntOrNull()
+
+internal fun FirmwareVersion.isMarieFirmware(): Boolean = marieRevision(stringVersion) != null

@@ -79,4 +79,43 @@ class GitHubFirmwareTest {
         assertIs<FirmwareUpdateCheckResult.UpdateCheckFailed>(release("not-a-version")
             .updateFor("obelix_pvt", running("v4.37.0")))
     }
+
+    @Test
+    fun officialReturnAllowsSameBaseAndOlderFirmware() {
+        for (tag in listOf("v4.37.0", "v4.36.2")) {
+            val update = assertIs<FirmwareUpdateCheckResult.FoundUpdate>(
+                release(tag).officialUpdateFor("obelix_pvt", running("v4.37.0-ver005-egg-salad"), true))
+            assertEquals(tag, update.version.stringVersion)
+            assertEquals(true, update.canDowngrade)
+        }
+    }
+
+    @Test
+    fun officialUpdatesDoNotLoopAfterReturningToStock() {
+        assertEquals(FirmwareUpdateCheckResult.FoundNoUpdate,
+            release("v4.37.0").officialUpdateFor("obelix_pvt", running("v4.37.0"), false))
+        assertIs<FirmwareUpdateCheckResult.FoundUpdate>(
+            release("v4.38.0").officialUpdateFor("obelix_pvt", running("v4.37.0"), false))
+    }
+
+    @Test
+    fun officialReturnRejectsUnsafeOrMissingBundles() {
+        val current = running("v4.37.0-ver005-egg-salad")
+        for (r in listOf(release("v4.37.0").copy(draft = true), release("v4.37.0").copy(prerelease = true))) {
+            assertEquals(FirmwareUpdateCheckResult.FoundNoUpdate, r.officialUpdateFor("obelix_pvt", current, true))
+        }
+        for (r in listOf(release("v4.37.0-beta1"), release("v4.37.0").copy(assets = listOf(
+            GitHubFirmwareAsset("normal_obelix_pvt_v4.37.0_slot0.pbz", "unused"))),
+            release("v4.37.0").copy(assets = emptyList()))) {
+            assertIs<FirmwareUpdateCheckResult.UpdateCheckFailed>(r.officialUpdateFor("obelix_pvt", current, true))
+        }
+    }
+
+    @Test
+    fun onlyMarieFirmwareEnablesExplicitReturn() {
+        assertEquals(true, running("v4.37.0-ver005-egg-salad").isMarieFirmware())
+        for (tag in listOf("v4.37.0", "v4.37.0-beta1", "v4.37.0-1-g123abcd")) {
+            assertEquals(false, running(tag).isMarieFirmware())
+        }
+    }
 }
