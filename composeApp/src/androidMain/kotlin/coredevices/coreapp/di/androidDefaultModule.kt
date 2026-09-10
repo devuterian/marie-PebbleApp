@@ -71,7 +71,7 @@ val androidDefaultModule = module {
             }
         )
     }
-    single { createAndroidAnalytics(get()) }
+    single { createAndroidAnalytics(get(), get()) }
     singleOf(::ModelDownloadManager)
     singleOf(::PebbleBackgroundManager)
 }

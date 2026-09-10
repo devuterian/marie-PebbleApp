@@ -120,8 +120,8 @@ dependencies {
 androidComponents {
     onVariants { variant ->
         variant.outputs.forEach {
-            it.versionCode.set(gitVersionCode.map { it + 12 })
-            it.versionName.set(gitVersionName.map { "$it-marie-ver014" })
+            it.versionCode.set(gitVersionCode.map { it + 13 })
+            it.versionName.set(gitVersionName.map { "$it-marie-ver015" })
         }
     }
 }
@@ -189,3 +189,8 @@ tasks.register("buildTestAppPbws") {
 // model of the source sets — has to run after they land.
 tasks.matching { it.name.contains("Assets") || it.name.contains("lint", ignoreCase = true) }
     .configureEach { dependsOn(testAppPbws) }
+
+// Fail before packaging if required public service settings were omitted.
+tasks.matching { it.name == "preReleaseBuild" }.configureEach {
+    dependsOn(":util:validateMarieReleaseConfig")
+}

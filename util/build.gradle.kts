@@ -2,6 +2,7 @@
 import com.codingfeline.buildkonfig.compiler.FieldSpec
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
+import java.net.URI
 
 plugins {
     alias(libs.plugins.kotlin.multiplatform)
@@ -207,5 +208,23 @@ buildkonfig {
         buildConfigField(FieldSpec.Type.STRING, "CACTUS_LM_MODEL_NAME", "needle-pebble-ft")
         buildConfigField(FieldSpec.Type.STRING, "CACTUS_WEIGHTS_VERSION", "v2.1.0")
         buildConfigField(FieldSpec.Type.STRING, "CACTUS_WEIGHTS_VERSION_ENG", "v2.0.1")
+    }
+}
+
+val marieServiceConfig = listOf(
+    "bugUrl", "tokenUrl", "googleClientId", "memfaultToken", "mixpanelToken",
+    "wisprAuthUrl", "kirinkiUrl",
+).associateWith { gradleStringPropOrNull(it) }
+tasks.register("validateMarieReleaseConfig") {
+    val serviceConfig = marieServiceConfig
+    doLast {
+        val missing = serviceConfig.filterValues { it.isNullOrBlank() || it == "replaceme" }.keys
+        check(missing.isEmpty()) { "Missing Marie release settings: ${missing.joinToString()}" }
+        serviceConfig.filterKeys { it.endsWith("Url") }.forEach { (name, value) ->
+            val uri = URI(value!!)
+            check(uri.scheme == "https" && !uri.host.isNullOrBlank()) {
+                "Marie release setting $name must be an HTTPS URL"
+            }
+        }
     }
 }
