@@ -121,8 +121,8 @@ dependencies {
 androidComponents {
     onVariants { variant ->
         variant.outputs.forEach {
-            it.versionCode.set(gitVersionCode.map { it + 16 })
-            it.versionName.set(gitVersionName.map { "$it-marie-ver018" })
+            it.versionCode.set(gitVersionCode.map { it + 17 })
+            it.versionName.set(gitVersionName.map { "$it-marie-ver019" })
         }
     }
 }
