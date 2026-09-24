@@ -56,6 +56,8 @@ import coredevices.ui.M3Dialog
 import coredevices.util.CoreConfigHolder
 import coredevices.util.models.CactusSTTMode
 import coredevices.util.models.ModelDownloadStatus
+import coredevices.util.models.inProgressSlug
+import coredevices.util.models.inProgress
 import coredevices.util.models.ModelInfo
 import coredevices.util.models.ModelManager
 import coredevices.util.models.RecommendedModel
@@ -90,7 +92,7 @@ class ModelManagementScreenViewModel(
     init {
         viewModelScope.launch {
             modelDownloadState.drop(1).collect {
-                if (it !is ModelDownloadStatus.Downloading) {
+                if (!it.inProgress) {
                     refreshDownloadedModels()
                 }
             }
@@ -283,12 +285,7 @@ fun ModelManagementScreen(
         topBarParams.actions {}
     }
     val downloadingModelSlug by remember {
-        derivedStateOf {
-            when (val status = downloadStatus.value) {
-                is ModelDownloadStatus.Downloading -> status.modelSlug
-                else -> null
-            }
-        }
+        derivedStateOf { downloadStatus.value.inProgressSlug }
     }
     Box(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
         Scaffold { paddingValues ->

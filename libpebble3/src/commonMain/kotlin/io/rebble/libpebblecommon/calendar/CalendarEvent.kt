@@ -90,7 +90,14 @@ fun CalendarEvent.toTimelineReminder(timestamp: Instant, pinUuid: Uuid, vibePatt
             }
         }
         actions {
-            // TODO actions
+            // The watch's notification popup hides its action button entirely when an
+            // item carries no actions of its own (prv_should_provide_action_menu_for_item
+            // in notification_window.c), and the firmware only offers its own Snooze
+            // inside that menu. Without at least one action here, a calendar reminder
+            // buzzes but can be neither dismissed nor snoozed.
+            action(TimelineItem.Action.Type.Dismiss) {
+                attributes { title { DefaultTitles.DISMISS } }
+            }
         }
     }
 
@@ -109,6 +116,7 @@ object CalendarPinInternalType {
 /** Display titles; action dispatch uses CalendarPinInternalType. */
 private object DefaultTitles {
     val ACCEPT get() = watchText("Accept", "참석")
+    val DISMISS get() = watchText("Dismiss", "닫기")
     val MAYBE get() = watchText("Maybe", "미정")
     val DECLINE get() = watchText("Decline", "불참")
     val CANCEL get() = watchText("Cancel", "일정 취소")

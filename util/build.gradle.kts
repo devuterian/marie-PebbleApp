@@ -127,6 +127,8 @@ kotlin {
         commonTest {
             dependencies {
                 implementation(libs.kotlin.test)
+                implementation(libs.coroutines.test)
+                implementation(libs.settings.test)
             }
         }
 
@@ -206,8 +208,9 @@ buildkonfig {
         buildConfigField(FieldSpec.Type.STRING, "CACTUS_STT_MODEL", "parakeet-tdt-0.6b-v3")
         buildConfigField(FieldSpec.Type.STRING, "CACTUS_STT_MODEL_ENG", "parakeet-tdt-0.6b-v2")
         buildConfigField(FieldSpec.Type.STRING, "CACTUS_LM_MODEL_NAME", "needle-pebble-ft")
-        buildConfigField(FieldSpec.Type.STRING, "CACTUS_WEIGHTS_VERSION", "v2.1.0")
-        buildConfigField(FieldSpec.Type.STRING, "CACTUS_WEIGHTS_VERSION_ENG", "v2.0.1")
+        buildConfigField(FieldSpec.Type.STRING, "CACTUS_LM_WEIGHTS_VERSION", "v2.1.0")
+        buildConfigField(FieldSpec.Type.STRING, "CACTUS_STT_WEIGHTS_VERSION", "v2.2.0")
+        buildConfigField(FieldSpec.Type.STRING, "CACTUS_STT_ENG_WEIGHTS_VERSION", "v2.2.0")
     }
 }
 

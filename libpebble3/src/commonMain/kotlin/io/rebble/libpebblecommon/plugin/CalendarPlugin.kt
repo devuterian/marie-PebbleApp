@@ -52,7 +52,9 @@ class CalendarPlugin(
                 PROPERTY_CALENDAR to listOf(SourceShapeNames.SHORT_TEXT),
             ),
             supportsMultiple = true,
-            usesPermissions = listOf(PluginPermission(PERMISSION)),
+            // Nobody grants the calendar to the calendar: this plugin is the root of the data,
+            // so the permission it is named after is what it asks of whoever reads it.
+            callerPermissions = listOf(PluginPermission(PluginPermissions.CALENDAR)),
             suggestedRefreshIntervalSec = 300,
         ),
     )

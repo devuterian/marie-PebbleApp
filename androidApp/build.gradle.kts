@@ -97,6 +97,7 @@ dependencies {
     // Components this module's manifest declares, so lint can resolve them.
     implementation(project(":util"))
     implementation(libs.androidx.core.ktx)
+    implementation(libs.androidx.work)
     implementation(libs.health.kmp)
 
     androidTestImplementation(platform(libs.firebase.bom))
@@ -152,6 +153,12 @@ fun registerTestAppBuild(name: String) =
         workingDir = appDir
         executable = pebble?.absolutePath ?: "pebble"
         args("build")
+        // The SDK's bundle step reads build/appinfo.json but doesn't list it in the task's
+        // dep_nodes (see waflib/extras/process_bundle.py), so a package.json edit that only
+        // reaches appinfo — messageKeys, targetPlatforms, usesPermissions — regenerates it
+        // without re-zipping the pbw. Deleting the pbw forces that step; source edits don't
+        // need it, since sources are declared dependencies.
+        doFirst { pbw.delete() }
         doLast {
             listOf(androidAsset, iosResource).forEach { destination ->
                 destination.parentFile.mkdirs()

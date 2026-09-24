@@ -9,16 +9,19 @@ import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.LocalContext
 import co.touchlab.kermit.Logger
 import coredevices.libindex.device.KnownIndexDevice
+import coredevices.util.CompanionDevice
 import coredevices.util.Permission
 import io.rebble.libpebblecommon.connection.AppContext
 import localization.localized
 import java.io.ByteArrayOutputStream
 import java.net.NetworkInterface
+import org.koin.compose.koinInject
 
 actual fun ImageBitmap.toPngBytes(): ByteArray {
     val out = ByteArrayOutputStream()
@@ -68,10 +71,21 @@ actual fun RemovePairingMenuItem(
     onHideMenu: () -> Unit
 ) {
     val context = LocalContext.current
+    val companionDevice = koinInject<CompanionDevice>()
+    val canForget = remember(ring.identifier) { companionDevice.canRemoveBond(ring.identifier) }
     DropdownMenuItem(
-        text = { Text(localized("Remove in Android settings", "Android 설정에서 제거")) },
+        text = {
+            Text(
+                if (canForget) localized("Forget", "등록 해제")
+                else localized("Remove in Android settings", "Android 설정에서 제거")
+            )
+        },
         leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
         onClick = {
+            if (canForget && companionDevice.removeBond(ring.identifier)) {
+                onHideMenu()
+                return@DropdownMenuItem
+            }
             val intent = Intent(Settings.ACTION_BLUETOOTH_SETTINGS)
             intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
             try {

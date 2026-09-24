@@ -97,6 +97,7 @@ import androidx.compose.material3.ToggleFloatingActionButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
@@ -448,6 +449,11 @@ fun WatchesScreen(navBarNav: NavBarNav, topBarParams: TopBarParams) {
                 )
             )
             val rings by libIndex.rings.collectAsState()
+            val ringPairing by remember {
+                derivedStateOf {
+                    rings.any { (it as? PairableIndexDevice)?.pairingState == IndexPairingState.Pairing }
+                }
+            }
             val entriesFlow = remember {
                 combine(watchesFlow, libIndex.rings) { sortedWatches, rings ->
                     rings.map { DeviceListEntry.Ring(it) } +
@@ -511,7 +517,7 @@ fun WatchesScreen(navBarNav: NavBarNav, topBarParams: TopBarParams) {
                         )
                     }
                 }
-                if (scanningStatus != ScanningStatus.NotScanning) {
+                if (scanningStatus != ScanningStatus.NotScanning && !ringPairing) {
                     Text(
                         text = localized("Scanning for devices..."),
                         modifier = Modifier.align(Alignment.CenterHorizontally).padding(5.dp)
@@ -793,6 +799,7 @@ fun RingItem(
     val platform = koinInject<Platform>()
     val companionDevice = koinInject<CompanionDevice>()
     val libIndex = koinInject<LibIndex>()
+    val coreConfig by koinInject<CoreConfigFlow>().flow.collectAsState()
     val uiContext = rememberUiContext()
     var showRingAlreadyPairedDialog by remember { mutableStateOf(false) }
     var companionApproved by remember(ring.identifier) {
@@ -807,13 +814,14 @@ fun RingItem(
             )
         },
         supportingContent = {
-            val stateText = when (ring) {
-                is DiscoveredIndexDevice -> when (ring.currentImage) {
+            val stateText = when {
+                ring is DiscoveredIndexDevice -> when (ring.currentImage) {
                     IndexImage.Failsafe -> localized("Failsafe mode")
                     IndexImage.ProductionTest -> localized("Production test mode")
                     IndexImage.Primary -> localized("Available to pair")
                 }
-                is InterviewedIndexDevice if (ring.updating) -> localized("Updating...")
+                ring is InterviewedIndexDevice && ring.updating -> localized("Updating...")
+                coreConfig.disableRingBluetoothSync -> localized("Bluetooth Sync Disabled")
                 else -> localized("Ready")
             }
             Column {
@@ -857,6 +865,7 @@ fun RingItem(
                                 onClick = {
                                     scope.launch {
                                         uiContext?.let { companionDevice.registerDevice(ring.identifier, it, false) }
+                                        companionApproved = companionDevice.hasApprovedDevice(ring.identifier)
                                         val result = try {
                                             ring.pair()
                                         } catch (e: Exception) {
@@ -940,7 +949,7 @@ fun RingItem(
                     }
                     else -> {}
                 }
-                if (ring is KnownIndexDevice && !companionApproved) {
+                if (ring is KnownIndexDevice && !companionApproved && !coreConfig.disableRingBluetoothSync) {
                     Text(
                         text = localized("Limited background access"),
                         color = MaterialTheme.colorScheme.error,

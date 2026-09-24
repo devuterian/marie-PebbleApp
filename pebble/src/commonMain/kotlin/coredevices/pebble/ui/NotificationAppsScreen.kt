@@ -1,7 +1,8 @@
 package coredevices.pebble.ui
 
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
 import localization.localized
-
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement.SpaceEvenly
@@ -13,10 +14,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Done
@@ -52,6 +53,8 @@ import io.rebble.libpebblecommon.database.entity.MuteState
 import io.rebble.libpebblecommon.database.entity.everNotified
 import io.rebble.libpebblecommon.database.isAfter
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.milliseconds
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
@@ -64,6 +67,8 @@ class NotificationAppsScreenViewModel : ViewModel() {
     val sortAscending = mutableStateOf(false)
     val showSystemApps = mutableStateOf(false)
 }
+
+private var hasShownNotificationFilterScrollHint = false
 
 @Composable
 fun NotificationAppsScreen(topBarParams: TopBarParams, nav: NavBarNav, gotoDefaultTab: () -> Unit) {
@@ -149,6 +154,27 @@ fun NotificationAppsScreen(topBarParams: TopBarParams, nav: NavBarNav, gotoDefau
         Column {
             if (pebbleFeatures.supportsNotificationAppSorting()) {
                 val filterScrollState = rememberScrollState()
+                // Keyed with Unit, not the flag: a key change cancels the in-flight peek on the next recomposition.
+                LaunchedEffect(Unit) {
+                    if (!hasShownNotificationFilterScrollHint && filterScrollState.maxValue > 0) {
+                        hasShownNotificationFilterScrollHint = true
+                        // Wait a small bit for the layout to settle and user to focus
+                        delay(500.milliseconds)
+
+                        // Scroll right 60dp (approximate)
+                        filterScrollState.animateScrollTo(
+                            value = 150,
+                            animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing)
+                        )
+                        // Wait a moment at the "peek" position
+                        delay(200)
+                        // Scroll back to start
+                        filterScrollState.animateScrollTo(
+                            value = 0,
+                            animationSpec = tween(durationMillis = 600, easing = FastOutSlowInEasing)
+                        )
+                    }
+                }
                 Box(
                     modifier = Modifier
                         .fillMaxWidth()

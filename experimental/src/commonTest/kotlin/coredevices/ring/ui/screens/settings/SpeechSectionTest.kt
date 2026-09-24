@@ -1,7 +1,10 @@
 package coredevices.ring.ui.screens.settings
 
 import coredevices.util.models.CactusSTTMode
+import coredevices.util.models.ModelDownloadStatus
 import coredevices.util.models.ModelInfo
+import coredevices.util.transcription.SpeechModelAvailability
+import coredevices.util.transcription.spokenLanguageLabel
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -47,6 +50,23 @@ class SpeechSectionTest {
 
         assertEquals("Not selectable for this speech model", spokenLanguageRowSubtitle("fr", selectable = false))
         assertEquals("Automatic", spokenLanguageRowSubtitle(null, selectable = true))
+    }
+
+    @Test
+    fun thePlatformEngineNeedsItsOwnModelDownloadNotACactusOne() {
+        assertTrue(speechEngineNeedsDownload(CactusSTTMode.PlatformOnly, onDeviceSupported = false, hasOfflineModels = false, platformModelNeedsDownload = true))
+        assertFalse(speechEngineNeedsDownload(CactusSTTMode.PlatformOnly, onDeviceSupported = true, hasOfflineModels = false, platformModelNeedsDownload = false))
+        assertTrue(speechEngineNeedsDownload(CactusSTTMode.LocalOnly, onDeviceSupported = true, hasOfflineModels = false, platformModelNeedsDownload = false))
+        assertFalse(speechEngineNeedsDownload(CactusSTTMode.RemoteOnly, onDeviceSupported = true, hasOfflineModels = false, platformModelNeedsDownload = true))
+    }
+
+    @Test
+    fun platformModelRowDescribesTheLanguageAndItsState() {
+        val idle = ModelDownloadStatus.Idle
+        val language = spokenLanguageLabel("nl")
+        assertEquals("$language · Not downloaded", platformModelSubtitle("nl", SpeechModelAvailability.NotDownloaded, idle))
+        assertEquals("$language · Downloaded", platformModelSubtitle("nl", SpeechModelAvailability.Installed, idle))
+        assertEquals("Automatic · Downloading 42%", platformModelSubtitle(null, SpeechModelAvailability.NotDownloaded, ModelDownloadStatus.Downloading("platform-native", 0.42f)))
     }
 
     @Test

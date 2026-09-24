@@ -31,6 +31,7 @@ data class LibPebbleNotification(
     val timestamp: Instant,
     val title: String?,
     val body: String?,
+    val sender: String? = null,
     val icon: TimelineIcon,
     val actions: List<LibPebbleNotificationAction>,
     val people: List<ContactEntity>,
@@ -122,6 +123,9 @@ data class LibPebbleNotification(
             }
             body?.let {
                 body { it }
+            }
+            sender?.let {
+                sender { it }
             }
             color?.let {
                 backgroundColor { it.toPebbleColor() }
