@@ -1,5 +1,7 @@
 package coredevices.coreapp.ui.screens
 
+import localization.localized
+
 import CommonRoutes
 import CoreNav
 import DocumentAttachment
@@ -190,11 +192,11 @@ fun BugReportScreen(
         var screenshotLoading by remember { mutableStateOf(false) }
 
         fun sendLogs(shareLocally: Boolean) {
-            if (isThirdPartyTest()) return
+            if (isThirdPartyTest() && !shareLocally) return
 
             // Check if user is signed in before proceeding
             if (user == null && !shareLocally) {
-                setStatus("Please sign in before submitting a bug report")
+                setStatus(localized("Please sign in before submitting a bug report"))
                 return
             }
 
@@ -205,7 +207,7 @@ fun BugReportScreen(
                 // Extract Google ID token from current user
                 val currentUser = user
                 if (currentUser == null && !shareLocally) {
-                    setStatus("Please sign in before submitting a bug report")
+                    setStatus(localized("Please sign in before submitting a bug report"))
                     setSending(false)
                     return@launch
                 }
@@ -267,14 +269,14 @@ fun BugReportScreen(
                         }
 
                         BugReportState.Creating -> {
-                            setStatus("Creating bug report...")
+                            setStatus(localized("Creating bug report..."))
                         }
 
                         BugReportState.GatheringWatchLogs -> {
                             if (!shareLocally) {
                                 coreNav.goBack()
                             } else {
-                                setStatus("Gathering Watch Logs")
+                                setStatus(localized("Gathering Watch Logs"))
                             }
                         }
 
@@ -308,7 +310,7 @@ fun BugReportScreen(
             snackbarHost = { SnackbarHost(snackbarHostState) },
             topBar = {
                 TopAppBar(
-                    title = { Text("Bug Report") },
+                    title = { Text(localized("Bug Report")) },
                     navigationIcon = {
                         IconButton(onClick = coreNav::goBack) {
                             Icon(
@@ -325,7 +327,7 @@ fun BugReportScreen(
                                 sendLogs(shareLocally = true)
                             },
                             icon = Icons.Filled.Share,
-                            description = "Share",
+                            description = localized("Share"),
                         )
                     },
                 )
@@ -369,20 +371,20 @@ fun BugReportScreen(
                                 showSuccess -> {
                                     Icon(
                                         Icons.Default.Check,
-                                        "Success",
+                                        localized("Success"),
                                         modifier = Modifier.size(ButtonDefaults.IconSize),
                                         tint = MaterialTheme.colorScheme.onPrimary
                                     )
                                     Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                    Text("Report Sent!")
+                                    Text(localized("Report Sent!"))
                                 }
 
                                 else -> {
-                                    Text("Send Report")
+                                    Text(localized("Send Report"))
                                     Spacer(Modifier.size(ButtonDefaults.IconSpacing))
                                     Icon(
                                         Icons.Default.ChevronRight,
-                                        "Send",
+                                        localized("Send"),
                                         modifier = Modifier.size(ButtonDefaults.IconSize)
                                     )
                                 }
@@ -403,13 +405,13 @@ fun BugReportScreen(
                     modifier = Modifier.height(200.dp).fillMaxWidth().padding(16.dp),
                     value = userMessage,
                     onValueChange = setUserMessage,
-                    label = { Text("Please describe the bug") },
+                    label = { Text(localized("Please describe the bug")) },
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.Sentences
                     )
                 )
                 if (coreConfig.enableIndex) {
-                    Text("This is a:", modifier = Modifier.padding(top = 8.dp))
+                    Text(localized("This is a:"), modifier = Modifier.padding(top = 8.dp))
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.padding(horizontal = 16.dp)
@@ -420,18 +422,18 @@ fun BugReportScreen(
                                 isWatch = false
                                 watchScreenshot = null
                             },
-                            label = { Text("Index bug") }
+                            label = { Text(localized("Index bug")) }
                         )
                         FilterChip(
                             selected = isWatch,
                             onClick = { isWatch = true },
-                            label = { Text("Watch bug") }
+                            label = { Text(localized("Watch bug")) }
                         )
                     }
                 }
                 if (user == null) {
                     Text(
-                        "You must sign in to submit a bug report",
+                        localized("You must sign in to submit a bug report"),
                         textAlign = TextAlign.Center,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(4.dp),
@@ -440,7 +442,7 @@ fun BugReportScreen(
                     Button(
                         onClick = { showSignInDialog = true },
                     ) {
-                        Text("Sign In")
+                        Text(localized("Sign In"))
                     }
                     Spacer(Modifier.height(8.dp))
                 }
@@ -452,7 +454,7 @@ fun BugReportScreen(
                         ) { setSendRecording(!sendRecording) }) {
                         Checkbox(sendRecording, { setSendRecording(it) }, enabled = !sending)
                         Text(
-                            "Include recording",
+                            localized("Include recording"),
                             modifier = Modifier.align(Alignment.CenterVertically)
                         )
                     }
@@ -465,7 +467,7 @@ fun BugReportScreen(
                         ) { setSendRecentRecordings(!sendRecentRecordings) }) {
                         Checkbox(sendRecentRecordings, { setSendRecentRecordings(it) }, enabled = !sending)
                         Text(
-                            "Include recent recordings",
+                            localized("Include recent recordings"),
                             modifier = Modifier.align(Alignment.CenterVertically)
                         )
                     }
@@ -497,7 +499,7 @@ fun BugReportScreen(
                                 modifier = Modifier.size(ButtonDefaults.IconSize)
                             )
                             Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                            Text("Take Watch Screenshot")
+                            Text(localized("Take Watch Screenshot"))
                         }
                     } else if (screenshotLoading) {
                         Row(
@@ -505,7 +507,7 @@ fun BugReportScreen(
                             horizontalArrangement = Arrangement.spacedBy(8.dp),
                         ) {
                             CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 2.dp)
-                            Text("Capturing screenshot...", fontSize = 14.sp)
+                            Text(localized("Capturing screenshot..."), fontSize = 14.sp)
                         }
                     } else {
                         watchScreenshot?.let { screenshot ->
@@ -522,7 +524,7 @@ fun BugReportScreen(
                                     val width = height / screenshot.height * screenshot.width
                                     Image(
                                         bitmap = screenshot,
-                                        contentDescription = "Watch screenshot",
+                                        contentDescription = localized("Watch screenshot"),
                                         modifier = Modifier.height(height).width(width),
                                     )
                                     Row(
@@ -533,13 +535,13 @@ fun BugReportScreen(
                                             onClick = { captureScreenshot() },
                                             modifier = Modifier.size(32.dp),
                                         ) {
-                                            Icon(Icons.Default.Refresh, "Retake", modifier = Modifier.size(18.dp))
+                                            Icon(Icons.Default.Refresh, localized("Retake"), modifier = Modifier.size(18.dp))
                                         }
                                         IconButton(
                                             onClick = { watchScreenshot = null },
                                             modifier = Modifier.size(32.dp),
                                         ) {
-                                            Icon(Icons.Default.Close, "Remove", modifier = Modifier.size(18.dp))
+                                            Icon(Icons.Default.Close, localized("Remove"), modifier = Modifier.size(18.dp))
                                         }
                                     }
                                 }
@@ -556,11 +558,11 @@ fun BugReportScreen(
                         }
                     },
                     modifier = Modifier.padding(8.dp),
-                    text = "How to submit a great bug report",
+                    text = localized("How to submit a great bug report"),
                     primaryColor = false,
                 )
                 Text(
-                    "Tap to see what's working and what's still in development",
+                    localized("Tap to see what's working and what's still in development"),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(8.dp).clickable {
                         scope.launch {
@@ -572,7 +574,7 @@ fun BugReportScreen(
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    "Please note that logs + device info will be sent with this report",
+                    localized("Please note that logs + device info will be sent with this report"),
                     textAlign = TextAlign.Center,
                     modifier = Modifier.padding(8.dp),
                     fontSize = 12.sp
@@ -589,7 +591,7 @@ fun BugReportScreen(
                         modifier = Modifier.fillMaxWidth(),
                     ) {
                         Text(
-                            text = "You can follow up on an existing bug report by adding more logs or information:",
+                            text = localized("You can follow up on an existing bug report by adding more logs or information:"),
                             textAlign = TextAlign.Center,
                             fontSize = 13.sp,
                             modifier = Modifier.padding(6.dp),
@@ -601,7 +603,7 @@ fun BugReportScreen(
                             modifier = Modifier.padding(8.dp),
                         ) {
                             Text(
-                                text = "My Bug Reports",
+                                text = localized("My Bug Reports"),
                                 fontSize = 14.sp,
                             )
                         }
@@ -659,7 +661,7 @@ private fun AttachmentButtons(
                     },
                     modifier = Modifier.animateContentSize()
                 ) {
-                    Icon(Icons.Default.AttachFile, "Attach Files")
+                    Icon(Icons.Default.AttachFile, localized("Attach Files"))
                 }
             } else {
                 IconButton(
@@ -668,7 +670,7 @@ private fun AttachmentButtons(
                     }
                 ) {
                     Row(horizontalArrangement = Arrangement.Center) {
-                        Icon(Icons.Default.Delete, "Remove Attachments")
+                        Icon(Icons.Default.Delete, localized("Remove Attachments"))
                         Text(
                             attachments.size.toString(),
                             style = MaterialTheme.typography.labelSmall,
@@ -683,7 +685,7 @@ private fun AttachmentButtons(
                         openImageAttachmentScreen()
                     },
                 ) {
-                    Icon(Icons.Default.InsertPhoto, "Add Image")
+                    Icon(Icons.Default.InsertPhoto, localized("Add Image"))
                 }
             } else {
                 IconButton(
@@ -694,7 +696,7 @@ private fun AttachmentButtons(
                     Row(horizontalArrangement = Arrangement.Center) {
                         Icon(
                             Icons.Default.HideImage,
-                            "Remove Images",
+                            localized("Remove Images"),
                             tint = IconButtonDefaults.iconButtonColors().contentColor
                         )
                         Text(
@@ -721,19 +723,19 @@ private fun AttachmentButtons(
             if (!attachments.isNullOrEmpty()) {
                 Icon(
                     Icons.Outlined.Delete,
-                    contentDescription = "Clear attachments",
+                    contentDescription = localized("Clear attachments"),
                     modifier = Modifier.size(ButtonDefaults.IconSize)
                 )
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text("Remove ${attachments.size} file(s)")
+                Text(localized("Remove ${attachments.size} file(s)", "파일 ${attachments.size}개 삭제"))
             } else {
                 Icon(
                     Icons.Default.AttachFile,
-                    contentDescription = "Attach an image",
+                    contentDescription = localized("Attach an image"),
                     modifier = Modifier.size(ButtonDefaults.IconSize)
                 )
                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                Text("Add Images")
+                Text(localized("Add Images"))
             }
         }
     }

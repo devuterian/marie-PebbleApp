@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.MaterialTheme

@@ -1,5 +1,7 @@
 package coredevices.ui
 
+import localization.localized
+
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
@@ -138,11 +140,11 @@ fun M3DialogPreviewFull() {
         },
         buttons = {
             androidx.compose.material3.TextButton(onClick = {}) {
-                androidx.compose.material3.Text("Cancel")
+                androidx.compose.material3.Text(localized("Cancel"))
             }
             Spacer(Modifier.width(8.dp))
             androidx.compose.material3.TextButton(onClick = {}) {
-                androidx.compose.material3.Text("Okay")
+                androidx.compose.material3.Text(localized("Okay"))
             }
         },
     ) {
@@ -162,11 +164,11 @@ fun M3DialogPreviewNoIcon() {
         },
         buttons = {
             androidx.compose.material3.TextButton(onClick = {}) {
-                androidx.compose.material3.Text("Cancel")
+                androidx.compose.material3.Text(localized("Cancel"))
             }
             Spacer(Modifier.width(8.dp))
             androidx.compose.material3.TextButton(onClick = {}) {
-                androidx.compose.material3.Text("Okay")
+                androidx.compose.material3.Text(localized("Okay"))
             }
         },
     ) {

@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import CoreNav
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -157,8 +159,8 @@ fun WatchappSettingsScreen(
                 TopAppBar(
                     title = {
                         Column {
-                            Text("App Settings")
-                            Text("Configuring $title", style = MaterialTheme.typography.labelMedium)
+                            Text(localized("App Settings"))
+                            Text(localized("Configuring $title", "$title 설정 중"), style = MaterialTheme.typography.labelMedium)
                         }
                     },
                     navigationIcon = {

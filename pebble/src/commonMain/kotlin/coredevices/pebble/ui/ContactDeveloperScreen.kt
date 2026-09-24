@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import CoreNav
 import DocumentAttachment
 import androidx.compose.foundation.layout.Arrangement
@@ -128,7 +130,7 @@ fun ContactDeveloperScreen(
     fun submit() {
         val trimmed = message.trim()
         if (trimmed.isEmpty()) {
-            error = "Please enter a message."
+            error = localized("Please enter a message.")
             return
         }
         if (trimmed.length > MAX_BODY) {
@@ -146,13 +148,13 @@ fun ContactDeveloperScreen(
             }
             when (result) {
                 ContactResult.Success -> sent = true
-                ContactResult.NotSignedIn -> error = "Please sign in again."
+                ContactResult.NotSignedIn -> error = localized("Please sign in again.")
                 ContactResult.EmailNotVerified ->
-                    error = "Your email address must be verified before contacting developers."
+                    error = localized("Your email address must be verified before contacting developers.")
                 is ContactResult.NotContactable -> error = result.message
                 is ContactResult.RateLimited -> error = result.message
                 is ContactResult.BadRequest -> error = result.message
-                ContactResult.NetworkError -> error = "Network error. Please try again."
+                ContactResult.NetworkError -> error = localized("Network error. Please try again.")
                 is ContactResult.ServerError -> error = result.message
             }
             sending = false
@@ -166,7 +168,7 @@ fun ContactDeveloperScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Contact the developer") },
+                title = { Text(localized("Contact the developer")) },
                 navigationIcon = {
                     IconButton(
                         onClick = coreNav::goBack,
@@ -201,7 +203,7 @@ fun ContactDeveloperScreen(
                 when {
                     sent -> {
                         Text(
-                            "Message sent. The developer will receive an email and may reply to you directly.",
+                            localized("Message sent. The developer will receive an email and may reply to you directly."),
                             color = MaterialTheme.colorScheme.primary,
                             fontWeight = FontWeight.Bold,
                         )
@@ -210,13 +212,13 @@ fun ContactDeveloperScreen(
                             onClick = coreNav::goBack,
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Text("Close")
+                            Text(localized("Close"))
                         }
                     }
 
                     !signedIn -> {
                         Text(
-                            "You need to sign in to contact the developer.",
+                            localized("You need to sign in to contact the developer."),
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.error,
                         )
@@ -225,7 +227,7 @@ fun ContactDeveloperScreen(
                             onClick = { showSignInDialog = true },
                             modifier = Modifier.fillMaxWidth(),
                         ) {
-                            Text("Sign in")
+                            Text(localized("Sign in"))
                         }
                     }
 
@@ -236,7 +238,7 @@ fun ContactDeveloperScreen(
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(200.dp),
-                            label = { Text("Message") },
+                            label = { Text(localized("Message")) },
                             keyboardOptions = KeyboardOptions(
                                 capitalization = KeyboardCapitalization.Sentences,
                             ),
@@ -269,7 +271,7 @@ fun ContactDeveloperScreen(
                                     modifier = Modifier.size(ButtonDefaults.IconSize),
                                 )
                                 Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                Text("Add files")
+                                Text(localized("Add files"))
                             }
                             if (pickPhotos != null) {
                                 OutlinedButton(
@@ -283,7 +285,7 @@ fun ContactDeveloperScreen(
                                         modifier = Modifier.size(ButtonDefaults.IconSize),
                                     )
                                     Spacer(Modifier.size(ButtonDefaults.IconSpacing))
-                                    Text("Add photos")
+                                    Text(localized("Add photos"))
                                 }
                             }
                         }
@@ -312,7 +314,7 @@ fun ContactDeveloperScreen(
                                 ) {
                                     Icon(
                                         Icons.Default.Close,
-                                        contentDescription = "Remove",
+                                        contentDescription = localized("Remove"),
                                         modifier = Modifier.size(16.dp),
                                     )
                                 }
@@ -341,7 +343,7 @@ fun ContactDeveloperScreen(
                                     strokeWidth = 2.dp,
                                 )
                             } else {
-                                Text("Send message")
+                                Text(localized("Send message"))
                             }
                         }
                     }

@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -72,10 +74,10 @@ fun WeatherScreen(navBarNav: NavBarNav, topBarParams: TopBarParams) {
             TopBarIconButtonWithToolTip(
                 onClick = { scope.launch { weatherFetcher.fetchWeather(GlobalScope) } },
                 icon = Icons.Filled.Refresh,
-                description = "Refresh Weather",
+                description = localized("Refresh Weather"),
             )
         }
-        topBarParams.title("Weather Locations")
+        topBarParams.title(localized("Weather Locations"))
     }
     val weatherLocationDao: WeatherLocationDao = koinInject()
     val locations by weatherLocationDao.getAllLocationsFlow().collectAsState(emptyList())
@@ -143,7 +145,7 @@ fun WeatherScreen(navBarNav: NavBarNav, topBarParams: TopBarParams) {
                     FloatingActionButton(
                         onClick = { showAddDialog = true }
                     ) {
-                        Icon(Icons.Filled.Add, "Add location")
+                        Icon(Icons.Filled.Add, localized("Add location"))
                     }
                 }
             },
@@ -164,11 +166,11 @@ fun WeatherScreen(navBarNav: NavBarNav, topBarParams: TopBarParams) {
                             ListItem(
                                 headlineContent = { Text(location.name) },
                                 supportingContent = {
-                                    Text(if (location.currentLocation) "Current Location" else "Fixed Location")
+                                    Text(if (location.currentLocation) localized("Current Location") else localized("Fixed Location"))
                                 },
                                 trailingContent = {
                                     IconButton(onClick = { locationToDelete = location }) {
-                                        Icon(Icons.Filled.Delete, "Remove")
+                                        Icon(Icons.Filled.Delete, localized("Remove"))
                                     }
                                 }
                             )
@@ -213,9 +215,9 @@ private fun AddWeatherLocationDialog(
 
     M3Dialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (showFixedLocationSearch) "Search Location" else "Add Weather Location") },
+        title = { Text(if (showFixedLocationSearch) localized("Search Location") else localized("Add Weather Location")) },
         buttons = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(localized("Cancel")) }
         },
     ) {
         if (!showFixedLocationSearch) {
@@ -228,7 +230,7 @@ private fun AddWeatherLocationDialog(
                             .clickable {
                                 val location = WeatherLocationEntity(
                                     key = Uuid.random(),
-                                    name = "Current Location",
+                                    name = localized("Current Location"),
                                     latitude = null,
                                     longitude = null,
                                     currentLocation = true,
@@ -247,9 +249,9 @@ private fun AddWeatherLocationDialog(
                         )
                         Spacer(Modifier.width(12.dp))
                         Column(modifier = Modifier.weight(1f)) {
-                            Text("Current Location", style = MaterialTheme.typography.bodyLarge)
+                            Text(localized("Current Location"), style = MaterialTheme.typography.bodyLarge)
                             Text(
-                                "Uses your device's location",
+                                localized("Uses your device's location"),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -271,9 +273,9 @@ private fun AddWeatherLocationDialog(
                     )
                     Spacer(Modifier.width(12.dp))
                     Column(modifier = Modifier.weight(1f)) {
-                        Text("Fixed Location", style = MaterialTheme.typography.bodyLarge)
+                        Text(localized("Fixed Location"), style = MaterialTheme.typography.bodyLarge)
                         Text(
-                            "Search for a specific address",
+                            localized("Search for a specific address"),
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
@@ -287,8 +289,8 @@ private fun AddWeatherLocationDialog(
                     value = addressQuery,
                     onValueChange = { addressQuery = it },
                     modifier = Modifier.fillMaxWidth(),
-                    label = { Text("Address") },
-                    placeholder = { Text("Enter city or address") },
+                    label = { Text(localized("Address")) },
+                    placeholder = { Text(localized("Enter city or address")) },
                     leadingIcon = {
                         Icon(Icons.Default.Search, contentDescription = null)
                     },
@@ -337,14 +339,14 @@ private fun AddWeatherLocationDialog(
                     }
                 } else if (searchFailed) {
                     Text(
-                        "Couldn't search for locations. Check your connection and try again.",
+                        localized("Couldn't search for locations. Check your connection and try again."),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.padding(top = 12.dp),
                     )
                 } else if (addressQuery.length >= 3) {
                     Text(
-                        "Type to search for locations...",
+                        localized("Type to search for locations..."),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.padding(top = 12.dp),
@@ -368,13 +370,13 @@ private fun DeleteLocationConfirmDialog(
 ) {
     M3Dialog(
         onDismissRequest = onDismiss,
-        title = { Text("Remove Location") },
+        title = { Text(localized("Remove Location")) },
         buttons = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(localized("Cancel")) }
             Spacer(Modifier.width(8.dp))
-            TextButton(onClick = onConfirm) { Text("Remove") }
+            TextButton(onClick = onConfirm) { Text(localized("Remove")) }
         },
     ) {
-        Text("Are you sure you want to remove \"$locationName\"?")
+        Text(localized("Are you sure you want to remove \"$locationName\"?", "$locationName 위치를 삭제하시겠습니까?"))
     }
 }

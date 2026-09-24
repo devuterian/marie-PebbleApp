@@ -13,6 +13,8 @@
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" tools:node="remove" />
     <!-- Mixpanel -->
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+
     <application
         android:name=".MainApplication"
         android:usesCleartextTraffic="true"

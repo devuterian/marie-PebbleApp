@@ -1,5 +1,7 @@
 package coredevices.util.transcription
 
+import localization.localized
+
 import co.touchlab.kermit.Logger
 import coredevices.api.AppInfo
 import coredevices.api.WisprAppendMessage
@@ -204,7 +206,7 @@ class WisprFlowTranscriptionService(
                                 }
                             }
                             "error" -> {
-                                val error = response.error ?: response.message?.toString() ?: "Unknown error"
+                                val error = response.error ?: response.message?.toString() ?: localized("Unknown error")
                                 logger.e { "WisprFlow error: $error" }
                                 finalTextDeferred.completeExceptionally(
                                     TranscriptionException.TranscriptionServiceError(error, modelUsed = "wisprflow")

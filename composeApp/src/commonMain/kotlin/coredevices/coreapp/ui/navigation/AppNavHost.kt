@@ -1,5 +1,7 @@
 package coredevices.coreapp.ui.navigation
 
+import localization.localized
+
 import CommonRoutes
 import CoreNav
 import CoreRoute
@@ -140,7 +142,7 @@ fun AppNavHost(navController: NavHostController, startDestination: Any) {
             composable<CommonRoutes.AlphaTestInstructionsRoute> {
                 GenericWebViewScreen(
                     coreNav = coreNav,
-                    title = "Alpha Test Instructions",
+                    title = localized("Alpha Test Instructions"),
                     url = "https://ndocs.repebble.com/alpha-tester-guide",
                 )
             }
@@ -163,21 +165,21 @@ fun AppNavHost(navController: NavHostController, startDestination: Any) {
             composable<CommonRoutes.RoadmapChangelogRoute> {
                 GenericWebViewScreen(
                     coreNav = coreNav,
-                    title = "What's new in the app",
+                    title = localized("What's new in the app"),
                     url = "https://ndocs.repebble.com/changelog",
                 )
             }
             composable<CommonRoutes.PebbleOsChangelogRoute> {
                 GenericWebViewScreen(
                     coreNav = coreNav,
-                    title = "What’s new in PebbleOS",
+                    title = localized("What’s new in PebbleOS"),
                     url = "https://ndocs.repebble.com/pebbleos-changelog",
                 )
             }
             composable<CommonRoutes.TroubleshootingRoute> {
                 GenericWebViewScreen(
                     coreNav = coreNav,
-                    title = "Getting Started & Troubleshooting",
+                    title = localized("Getting Started & Troubleshooting"),
                     url = "https://pbl.zip/in-app-getting-started-and-troubleshooting",
                 )
             }

@@ -1,5 +1,7 @@
 package coredevices.coreapp.ui.screens.ringonboarding
 
+import localization.localized
+
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -85,7 +87,7 @@ internal fun WelcomeStep(
 
             Column(modifier = Modifier.padding(horizontal = 24.dp, vertical = 8.dp)) {
                 Text(
-                    text = "Meet Index 01",
+                    text = localized("Meet Index 01"),
                     fontSize = 36.sp,
                     lineHeight = 42.sp,
                     fontWeight = FontWeight.ExtraBold,
@@ -94,9 +96,9 @@ internal fun WelcomeStep(
                 )
                 Spacer(Modifier.height(12.dp))
                 Text(
-                    text = "You're holding an entirely new type of device. Index 01 isn't like " +
+                    text = localized("You're holding an entirely new type of device. Index 01 isn't like " +
                             "anything you've used before. Please spend a few minutes learning how " +
-                            "it works, and how to get the most out of it.",
+                            "it works, and how to get the most out of it.", "Index 01은 지금까지 쓰던 기기와는 조금 다릅니다. 잠깐 시간을 내서 사용법을 알아보면 더 편하게 쓸 수 있습니다."),
                     fontSize = 15.sp,
                     lineHeight = 22.sp,
                     color = palette.onSurfaceVariant,
@@ -107,7 +109,7 @@ internal fun WelcomeStep(
         Column(
             modifier = Modifier.fillMaxWidth().padding(start = 24.dp, end = 24.dp, top = 24.dp, bottom = 16.dp),
         ) {
-            PrimaryFilledButton(text = "Get started", onClick = onGetStarted)
+            PrimaryFilledButton(text = localized("Get started"), onClick = onGetStarted)
         }
     }
 }

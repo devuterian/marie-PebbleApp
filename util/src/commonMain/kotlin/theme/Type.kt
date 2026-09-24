@@ -11,6 +11,7 @@ import coreapp.util.generated.resources.Res
 
 @Composable
 fun displayFontFamily(): FontFamily {
+    if (localization.isKoreanUi()) return FontFamily.Default
     // Font() is itself @Composable so must be called in composition, but its result is
     // stable, so we memoize the FontFamily wrapping it across recompositions.
     val font = Font(Res.font.Inter)

@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.horizontalScroll
@@ -295,7 +297,7 @@ fun CommonApp.SettingsButton(
             ) { isCompatible && isSynced() && (connected || commonAppType is CommonAppType.System) }
 
         PebbleElevatedButton(
-            text = "Settings",
+            text = localized("Settings"),
             onClick = {
                 scope.launch {
                     showSettings(navBarNav, libPebble, topBarParams)
@@ -303,7 +305,7 @@ fun CommonApp.SettingsButton(
             },
             enabled = settingsEnabled,
             icon = Icons.Default.Settings,
-            contentDescription = "Settings",
+            contentDescription = localized("Settings"),
             primaryColor = false,
             modifier = Modifier.padding(5.dp),
         )
@@ -316,12 +318,12 @@ fun CommonApp.CompatibilityWarning(topBarParams: TopBarParams) {
         IconButton(
             modifier = Modifier.size(16.dp).padding(top = 1.dp, end = 6.dp, bottom = 5.dp),
             onClick = {
-                topBarParams.showSnackbar("Not compatible with this watch")
+                topBarParams.showSnackbar(localized("Not compatible with this watch"))
             },
         ) {
             Icon(
                 Icons.Filled.Block,
-                contentDescription = "Not compatible with this watch",
+                contentDescription = localized("Not compatible with this watch"),
                 modifier = Modifier.fillMaxSize(),
                 tint = coreOrange,
             )
@@ -330,12 +332,12 @@ fun CommonApp.CompatibilityWarning(topBarParams: TopBarParams) {
         IconButton(
             modifier = Modifier.size(16.dp).padding(top = 1.dp, end = 6.dp, bottom = 5.dp),
             onClick = {
-                topBarParams.showSnackbar("Not natively compatible with this watch, but can be scaled")
+                topBarParams.showSnackbar(localized("Not natively compatible with this watch, but can be scaled"))
             },
         ) {
             Icon(
                 Icons.Filled.AspectRatio,
-                contentDescription = "Not natively compatible with this watch, but can be scaled",
+                contentDescription = localized("Not natively compatible with this watch, but can be scaled"),
                 modifier = Modifier.fillMaxSize(),
             )
         }
@@ -740,13 +742,13 @@ fun LockerEntryCompanionApp.asCompanionApp(): CompanionApp = CompanionApp(
 )
 
 fun AppType.myCollectionName(): String = when (this) {
-    AppType.Watchface -> "My Watchfaces"
-    AppType.Watchapp -> "My Apps"
+    AppType.Watchface -> localized("My Watchfaces")
+    AppType.Watchapp -> localized("My Apps")
 }
 
 fun AppType.shortName(): String = when (this) {
-    AppType.Watchface -> "Faces"
-    AppType.Watchapp -> "Apps"
+    AppType.Watchface -> localized("Faces")
+    AppType.Watchapp -> localized("Apps")
 }
 
 private var hasShownScrollHint = false
@@ -833,13 +835,13 @@ fun AppsFilterRow(
                         sharedLockerViewModel.showScaled.value =
                             !sharedLockerViewModel.showScaled.value
                     },
-                    label = { Text("Made for $shortName") },
+                    label = { Text(localized("Made for $shortName", "$shortName 전용")) },
                     modifier = Modifier.padding(horizontal = 4.dp),
                     leadingIcon = if (!sharedLockerViewModel.showScaled.value) {
                         {
                             Icon(
                                 imageVector = Icons.Filled.Done,
-                                contentDescription = "Made for $shortName",
+                                contentDescription = localized("Made for $shortName", "$shortName 전용"),
                                 modifier = Modifier.size(FilterChipDefaults.IconSize)
                             )
                         }
@@ -856,7 +858,7 @@ fun AppsFilterRow(
                 Box(modifier = Modifier.padding(horizontal = 4.dp)) {
                     FilterChip(
                         onClick = { orderExpanded.value = !orderExpanded.value },
-                        label = { Text("Order") },
+                        label = { Text(localized("Order")) },
                         selected = false,
                         leadingIcon = {
                             Icon(
@@ -894,7 +896,7 @@ fun AppsFilterRow(
                                     {
                                         Icon(
                                             imageVector = Icons.Filled.Done,
-                                            contentDescription = "Selected",
+                                            contentDescription = localized("Selected"),
                                             tint = MaterialTheme.colorScheme.primary,
                                         )
                                     }
@@ -924,7 +926,7 @@ fun AppsFilterRow(
                                     {
                                         Icon(
                                             imageVector = Icons.Filled.Done,
-                                            contentDescription = "Selected",
+                                            contentDescription = localized("Selected"),
                                             tint = MaterialTheme.colorScheme.primary,
                                         )
                                     }
@@ -940,13 +942,13 @@ fun AppsFilterRow(
                     sharedLockerViewModel.showIncompatible.value =
                         !sharedLockerViewModel.showIncompatible.value
                 },
-                label = { Text("Show Incompatible") },
+                label = { Text(localized("Show Incompatible")) },
                 modifier = Modifier.padding(horizontal = 4.dp),
                 leadingIcon = if (sharedLockerViewModel.showIncompatible.value) {
                     {
                         Icon(
                             imageVector = Icons.Filled.Done,
-                            contentDescription = "Show Incompatible",
+                            contentDescription = localized("Show Incompatible"),
                             modifier = Modifier.size(FilterChipDefaults.IconSize)
                         )
                     }
@@ -963,8 +965,8 @@ enum class WatchfaceFilterMode(
     val icon: ImageVector,
     val description: String,
 ) {
-    MostRecent(true, Icons.Default.Schedule, "Order by recently used"),
-    Manual(false, Icons.Default.Reorder, "Order manually"),
+    MostRecent(true, Icons.Default.Schedule, localized("Order by recently used")),
+    Manual(false, Icons.Default.Reorder, localized("Order manually")),
     ;
 
     companion object {
@@ -1006,7 +1008,7 @@ val DEFAULT_CATEGORIES_FACES = listOf(
         icon = emptyMap(),
         id = "528d3ef2dc7b5f580700000a",
         links = mapOf("apps" to "/api/v1/apps/category/faces"),
-        name = "Faces",
+        name = localized("Faces"),
         slug = "faces"
     ),
 )
@@ -1018,7 +1020,7 @@ val DEFAULT_CATEGORIES_APPS = listOf(
         icon = mapOf("88x88" to "https://assets2.rebble.io/88x88/0QTBuPgXR8GAOMW0fJaA"),
         id = "5261a8fb3b773043d500000c",
         links = mapOf("apps" to "/api/v1/apps/category/daily"),
-        name = "Daily",
+        name = localized("Daily"),
         slug = "daily"
     ),
     StoreCategory(
@@ -1027,7 +1029,7 @@ val DEFAULT_CATEGORIES_APPS = listOf(
         icon = mapOf("88x88" to "https://assets2.rebble.io/88x88/Lhxn2MNYQruUOPNkreOs"),
         id = "5261a8fb3b773043d500000f",
         links = mapOf("apps" to "/api/v1/apps/category/tools-and-utilities"),
-        name = "Tools & Utilities",
+        name = localized("Tools & Utilities"),
         slug = "tools-and-utilities"
     ),
     StoreCategory(
@@ -1036,7 +1038,7 @@ val DEFAULT_CATEGORIES_APPS = listOf(
         icon = mapOf("88x88" to "https://assets2.rebble.io/88x88/WLi53fwzS2CKqMOAytF7"),
         id = "5261a8fb3b773043d5000001",
         links = mapOf("apps" to "/api/v1/apps/category/notifications"),
-        name = "Notifications",
+        name = localized("Notifications"),
         slug = "notifications"
     ),
     StoreCategory(
@@ -1045,7 +1047,7 @@ val DEFAULT_CATEGORIES_APPS = listOf(
         icon = mapOf("88x88" to "https://assets2.rebble.io/88x88/TpLgG0W6TT6Pt6Nm3t91"),
         id = "5261a8fb3b773043d5000008",
         links = mapOf("apps" to "/api/v1/apps/category/remotes"),
-        name = "Remotes",
+        name = localized("Remotes"),
         slug = "remotes"
     ),
     StoreCategory(
@@ -1054,7 +1056,7 @@ val DEFAULT_CATEGORIES_APPS = listOf(
         icon = mapOf("88x88" to "https://assets2.rebble.io/88x88/xeW2tf3BSmWWBRyfmCZn"),
         id = "5261a8fb3b773043d5000004",
         links = mapOf("apps" to "/api/v1/apps/category/health-and-fitness"),
-        name = "Health & Fitness",
+        name = localized("Health & Fitness"),
         slug = "health-and-fitness"
     ),
     StoreCategory(
@@ -1063,7 +1065,7 @@ val DEFAULT_CATEGORIES_APPS = listOf(
         icon = mapOf("88x88" to "https://assets2.rebble.io/88x88/Xji7xwyYSzqR1ANNhTyi"),
         id = "5261a8fb3b773043d5000012",
         links = mapOf("apps" to "/api/v1/apps/category/games"),
-        name = "Games",
+        name = localized("Games"),
         slug = "games"
     ),
 )

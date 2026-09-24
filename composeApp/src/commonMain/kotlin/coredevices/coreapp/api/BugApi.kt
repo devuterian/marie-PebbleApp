@@ -1,5 +1,7 @@
 package coredevices.coreapp.api
 
+import localization.localized
+
 import CommonApiConfig
 import co.touchlab.kermit.Logger
 import coredevices.api.ApiClient
@@ -167,15 +169,15 @@ class BugApi(
                         val errorData = json.decodeFromString<Map<String, String>>(body)
                         when {
                             errorData["error"]?.contains("Email and description are required") == true ->
-                                "Please fill in both your email and bug description before submitting."
+                                localized("Please fill in both your email and bug description before submitting.")
                             errorData["error"]?.contains("Email") == true ->
-                                "Please enter a valid email address."
+                                localized("Please enter a valid email address.")
                             errorData["error"]?.contains("description") == true ->
-                                "Please describe the bug you encountered."
-                            else -> errorData["error"] ?: "Unable to submit bug report. Please try again."
+                                localized("Please describe the bug you encountered.")
+                            else -> errorData["error"] ?: localized("Unable to submit bug report. Please try again.")
                         }
                     } catch (e: Exception) {
-                        "Unable to submit bug report. Please check your connection and try again."
+                        localized("Unable to submit bug report. Please check your connection and try again.")
                     }
                     throw Exception(errorMessage)
                 }

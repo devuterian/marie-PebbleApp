@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -44,7 +46,7 @@ fun PermissionsScreen(navBarNav: NavBarNav, topBarParams: TopBarParams) {
             topBarParams.searchAvailable(null)
             topBarParams.actions {
             }
-            topBarParams.title("Permissions")
+            topBarParams.title(localized("Permissions"))
         }
         val permissionRequester: PermissionRequester = koinInject()
         val coreConfigHolder: CoreConfigHolder = koinInject()
@@ -63,9 +65,9 @@ fun PermissionsScreen(navBarNav: NavBarNav, topBarParams: TopBarParams) {
         LazyColumn {
             item(key = "hide_badges_toggle") {
                 ListItem(
-                    headlineContent = { Text("Hide missing permission warnings") },
+                    headlineContent = { Text(localized("Hide missing permission warnings")) },
                     supportingContent = {
-                        Text("Don't show a badge on Settings when permissions are missing")
+                        Text(localized("Don't show a badge on Settings when permissions are missing"))
                     },
                     trailingContent = {
                         Switch(
@@ -101,7 +103,7 @@ fun PermissionsScreen(navBarNav: NavBarNav, topBarParams: TopBarParams) {
                             ),
                             modifier = Modifier.padding(15.dp),
                         ) {
-                            Text("All permissions granted!", modifier = Modifier.padding(15.dp))
+                            Text(localized("All permissions granted!"), modifier = Modifier.padding(15.dp))
                         }
                     }
                 }

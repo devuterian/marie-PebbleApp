@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <string name="back">뒤로</string>
+  <string name="settings">설정</string>
+  <string name="light">라이트</string>
+  <string name="dark">다크</string>
+  <string name="black">블랙</string>
+  <string name="system">시스템 설정</string>
+</resources>

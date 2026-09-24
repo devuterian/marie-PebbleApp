@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import coredevices.ui.PebbleElevatedButton
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -126,7 +128,7 @@ fun NotificationAppScreen(
         LaunchedEffect(Unit) {
             topBarParams.searchAvailable(null)
             topBarParams.actions {}
-            topBarParams.title("App Notifications")
+            topBarParams.title(localized("App Notifications"))
         }
         appWrapper?.let { appWrapper ->
             val app = appWrapper.app
@@ -200,20 +202,20 @@ fun NotificationAppScreen(
                                     horizontalArrangement = Arrangement.SpaceBetween,
                                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
                                 ) {
-                                    Text("Channels", fontSize = 20.sp)
+                                    Text(localized("Channels"), fontSize = 20.sp)
                                     FilterChip(
                                         onClick = {
                                             viewModel.onlyNotified.value = !viewModel.onlyNotified.value
                                         },
                                         label = {
-                                            Text("Notified only")
+                                            Text(localized("Notified only"))
                                         },
                                         selected = viewModel.onlyNotified.value,
                                         leadingIcon = if (viewModel.onlyNotified.value) {
                                             {
                                                 Icon(
                                                     imageVector = Icons.Filled.Done,
-                                                    contentDescription = "Done icon",
+                                                    contentDescription = localized("Done icon"),
                                                     modifier = Modifier.size(FilterChipDefaults.IconSize)
                                                 )
                                             }
@@ -225,7 +227,7 @@ fun NotificationAppScreen(
                                 channelGroups.forEach { group ->
                                     if (channelGroups.size > 1) {
                                         Text(
-                                            text = group.name ?: "Default Group",
+                                            text = group.name ?: localized("Default Group"),
                                             style = MaterialTheme.typography.titleSmall,
                                             color = MaterialTheme.colorScheme.primary,
                                             modifier = Modifier.padding(horizontal = 16.dp).padding(top = 4.dp).padding(bottom = 4.dp),
@@ -257,7 +259,7 @@ fun NotificationAppScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 modifier = Modifier.fillMaxWidth().padding(16.dp),
                             ) {
-                                Text("Allow duplicate notifications", fontSize = 17.sp)
+                                Text(localized("Allow duplicate notifications"), fontSize = 17.sp)
                                 Switch(
                                     checked = appWrapper.app.allowDuplicates,
                                     onCheckedChange = { newValue ->
@@ -280,7 +282,7 @@ fun NotificationAppScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 modifier = Modifier.fillMaxWidth().padding(16.dp),
                             ) {
-                                Text("Send images", fontSize = 17.sp)
+                                Text(localized("Send images"), fontSize = 17.sp)
                                 Switch(
                                     checked = appWrapper.app.sendImages,
                                     enabled = sendImagesEnabledGlobally,
@@ -326,9 +328,9 @@ fun NotificationAppScreen(
                                 "Status: Muted for 1 hour ($timeString left)"
                             }
                         }
-                        app.muteState == MuteState.Always -> "Status: Muted (Always)"
-                        app.muteState == MuteState.Weekdays -> "Status: Muted (Weekdays)"
-                        app.muteState == MuteState.Weekends -> "Status: Muted (Weekends)"
+                        app.muteState == MuteState.Always -> localized("Status: Muted (Always)")
+                        app.muteState == MuteState.Weekdays -> localized("Status: Muted (Weekdays)")
+                        app.muteState == MuteState.Weekends -> localized("Status: Muted (Weekends)")
                         else -> null
                     }
 
@@ -363,10 +365,10 @@ private fun NotificationRulesSection(
         modifier = Modifier.padding(10.dp).fillMaxWidth(),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text("Notification filter rules", fontSize = 20.sp, modifier = Modifier.padding(bottom = 8.dp))
+            Text(localized("Notification filter rules"), fontSize = 20.sp, modifier = Modifier.padding(bottom = 8.dp))
             Text(
-                if (rules.isEmpty()) "No notification rules"
-                else "Matching notifications will be blocked:",
+                if (rules.isEmpty()) localized("No notification rules")
+                else localized("Matching notifications will be blocked:"),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(bottom = 8.dp).fillMaxWidth(),
@@ -386,13 +388,13 @@ private fun NotificationRulesSection(
                     Column(modifier = Modifier.weight(1f)) {
                         Text(rule.pattern)
                         Spacer(Modifier.height(2.dp))
-                        val matchTypeLabel = if (rule.matchType == MatchType.Regex) "Regex" else "Text"
+                        val matchTypeLabel = if (rule.matchType == MatchType.Regex) localized("Regex") else localized("Text")
                         val fieldLabel = when (rule.matchField) {
-                            MatchField.Title -> "Title"
-                            MatchField.Body -> "Body"
-                            MatchField.Both -> "Title+Body"
+                            MatchField.Title -> localized("Title")
+                            MatchField.Body -> localized("Body")
+                            MatchField.Both -> localized("Title+Body")
                         }
-                        val caseLabel = if (rule.caseSensitive) "case-sensitive" else "case-insensitive"
+                        val caseLabel = if (rule.caseSensitive) localized("case-sensitive") else localized("case-insensitive")
                         Text(
                             "$matchTypeLabel on $fieldLabel, $caseLabel",
                             style = MaterialTheme.typography.bodyMedium,
@@ -403,24 +405,24 @@ private fun NotificationRulesSection(
                         editingRule = rule
                         showDialog = true
                     }) {
-                        Icon(Icons.Filled.Edit, contentDescription = "Edit rule")
+                        Icon(Icons.Filled.Edit, contentDescription = localized("Edit rule"))
                     }
                     IconButton(onClick = {
                         notificationApps.deleteNotificationRule(rule)
                     }) {
-                        Icon(Icons.Filled.Delete, contentDescription = "Delete rule")
+                        Icon(Icons.Filled.Delete, contentDescription = localized("Delete rule"))
                     }
                 }
             }
             Spacer(Modifier.height(8.dp))
             PebbleElevatedButton(
-                text = "Add rule",
+                text = localized("Add rule"),
                 onClick = {
                     editingRule = null
                     showDialog = true
                 },
                 icon = Icons.Filled.Add,
-                contentDescription = "Add rule",
+                contentDescription = localized("Add rule"),
                 primaryColor = true,
                 modifier = Modifier.align(Alignment.End),
             )
@@ -458,53 +460,53 @@ private fun NotificationRuleDialog(
 
     val regexError = remember(pattern, matchType) {
         if (matchType == MatchType.Regex && pattern.isNotEmpty()) {
-            try { Regex(pattern); null } catch (e: Exception) { e.message ?: "Invalid regex" }
+            try { Regex(pattern); null } catch (e: Exception) { e.message ?: localized("Invalid regex") }
         } else null
     }
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text(if (existing != null) "Edit rule" else "Add rule") },
+        title = { Text(if (existing != null) localized("Edit rule") else localized("Add rule")) },
         text = {
             Column {
-                Text("Match type", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(bottom = 4.dp))
+                Text(localized("Match type"), style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(bottom = 4.dp))
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                     SegmentedButton(
                         selected = matchType == MatchType.Text,
                         onClick = { matchType = MatchType.Text },
                         shape = SegmentedButtonDefaults.itemShape(index = 0, count = 2),
-                    ) { Text("Text") }
+                    ) { Text(localized("Text")) }
                     SegmentedButton(
                         selected = matchType == MatchType.Regex,
                         onClick = { matchType = MatchType.Regex },
                         shape = SegmentedButtonDefaults.itemShape(index = 1, count = 2),
                         enabled = platform != Platform.IOS
-                    ) { Text("Regex") }
+                    ) { Text(localized("Regex")) }
                 }
                 Spacer(Modifier.height(12.dp))
-                Text("Match field", style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(bottom = 4.dp))
+                Text(localized("Match field"), style = MaterialTheme.typography.labelMedium, modifier = Modifier.padding(bottom = 4.dp))
                 SingleChoiceSegmentedButtonRow(modifier = Modifier.fillMaxWidth()) {
                     SegmentedButton(
                         selected = matchField == MatchField.Both,
                         onClick = { matchField = MatchField.Both },
                         shape = SegmentedButtonDefaults.itemShape(index = 0, count = 3),
-                    ) { Text("Both") }
+                    ) { Text(localized("Both")) }
                     SegmentedButton(
                         selected = matchField == MatchField.Title,
                         onClick = { matchField = MatchField.Title },
                         shape = SegmentedButtonDefaults.itemShape(index = 1, count = 3),
-                    ) { Text("Title") }
+                    ) { Text(localized("Title")) }
                     SegmentedButton(
                         selected = matchField == MatchField.Body,
                         onClick = { matchField = MatchField.Body },
                         shape = SegmentedButtonDefaults.itemShape(index = 2, count = 3),
-                    ) { Text("Body") }
+                    ) { Text(localized("Body")) }
                 }
                 Spacer(Modifier.height(12.dp))
                 OutlinedTextField(
                     value = pattern,
                     onValueChange = { pattern = it },
-                    label = { Text("Pattern") },
+                    label = { Text(localized("Pattern")) },
                     isError = regexError != null,
                     supportingText = if (regexError != null) {{ Text(regexError) }} else null,
                     singleLine = true,
@@ -519,7 +521,7 @@ private fun NotificationRuleDialog(
                         checked = caseSensitive,
                         onCheckedChange = null,
                     )
-                    Text("Case sensitive", modifier = Modifier.padding(start = 4.dp))
+                    Text(localized("Case sensitive"), modifier = Modifier.padding(start = 4.dp))
                 }
             }
         },
@@ -539,10 +541,10 @@ private fun NotificationRuleDialog(
                     )
                 },
                 enabled = pattern.isNotBlank() && regexError == null,
-            ) { Text("Save") }
+            ) { Text(localized("Save")) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(localized("Cancel")) }
         },
     )
 }
@@ -593,7 +595,7 @@ private fun ChannelCard(
                 if (clickable) {
                     Icon(
                         Icons.Outlined.DensitySmall,
-                        "View Notifications",
+                        localized("View Notifications"),
                         modifier = Modifier.padding(start = 4.dp, end = 10.dp)
                     )
                 }

@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -134,10 +136,10 @@ fun AppstoreSettingsScreen(
                     viewModel.updateCollections()
                 },
                 icon = Icons.Filled.Refresh,
-                description = "Refresh Collections",
+                description = localized("Refresh Collections"),
             )
         }
-        topBarParams.title("Appstore Sources")
+        topBarParams.title(localized("Appstore Sources"))
     }
 
     AppstoreSettingsScreen(
@@ -151,7 +153,7 @@ fun AppstoreSettingsScreen(
                         parseUrl(it.url)?.host?.endsWith("rebble.io") ?: false
                     }?.id == sourceId && isEnabled && pebbleLoggedIn.value == null) {
                         if (!uriHandler.open(REBBLE_LOGIN_URI)) {
-                            topBarParams.showSnackbar("Couldn't open login page")
+                            topBarParams.showSnackbar(localized("Couldn't open login page"))
                         }
                 } else {
                     sourceDao.setSourceEnabled(sourceId, isEnabled)
@@ -186,7 +188,7 @@ fun AppstoreSettingsScreen(
                     createSourceOpen = true
                 }
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "Add Source")
+                Icon(Icons.Filled.Add, contentDescription = localized("Add Source"))
             }
         }
     ) { insets ->
@@ -247,7 +249,7 @@ fun AppstoreSourceItem(
                                 onRemove(source.id)
                             }
                         ) {
-                            Icon(Icons.Default.Delete, contentDescription = "Delete Source")
+                            Icon(Icons.Default.Delete, contentDescription = localized("Delete Source"))
                         }
                     }
                     Checkbox(
@@ -268,8 +270,8 @@ fun AppstoreSourceItem(
                     if (cols.isNotEmpty()) {
                         Text(
                             text = when (appType) {
-                                AppType.Watchapp -> "Watchapp Collections"
-                                AppType.Watchface -> "Watchface Collections"
+                                AppType.Watchapp -> localized("Watchapp Collections")
+                                AppType.Watchface -> localized("Watchface Collections")
                             },
                             modifier = Modifier.padding(start = 32.dp),
                             style = MaterialTheme.typography.labelSmall,
@@ -335,13 +337,13 @@ fun CreateAppstoreSourceDialog(
             Icon(Icons.Filled.Link, contentDescription = null)
         },
         title = {
-            Text("Add Appstore Source")
+            Text(localized("Add Appstore Source"))
         },
         buttons = {
             TextButton(
                 onClick = onDismissRequest
             ) {
-                Text("Cancel")
+                Text(localized("Cancel"))
             }
             TextButton(
                 onClick = {
@@ -349,14 +351,14 @@ fun CreateAppstoreSourceDialog(
                 },
                 enabled = title.isNotBlank() && urlValid
             ) {
-                Text("Add")
+                Text(localized("Add"))
             }
         }
     ) {
         Column {
-            TextField(title, onValueChange = { title = it }, label = { Text("Name") })
+            TextField(title, onValueChange = { title = it }, label = { Text(localized("Name")) })
             Spacer(Modifier.height(8.dp))
-            TextField(url, onValueChange = { url = it }, label = { Text("Source URL") })
+            TextField(url, onValueChange = { url = it }, label = { Text(localized("Source URL")) })
         }
     }
 }
@@ -377,7 +379,7 @@ fun AppstoreSettingsScreenPreview() {
                     AppType.Watchapp to listOf(
                         AppstoreCollection(
                             sourceId = sourceA.id,
-                            title = "Featured Apps",
+                            title = localized("Featured Apps"),
                             slug = "featured-apps",
                             type = AppType.Watchapp,
                             enabled = true

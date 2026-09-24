@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -301,7 +303,7 @@ fun LockerScreen(
                     TopBarIconButtonWithToolTip(
                         onClick = openInstallAppDialog,
                         icon = Icons.Filled.UploadFile,
-                        description = "Sideload App",
+                        description = localized("Sideload App"),
                     )
                 }
             }
@@ -334,7 +336,7 @@ fun LockerScreen(
         val initialLockerSyncInProgress by initialLockerSync.initialLockerSync.collectAsState()
         LaunchedEffect(initialLockerSyncInProgress) {
             if (initialLockerSyncInProgress) {
-                topBarParams.showSnackbar("Loading Locker")
+                topBarParams.showSnackbar(localized("Loading Locker"))
             }
         }
 
@@ -475,7 +477,7 @@ fun LockerScreen(
                                 ) {
                                     Column(modifier = Modifier.padding(horizontal = 16.dp)) {
                                         Text(
-                                            "Active",
+                                            localized("Active"),
                                             fontSize = 24.sp,
                                             modifier = Modifier.padding(
                                                 top = 5.dp,
@@ -572,7 +574,7 @@ fun LockerScreen(
                                         ) {
                                             Icon(
                                                 Icons.Default.Tune,
-                                                contentDescription = "Configure Feeds"
+                                                contentDescription = localized("Configure Feeds")
                                             )
                                         }
                                     }
@@ -744,7 +746,7 @@ fun SearchResultsList(
                 horizontalArrangement = Arrangement.SpaceEvenly,
             ) {
                 if (lockerEntries.isNotEmpty()) {
-                    item(span = { GridItemSpan(maxLineSpan) }) { SectionHeader("From my watchfaces") }
+                    item(span = { GridItemSpan(maxLineSpan) }) { SectionHeader(localized("From my watchfaces")) }
                     items(
                         items = lockerEntries,
                         key = { "locker_${it.storeId}-${it.uuid}" },
@@ -758,7 +760,7 @@ fun SearchResultsList(
                         )
                     }
                 }
-                item(span = { GridItemSpan(maxLineSpan) }) { SectionHeader("From the store") }
+                item(span = { GridItemSpan(maxLineSpan) }) { SectionHeader(localized("From the store")) }
                 items(
                     count = storeResults.itemCount,
                     key = storeResults.itemKey { "store_${it.storeId}-${it.uuid}" },
@@ -782,7 +784,7 @@ fun SearchResultsList(
                 } else if (storeResults.itemCount == 0 && hasUnfilteredStoreResults) {
                     item(span = { GridItemSpan(maxLineSpan) }) {
                         PebbleElevatedButton(
-                            text = "Clear filters for more results",
+                            text = localized("Clear filters for more results"),
                             onClick = {
                                 sharedViewModel.showScaled.value = true
                                 sharedViewModel.showIncompatible.value = true
@@ -798,7 +800,7 @@ fun SearchResultsList(
             if (lockerEntries.isNotEmpty()) {
                 item {
                     Text(
-                        "From my apps",
+                        localized("From my apps"),
                         modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
                         style = MaterialTheme.typography.labelLarge,
                         color = MaterialTheme.colorScheme.primary,
@@ -826,7 +828,7 @@ fun SearchResultsList(
             }
             item {
                 Text(
-                    "From the store",
+                    localized("From the store"),
                     modifier = Modifier.padding(horizontal = 20.dp, vertical = 8.dp),
                     style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.primary,
@@ -871,7 +873,7 @@ fun SearchResultsList(
                 } else if (storeResults.itemCount == 0 && hasUnfilteredStoreResults) {
                     item {
                         PebbleElevatedButton(
-                            text = "Clear filters for more results",
+                            text = localized("Clear filters for more results"),
                             onClick = {
                                 sharedViewModel.showScaled.value = true
                                 sharedViewModel.showIncompatible.value = true
@@ -910,7 +912,7 @@ fun AppCarousel(
             Text(title, fontSize = 24.sp, modifier = Modifier.padding(vertical = 8.dp))
             Spacer(modifier = Modifier.width(7.dp))
             if (onClick != null) {
-                Icon(Icons.AutoMirrored.Default.ArrowForward, contentDescription = "See all", modifier = Modifier)
+                Icon(Icons.AutoMirrored.Default.ArrowForward, contentDescription = localized("See all"), modifier = Modifier)
             }
         }
         LazyRow(
@@ -1102,7 +1104,7 @@ fun NativeWatchfaceMainContent(
                 if (inMyCollection) {
                     Icon(
                         Icons.AutoMirrored.Filled.PlaylistAddCheck,
-                        contentDescription = "In My Collection",
+                        contentDescription = localized("In My Collection"),
                         modifier = Modifier.size(19.dp)
                             .padding(top = 1.dp, bottom = 5.dp),
                         tint = coreDarkGreen,
@@ -1165,7 +1167,7 @@ fun NativeWatchfaceListItem(
                         if (inMyCollection) {
                             Icon(
                                 Icons.AutoMirrored.Filled.PlaylistAddCheck,
-                                contentDescription = "In My Collection",
+                                contentDescription = localized("In My Collection"),
                                 modifier = Modifier.size(16.dp)
                                     .padding(top = 1.dp, end = 6.dp, bottom = 5.dp),
                                 tint = coreDarkGreen,

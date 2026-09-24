@@ -11,7 +11,7 @@ import coredevices.coreapp.appVersionName
 import coredevices.coreapp.auth.RealAppleAuthUtil
 import coredevices.coreapp.auth.RealGithubAuthUtil
 import coredevices.coreapp.auth.RealGoogleAuthUtil
-import coredevices.coreapp.util.AndroidAppUpdate
+import coredevices.coreapp.util.GitHubAppUpdate
 import coredevices.coreapp.util.AppUpdate
 import coredevices.pebble.PebbleAndroidDelegate
 import coredevices.ring.RingDelegate
@@ -60,7 +60,7 @@ val androidDefaultModule = module {
     singleOf(::PlatformContext)
     singleOf(::AndroidPermissionRequester) bind PermissionRequester::class
     singleOf(::AndroidCompanionDevice) bind CompanionDevice::class
-    singleOf(::AndroidAppUpdate) bind AppUpdate::class
+    singleOf(::GitHubAppUpdate) bind AppUpdate::class
     single {
         val pebbleDelegate = get<PebbleAndroidDelegate>()
         val enabledFlow = get<CoreConfigFlow>().flow.map { it.enableIndex }

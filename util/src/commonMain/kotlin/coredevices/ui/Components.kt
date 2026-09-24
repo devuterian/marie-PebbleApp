@@ -1,5 +1,7 @@
 package coredevices.ui
 
+import localization.localized
+
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -191,7 +193,7 @@ fun ConfirmDialog(
         dismissButton = {
             TextButton(onClick = {
                 show.value = false
-            }) { Text("Cancel") }
+            }) { Text(localized("Cancel")) }
         }
     )
 }

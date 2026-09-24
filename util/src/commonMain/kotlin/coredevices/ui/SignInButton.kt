@@ -1,5 +1,7 @@
 package coredevices.ui
 
+import localization.localized
+
 import PlatformUiContext
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
@@ -84,7 +86,7 @@ private fun SignInButton(
                 val credential = try {
                     credentialProvider(context!!) ?: return@launch
                 } catch (e: Exception) {
-                    onError(e.message ?: "Unknown error")
+                    onError(e.message ?: localized("Unknown error"))
                     return@launch
                 }
                 try {
@@ -160,7 +162,7 @@ private fun AccountSwitchConfirmationDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Sign in to existing account?") },
+        title = { Text(localized("Sign in to existing account?")) },
         text = {
             Text(
                 "This account already exists. Signing in will switch to it, and any " +
@@ -168,10 +170,10 @@ private fun AccountSwitchConfirmationDialog(
             )
         },
         confirmButton = {
-            TextButton(onClick = onConfirm) { Text("Sign in anyway") }
+            TextButton(onClick = onConfirm) { Text(localized("Sign in anyway")) }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancel") }
+            TextButton(onClick = onDismiss) { Text(localized("Cancel")) }
         },
     )
 }
@@ -194,7 +196,7 @@ fun SignInDialog(
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
-                    "Sign in",
+                    localized("Sign in"),
                     style = MaterialTheme.typography.headlineMedium,
                     modifier = Modifier.padding(8.dp)
                 )
@@ -215,7 +217,7 @@ fun SignInDialog(
 @Composable
 private fun SignInUnavailable(provider: String) {
     Text(
-        text = "$provider login disabled within this build",
+        text = localized("$provider login disabled within this build", "이 앱에서는 $provider 로그인을 사용할 수 없습니다"),
         style = MaterialTheme.typography.bodySmall,
         color = MaterialTheme.colorScheme.onSurfaceVariant,
         textAlign = TextAlign.Center,
@@ -245,7 +247,7 @@ fun SignInButtons(
                 SignInButton(
                     onError = { error = it },
                     onSuccess = onDismiss,
-                    text = "Sign in with Google",
+                    text = localized("Sign in with Google"),
                     credentialProvider = { context ->
                         val googleAuthUtil = koin.get<GoogleAuthUtil>()
                         googleAuthUtil.signInGoogle(context)
@@ -261,7 +263,7 @@ fun SignInButtons(
                 SignInButton(
                     onError = { error = it },
                     onSuccess = onDismiss,
-                    text = "Sign in with Apple",
+                    text = localized("Sign in with Apple"),
                     credentialProvider = { context ->
                         val appleAuthUtil = koin.get<AppleAuthUtil>()
                         appleAuthUtil.signInApple(context)
@@ -277,7 +279,7 @@ fun SignInButtons(
                 SignInButton(
                     onError = { error = it },
                     onSuccess = onDismiss,
-                    text = "Sign in with GitHub",
+                    text = localized("Sign in with GitHub"),
                     credentialProvider = { context ->
                         val githubAuthUtil = koin.get<GitHubAuthUtil>()
                         githubAuthUtil.signInGithub(context)

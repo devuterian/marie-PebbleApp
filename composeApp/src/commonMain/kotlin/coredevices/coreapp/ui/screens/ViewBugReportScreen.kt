@@ -1,5 +1,7 @@
 package coredevices.coreapp.ui.screens
 
+import localization.localized
+
 import CoreNav
 import DocumentAttachment
 import androidx.compose.foundation.background
@@ -104,7 +106,7 @@ fun ViewBugReportScreen(
                 ticket?.let {
                     scope.launch {
                         val message =
-                            if (attachments.size == 1) "Uploading attachment" else "Uploading attachments"
+                            if (attachments.size == 1) localized("Uploading attachment") else localized("Uploading attachments")
                         snackBarHostState.showSnackbar(message)
                     }
                     bugReportProcessor.updateBugReportWithNewAttachments(ticket.ticketId, attachments)
@@ -119,7 +121,7 @@ fun ViewBugReportScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("Report: $subject", maxLines = 1, fontSize = 17.sp) },
+                    title = { Text(localized("Report: $subject", "제보: $subject"), maxLines = 1, fontSize = 17.sp) },
                     navigationIcon = {
                         IconButton(onClick = coreNav::goBack) {
                             Icon(
@@ -140,7 +142,7 @@ fun ViewBugReportScreen(
                 ) {
                     if (showPhotoChip) {
                         ElevatedAssistChip(
-                            label = { Text("Add Image") },
+                            label = { Text(localized("Add Image")) },
                             onClick = {
                                 ticket?.let {
                                     launchPhotoDialog()
@@ -150,14 +152,14 @@ fun ViewBugReportScreen(
                             leadingIcon = {
                                 Icon(
                                     imageVector = Icons.Default.InsertPhoto,
-                                    contentDescription = "Add Image",
+                                    contentDescription = localized("Add Image"),
                                 )
                             },
                             elevation = AssistChipDefaults.elevatedAssistChipElevation(elevation = 6.dp),
                         )
                     }
                     ElevatedAssistChip(
-                        label = { Text("Attach Files") },
+                        label = { Text(localized("Attach Files")) },
                         onClick = {
                             ticket?.let {
                                 launchAttachmentDialog(listOf("*/*"))
@@ -167,18 +169,18 @@ fun ViewBugReportScreen(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.AttachFile,
-                                contentDescription = "Attach Files",
+                                contentDescription = localized("Attach Files"),
                             )
                         },
                         elevation = AssistChipDefaults.elevatedAssistChipElevation(elevation = 6.dp),
                     )
                     ElevatedAssistChip(
-                        label = { Text("Attach More Logs") },
+                        label = { Text(localized("Attach More Logs")) },
                         onClick = {
                             ticket?.let {
                                 requestedMoreLogs = true
                                 scope.launch {
-                                    snackBarHostState.showSnackbar("Fetching and uploading new logs")
+                                    snackBarHostState.showSnackbar(localized("Fetching and uploading new logs"))
                                 }
                                 bugReportProcessor.updateBugReportWithNewLogs(ticket.ticketId)
                             }
@@ -187,7 +189,7 @@ fun ViewBugReportScreen(
                         leadingIcon = {
                             Icon(
                                 imageVector = Icons.Default.Troubleshoot,
-                                contentDescription = "Upload More Logs",
+                                contentDescription = localized("Upload More Logs"),
                             )
                         },
                         elevation = AssistChipDefaults.elevatedAssistChipElevation(elevation = 6.dp),
@@ -199,7 +201,7 @@ fun ViewBugReportScreen(
                             let hidden = false;
 
                             // Primary selector: by title attribute
-                            const buttonByTitle = document.querySelector('button[title*="Attach files"]');
+                            const buttonByTitle = document.querySelector('button[title*=localized("Attach files")]');
                             if (buttonByTitle) {
                                 buttonByTitle.style.display = 'none';
                                 hidden = true;
@@ -219,7 +221,7 @@ fun ViewBugReportScreen(
                             if (!document.getElementById('hide-attachment-style')) {
                                 const style = document.createElement('style');
                                 style.id = 'hide-attachment-style';
-                                style.textContent = 'button[title*="Attach files"] { display: none !important; }';
+                                style.textContent = 'button[title*=localized("Attach files")] { display: none !important; }';
                                 document.head.appendChild(style);
                             }
 

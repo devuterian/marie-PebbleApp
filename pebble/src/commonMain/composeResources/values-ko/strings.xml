@@ -1,0 +1,9 @@
+<resources>
+  <string name="faces">워치페이스</string>
+  <string name="apps">앱</string>
+  <string name="notifications">알림</string>
+  <string name="settings">설정</string>
+  <string name="health">건강</string>
+  <string name="devices">기기</string>
+  <string name="app_store">앱스토어</string>
+</resources>

@@ -1,5 +1,7 @@
 package coredevices.pebble.firmware
 
+import localization.localized
+
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -67,14 +69,14 @@ actual fun notifyFirmwareUpdate(
         .setContentIntent(viewPendingIntent)
         .setAutoCancel(true)
         .addAction(
-            NotificationCompat.Action.Builder(null, "Update Now", updatePhonePendingIntent)
+            NotificationCompat.Action.Builder(null, localized("Update Now", "지금 업데이트"), updatePhonePendingIntent)
                 .setShowsUserInterface(true)
                 .build()
         )
         .extend(
             NotificationCompat.WearableExtender()
                 .addAction(
-                    NotificationCompat.Action.Builder(null, "Update Now", updateIntentWatch).build()
+                    NotificationCompat.Action.Builder(null, localized("Update Now", "지금 업데이트"), updateIntentWatch).build()
                 )
         )
     val notificationManager =
@@ -87,10 +89,10 @@ private const val CHANNEL_ID = "firmware_update_channel"
 private fun Context.createFwupNotificationChannel() {
     val channel = NotificationChannel(
         CHANNEL_ID,
-        "Firmware Updates",
+        localized("Firmware Updates", "펌웨어 업데이트"),
         NotificationManager.IMPORTANCE_DEFAULT
     ).apply {
-        description = "Firmware udpate notifications"
+        description = localized("Firmware udpate notifications", "펌웨어 업데이트 알림")
     }
     val manager = getSystemService(NotificationManager::class.java)
     manager.createNotificationChannel(channel)

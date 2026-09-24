@@ -1,5 +1,7 @@
 package coredevices.pebble.firmware
 
+import localization.localized
+
 import co.touchlab.kermit.Logger
 import com.russhwolf.settings.Settings
 import io.rebble.libpebblecommon.connection.AppContext
@@ -61,8 +63,8 @@ class RealFirmwareUpdateUiTracker(
         activeNotificationKeys.add(notificationKey)
         notifyFirmwareUpdate(
             appContext = appContext,
-            title = "PebbleOS update available",
-            body = "PebbleOS ${update.version.stringVersion} is available for $watchName:\n${update.notes}",
+            title = localized("PebbleOS update available", "새 PebbleOS가 나왔습니다"),
+            body = localized("PebbleOS ${update.version.stringVersion} is available for $watchName:\n${update.notes}", "$watchName 시계에 PebbleOS ${update.version.stringVersion}을 설치할 수 있습니다:\n${update.notes}"),
             key = notificationKey,
             identifier = identifier,
         )

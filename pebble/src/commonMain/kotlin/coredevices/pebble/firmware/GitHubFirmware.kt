@@ -17,7 +17,7 @@ class GitHubFirmware(private val httpClient: PebbleHttpClient) {
             auth = HttpClientAuthType.None,
         )
         return release?.officialUpdateFor(watch.platform.revision, watch.runningFwVersion, reinstall)
-            ?: FirmwareUpdateCheckResult.UpdateCheckFailed("공식 펌웨어를 확인하지 못했어요. 잠시 후 다시 시도해주세요.")
+            ?: FirmwareUpdateCheckResult.UpdateCheckFailed("공식 펌웨어를 확인하지 못했습니다. 잠시 후 다시 시도하십시오.")
     }
 
     suspend fun getLatestFirmware(watch: WatchInfo, includePrereleases: Boolean = false): FirmwareUpdateCheckResult {
@@ -27,14 +27,14 @@ class GitHubFirmware(private val httpClient: PebbleHttpClient) {
                 auth = HttpClientAuthType.None,
             )
             return releases?.latestUpdateFor(watch.platform.revision, watch.runningFwVersion)
-                ?: FirmwareUpdateCheckResult.UpdateCheckFailed("깃허브에서 펌웨어 업데이트를 확인하지 못했어요. 잠시 후 다시 시도해주세요.")
+                ?: FirmwareUpdateCheckResult.UpdateCheckFailed("깃허브에서 펌웨어 업데이트를 확인하지 못했습니다. 잠시 후 다시 시도하십시오.")
         }
         val release: GitHubFirmwareRelease? = httpClient.get(
             "https://api.github.com/repos/devuterian/PebbleOAO/releases/latest",
             auth = HttpClientAuthType.None,
         )
         return release?.updateFor(watch.platform.revision, watch.runningFwVersion)
-            ?: FirmwareUpdateCheckResult.UpdateCheckFailed("깃허브에서 펌웨어 업데이트를 확인하지 못했어요. 잠시 후 다시 시도해주세요.")
+            ?: FirmwareUpdateCheckResult.UpdateCheckFailed("깃허브에서 펌웨어 업데이트를 확인하지 못했습니다. 잠시 후 다시 시도하십시오.")
     }
 }
 
@@ -54,12 +54,12 @@ internal data class GitHubFirmwareRelease(
     ): FirmwareUpdateCheckResult {
         if (draft || prerelease) return FirmwareUpdateCheckResult.FoundNoUpdate
         if (!Regex("""^v\d+\.\d+\.\d+$""").matches(tag)) {
-            return FirmwareUpdateCheckResult.UpdateCheckFailed("공식 릴리즈의 버전을 읽지 못했어요.")
+            return FirmwareUpdateCheckResult.UpdateCheckFailed("공식 릴리즈의 버전을 읽지 못했습니다.")
         }
         val asset = assets.singleOrNull { it.name == "normal_${hardware}_${tag}.pbz" }
-            ?: return FirmwareUpdateCheckResult.UpdateCheckFailed("공식 릴리즈에 이 시계용 펌웨어가 없어요.")
+            ?: return FirmwareUpdateCheckResult.UpdateCheckFailed("공식 릴리즈에 이 시계용 펌웨어가 없습니다.")
         val version = FirmwareVersion.from(tag, false, "", Instant.fromEpochSeconds(0), false, false)
-            ?: return FirmwareUpdateCheckResult.UpdateCheckFailed("공식 릴리즈의 버전을 읽지 못했어요.")
+            ?: return FirmwareUpdateCheckResult.UpdateCheckFailed("공식 릴리즈의 버전을 읽지 못했습니다.")
         val newer = compareValuesBy(version, running, { it.major }, { it.minor }, { it.patch }) > 0
         return if (reinstall || running.isRecovery || newer) {
             FirmwareUpdateCheckResult.FoundUpdate(version, asset.url, body.orEmpty(), canDowngrade = reinstall)
@@ -71,9 +71,9 @@ internal data class GitHubFirmwareRelease(
     fun updateFor(hardware: String, running: FirmwareVersion, includePrereleases: Boolean = false): FirmwareUpdateCheckResult {
         if (draft || (prerelease && !includePrereleases)) return FirmwareUpdateCheckResult.FoundNoUpdate
         val revision = marieRevision(tag)
-            ?: return FirmwareUpdateCheckResult.UpdateCheckFailed("릴리즈의 펌웨어 버전을 읽지 못했어요.")
+            ?: return FirmwareUpdateCheckResult.UpdateCheckFailed("릴리즈의 펌웨어 버전을 읽지 못했습니다.")
         val asset = assets.singleOrNull { it.name == "normal_${hardware}_${tag}.pbz" }
-            ?: return FirmwareUpdateCheckResult.UpdateCheckFailed("최신 정식 릴리즈에 이 시계용 펌웨어가 없어요.")
+            ?: return FirmwareUpdateCheckResult.UpdateCheckFailed("최신 정식 릴리즈에 이 시계용 펌웨어가 없습니다.")
         val version = FirmwareVersion.from(
             tag = tag,
             isRecovery = false,
@@ -81,7 +81,7 @@ internal data class GitHubFirmwareRelease(
             timestamp = Instant.fromEpochSeconds(0),
             isDualSlot = false,
             isSlot0 = false,
-        ) ?: return FirmwareUpdateCheckResult.UpdateCheckFailed("릴리즈의 펌웨어 버전을 읽지 못했어요.")
+        ) ?: return FirmwareUpdateCheckResult.UpdateCheckFailed("릴리즈의 펌웨어 버전을 읽지 못했습니다.")
         val baseComparison = compareValuesBy(version, running, { it.major }, { it.minor }, { it.patch })
         val newer = baseComparison > 0 ||
             (baseComparison == 0 && revision > (marieRevision(running.stringVersion) ?: 0))

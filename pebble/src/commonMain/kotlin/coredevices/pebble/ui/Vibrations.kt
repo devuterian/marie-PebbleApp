@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -73,7 +75,7 @@ fun CoroutineScope.testPattern(vibePattern: VibePattern, libPebble: LibPebble) {
         ) {
             layout = TimelineItem.Layout.GenericNotification
             attributes {
-                title { "Test Vibe Pattern" }
+                title { localized("Test Vibe Pattern") }
                 body { "Testing vibe pattern: ${vibePattern.name}" }
                 tinyIcon { TimelineIcon.RadioShow }
                 vibrationPattern { vibePattern.uIntPattern() }
@@ -81,7 +83,7 @@ fun CoroutineScope.testPattern(vibePattern: VibePattern, libPebble: LibPebble) {
             actions {
                 action(TimelineItem.Action.Type.Generic) {
                     attributes {
-                        title { "Test" }
+                        title { localized("Test") }
                     }
                 }
             }
@@ -112,19 +114,19 @@ fun VibePatternPickerDialog(
         patternToDelete?.let { pattern ->
             AlertDialog(
                 onDismissRequest = { patternToDelete = null },
-                title = { Text("Delete Pattern") },
-                text = { Text("Are you sure you want to delete the vibration pattern \"${pattern.name}\"?") },
+                title = { Text(localized("Delete Pattern")) },
+                text = { Text(localized("Are you sure you want to delete the vibration pattern \"${pattern.name}\"?", "${pattern.name} 진동 패턴을 삭제하시겠습니까?")) },
                 confirmButton = {
                     TextButton(onClick = {
                         libPebble.deleteCustomPattern(pattern.name)
                         patternToDelete = null
                     }) {
-                        Text("Delete")
+                        Text(localized("Delete"))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = { patternToDelete = null }) {
-                        Text("Cancel")
+                        Text(localized("Cancel"))
                     }
                 }
             )
@@ -136,7 +138,7 @@ fun VibePatternPickerDialog(
                     horizontalArrangement = Center,
                 ) {
                     Text(
-                        text = "Choose Vibration Pattern",
+                        text = localized("Choose Vibration Pattern"),
                         modifier = Modifier.padding(12.dp)
                     )
                 }
@@ -145,7 +147,7 @@ fun VibePatternPickerDialog(
                     horizontalArrangement = Center,
                 ) {
                     PebbleElevatedButton(
-                        text = "Add Custom Pattern",
+                        text = localized("Add Custom Pattern"),
                         onClick = { showCustomVibeDialog = true },
                         primaryColor = true,
                         modifier = Modifier.padding(12.dp),
@@ -162,7 +164,7 @@ fun VibePatternPickerDialog(
                                 ) {
                                     Icon(
                                         Icons.Default.PlayCircle,
-                                        contentDescription = "Test",
+                                        contentDescription = localized("Test"),
                                     )
                                 }
                             },
@@ -178,7 +180,7 @@ fun VibePatternPickerDialog(
                                     ) {
                                         Icon(
                                             Icons.Default.Delete,
-                                            contentDescription = "Delete",
+                                            contentDescription = localized("Delete"),
                                         )
                                     }
                                 }
@@ -201,7 +203,7 @@ fun VibePatternPickerDialog(
                             onDismissWithoutResult()
                         },
                         content = {
-                            Text("Cancel")
+                            Text(localized("Cancel"))
                         },
                         modifier = Modifier.weight(1f),
                     )
@@ -210,7 +212,7 @@ fun VibePatternPickerDialog(
                             onResult(null)
                         },
                         content = {
-                            Text("None")
+                            Text(localized("None"))
                         },
                         modifier = Modifier.weight(1f),
                     )
@@ -310,7 +312,7 @@ fun CustomVibeTapperDialog(onDismiss: () -> Unit) {
                         .background(tapBackgroundColor)
                 ) {
                     Text(
-                        text = "Tap custom pattern",
+                        text = localized("Tap custom pattern"),
                         modifier = Modifier.padding(vertical = 100.dp).align(Alignment.Center),
                         color = tapTextColor,
                     )
@@ -320,7 +322,7 @@ fun CustomVibeTapperDialog(onDismiss: () -> Unit) {
                     IconButton(
                         onClick = {
                             lastTappedPattern?.let { pattern ->
-                                val name = patternName.ifBlank { "Custom Tapped Pattern" }
+                                val name = patternName.ifBlank { localized("Custom Tapped Pattern") }
                                 val vibePattern = VibePattern(name, pattern, bundled = false)
                                 scope.testPattern(vibePattern, libPebble)
                             }
@@ -330,14 +332,14 @@ fun CustomVibeTapperDialog(onDismiss: () -> Unit) {
                     ) {
                         Icon(
                             Icons.Default.PlayCircle,
-                            contentDescription = "Test",
+                            contentDescription = localized("Test"),
                         )
                     }
 
                     TextField(
                         value = patternName,
                         onValueChange = { patternName = it },
-                        label = { Text("Pattern Name") },
+                        label = { Text(localized("Pattern Name")) },
                         keyboardOptions = KeyboardOptions(
                             capitalization = KeyboardCapitalization.Sentences
                         ),
@@ -352,7 +354,7 @@ fun CustomVibeTapperDialog(onDismiss: () -> Unit) {
                             onDismiss()
                         },
                         content = {
-                            Text("Cancel")
+                            Text(localized("Cancel"))
                         },
                         modifier = Modifier.weight(1f)
                     )
@@ -369,7 +371,7 @@ fun CustomVibeTapperDialog(onDismiss: () -> Unit) {
                             }
                         },
                         content = {
-                            Text("Save")
+                            Text(localized("Save"))
                         },
                         enabled = lastTappedPattern != null && patternName.isNotBlank(),
                         modifier = Modifier.weight(1f)
@@ -385,7 +387,7 @@ fun SelectVibePatternOrNone(
     currentPattern: String?,
     onChangePattern: (VibePattern?) -> Unit,
     subtext: String? = null,
-    title: String = "Vibration Pattern",
+    title: String = localized("Vibration Pattern"),
 ) {
     var showVibePatternChooser by remember { mutableStateOf(false) }
     if (showVibePatternChooser) {
@@ -406,7 +408,7 @@ fun SelectVibePatternOrNone(
         },
         supportingContent = {
             Column {
-                Text(currentPattern ?: "Default")
+                Text(currentPattern ?: localized("Default"))
                 if (subtext != null) {
                     Text(subtext, fontSize = 12.sp)
                 }
@@ -414,12 +416,12 @@ fun SelectVibePatternOrNone(
         },
         trailingContent = {
             PebbleElevatedButton(
-                text = "Select",
+                text = localized("Select"),
                 onClick = {
                     showVibePatternChooser = true
                 },
                 icon = Icons.Default.Vibration,
-                contentDescription = "Select vibration pattern",
+                contentDescription = localized("Select vibration pattern"),
                 primaryColor = true,
                 modifier = Modifier.padding(8.dp),
             )

@@ -1,5 +1,7 @@
 package coredevices.coreapp.ui.screens
 
+import localization.localized
+
 import DocumentAttachment
 import co.touchlab.kermit.Logger
 import com.oldguy.common.io.File
@@ -158,11 +160,11 @@ class BugReportProcessor(
             val configuredMode = transcriptionService.configuredMode
             val configuredLanguage = transcriptionService.configuredLanguage ?: "Auto/Not specified"
             val lastSuccessfulMode = when (transcriptionService.lastSuccessfulMode) {
-                CactusSTTMode.LocalOnly, CactusSTTMode.LocalFirst -> "Local"
-                CactusSTTMode.RemoteOnly, CactusSTTMode.RemoteFirst -> "Remote"
+                CactusSTTMode.LocalOnly, CactusSTTMode.LocalFirst -> localized("Local")
+                CactusSTTMode.RemoteOnly, CactusSTTMode.RemoteFirst -> localized("Remote")
                 CactusSTTMode.RebbleOnly, CactusSTTMode.RebbleFirst, CactusSTTMode.RebbleFallback -> "Rebble"
-                CactusSTTMode.PlatformOnly -> "Platform"
-                null -> "None"
+                CactusSTTMode.PlatformOnly -> localized("Platform")
+                null -> localized("None")
             }
             "\nSTT Summary\n" +
                     "Configured mode: $configuredMode\n" +
@@ -254,7 +256,7 @@ class BugReportProcessor(
                 state.tryEmit(BugReportState.BugReportResult.Success(bugReportId))
             } else {
                 state.tryEmit(BugReportState.BugReportResult.Failed(
-                    uploadResult.exceptionOrNull()?.message ?: "Unknown error"
+                    uploadResult.exceptionOrNull()?.message ?: localized("Unknown error")
                 ))
             }
         }
@@ -275,7 +277,7 @@ class BugReportProcessor(
                 state.tryEmit(BugReportState.BugReportResult.Success(bugReportId))
             } else {
                 state.tryEmit(BugReportState.BugReportResult.Failed(
-                    uploadResult.exceptionOrNull()?.message ?: "Unknown error"
+                    uploadResult.exceptionOrNull()?.message ?: localized("Unknown error")
                 ))
             }
         }
@@ -342,8 +344,8 @@ class BugReportProcessor(
                 val bugReportResult = try {
                     bugApi.reportBug(
                         details = params.userMessage,
-                        username = params.userName ?: "Unknown",
-                        email = params.userEmail ?: "Unknown",
+                        username = params.userName ?: localized("Unknown"),
+                        email = params.userEmail ?: localized("Unknown"),
                         timezone = TimeZone.currentSystemDefault().id,
                         summary = summaryWithAttachmentCount,
                         latestLogs = lastNLines,
@@ -359,9 +361,9 @@ class BugReportProcessor(
                         e.message?.contains("Please enter") == true -> e.message!!
                         e.message?.contains("Please describe") == true -> e.message!!
                         e.message?.contains("Unable to submit") == true -> e.message!!
-                        e.message?.contains("network") == true -> "Network error. Please check your connection and try again."
-                        e.message?.contains("timeout") == true -> "Request timed out. Please try again."
-                        else -> "Unable to submit bug report. Please try again later."
+                        e.message?.contains("network") == true -> localized("Network error. Please check your connection and try again.")
+                        e.message?.contains("timeout") == true -> localized("Request timed out. Please try again.")
+                        else -> localized("Unable to submit bug report. Please try again later.")
                     }
                     state.tryEmit(BugReportState.BugReportResult.Failed(userMessage))
                     return@processBugReport
@@ -405,7 +407,7 @@ class BugReportProcessor(
                     state.tryEmit(BugReportState.BugReportResult.Success(bugReportId))
                 } else {
                     state.tryEmit(BugReportState.BugReportResult.Failed(
-                        uploadResult.exceptionOrNull()?.message ?: "Unknown error"
+                        uploadResult.exceptionOrNull()?.message ?: localized("Unknown error")
                     ))
                 }
             } else {
@@ -439,7 +441,7 @@ class BugReportProcessor(
         state.tryEmit(BugReportState.Creating)
         if (service) {
             startForegroundService()
-            notifyState("Creating bug report...")
+            notifyState(localized("Creating bug report..."))
             GlobalScope.launch {
                 try {
                     state.transformWhile {
@@ -448,10 +450,10 @@ class BugReportProcessor(
                     }.collect {
                         when (it) {
                             BugReportState.Creating -> Unit
-                            BugReportState.GatheringWatchLogs -> notifyState("Gathering watch logs...")
-                            BugReportState.UploadingAttachments -> notifyState("Uploading attachments")
+                            BugReportState.GatheringWatchLogs -> notifyState(localized("Gathering watch logs..."))
+                            BugReportState.UploadingAttachments -> notifyState(localized("Uploading attachments"))
                             is BugReportState.BugReportResult.Failed -> notifyState("Bug report failed: ${it.error}")
-                            is BugReportState.BugReportResult.Success -> notifyState("Bug report successfully uploaded!")
+                            is BugReportState.BugReportResult.Success -> notifyState(localized("Bug report successfully uploaded!"))
                             is BugReportState.ReadyToShare -> Unit
                         }
                     }
@@ -472,7 +474,7 @@ class BugReportProcessor(
                 block(state, userIdToken)
             } catch (e: Exception) {
                 logger.e(e) { "Unhandled exception in bug report processing" }
-                state.tryEmit(BugReportState.BugReportResult.Failed("An unexpected error occurred"))
+                state.tryEmit(BugReportState.BugReportResult.Failed(localized("An unexpected error occurred")))
             }
         }
         return state
@@ -627,13 +629,13 @@ class BugReportProcessor(
             }
             if (presignedResult.isFailure) {
                 logger.e { "Failed to get presigned URLs: ${presignedResult.exceptionOrNull()}" }
-                return@withContext Result.failure(Exception("Unable to prepare file uploads. Please check your connection and try again."))
+                return@withContext Result.failure(Exception(localized("Unable to prepare file uploads. Please check your connection and try again.")))
             }
 
             val presignedResponse = presignedResult.getOrThrow()
             if (!presignedResponse.success || presignedResponse.uploads == null) {
                 logger.e { "Failed to get presigned URLs: ${presignedResponse.error}" }
-                return@withContext Result.failure(Exception("Unable to prepare file uploads. Please try again later."))
+                return@withContext Result.failure(Exception(localized("Unable to prepare file uploads. Please try again later.")))
             }
 
             // Step 3: Upload files to R2 concurrently (bounded), shrinking the window
@@ -692,9 +694,9 @@ class BugReportProcessor(
             logger.e(e) { "Failed to upload attachments" }
             val userMessage = when {
                 e.message?.contains("Unable to prepare") == true -> e.message!!
-                e.message?.contains("Network") == true -> "Network error during file upload. Please check your connection and try again."
-                e.message?.contains("timeout") == true -> "File upload timed out. Please try again with a better connection."
-                else -> "Unable to upload attachments. Please try again later."
+                e.message?.contains("Network") == true -> localized("Network error during file upload. Please check your connection and try again.")
+                e.message?.contains("timeout") == true -> localized("File upload timed out. Please try again with a better connection.")
+                else -> localized("Unable to upload attachments. Please try again later.")
             }
             Result.failure(Exception(userMessage))
         }
@@ -731,7 +733,7 @@ class BugReportProcessor(
             appendLine("missingPermissions: ${permissionRequester.missingPermissions.value}")
             appendLine("watchesWithoutCompanionDevicePermission: $watchesWithoutCompanionDevicePermission")
             appendLine(libPebble.watchesDebugState())
-            appendLine("Watches (most recently connected first):")
+            appendLine(localized("Watches (most recently connected first):"))
             watches.forEachIndexed { index, watch ->
                 appendLine("watch_$index $watch")
             }

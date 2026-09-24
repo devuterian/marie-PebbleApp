@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -55,8 +57,8 @@ class NotificationScreenViewModel : ViewModel() {
 }
 
 enum class NotificationTab(val title: String) {
-    Apps("Apps"),
-    Contacts("Contacts"),
+    Apps(localized("Apps")),
+    Contacts(localized("Contacts")),
 //    Rules("Rules"),
 //    History("History"),
 }
@@ -68,15 +70,15 @@ enum class NotificationAppSort {
 }
 
 enum class EnabledFilter(val label: String) {
-    All("All"),
-    EnabledOnly("Enabled"),
-    DisabledOnly("Disabled"),
+    All(localized("All")),
+    EnabledOnly(localized("Enabled")),
+    DisabledOnly(localized("Disabled")),
 }
 
 @Composable
 fun NotificationsScreen(topBarParams: TopBarParams, nav: NavBarNav) {
     LaunchedEffect(Unit) {
-        topBarParams.title("Notifications")
+        topBarParams.title(localized("Notifications"))
         topBarParams.actions {}
     }
 
@@ -201,7 +203,7 @@ fun NotificationAppCard(
                 if (clickable) {
                     Icon(
                         Icons.Default.MoreHoriz,
-                        "Details",
+                        localized("Details"),
                         modifier = Modifier.padding(start = 4.dp, end = 10.dp)
                     )
                 }
@@ -235,7 +237,7 @@ fun AppIconImage(
     showBadge: Boolean,
 ) {
     val app = entry.app
-    val contentDescription = remember(app.packageName) { "${app.name} icon" }
+    val contentDescription = remember(app.packageName) { localized("${app.name} icon", "${app.name} 아이콘") }
     when (platform) {
         // iOS: load from web service
         Platform.IOS -> {

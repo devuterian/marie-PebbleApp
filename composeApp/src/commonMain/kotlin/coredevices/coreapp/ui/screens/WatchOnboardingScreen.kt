@@ -1,5 +1,7 @@
 package coredevices.coreapp.ui.screens
 
+import localization.localized
+
 import CoreNav
 import androidx.compose.foundation.ScrollState
 import androidx.compose.foundation.layout.Arrangement
@@ -159,7 +161,7 @@ fun WatchOnboardingScreen(
                     horizontalAlignment = Alignment.CenterHorizontally,
                 ) {
                     Text(
-                        text = "Get Started!",
+                        text = localized("Get Started!"),
                         fontSize = 35.sp,
                     )
 
@@ -168,9 +170,9 @@ fun WatchOnboardingScreen(
                     if (connectedWatch == null) {
                         haveStartedFwupSinceLastConnection = false
                         if (haveUpdatedFirmware) {
-                            SectionText("Waiting for your Pebble to restart..")
+                            SectionText(localized("Waiting for your Pebble to restart.."))
                         } else {
-                            SectionText("Waiting for your Pebble to connect..")
+                            SectionText(localized("Waiting for your Pebble to connect.."))
                         }
 
                         Spacer(modifier = Modifier.height(15.dp))
@@ -179,12 +181,12 @@ fun WatchOnboardingScreen(
                     if (connectedWatch is ConnectedPebbleDeviceInRecovery) {
                         val firmwareUpdateAvailable = connectedWatch.firmwareUpdateAvailable.result
                         if (firmwareUpdateAvailable !is FirmwareUpdateCheckResult.FoundUpdate) {
-                            SectionText("Checking for PebbleOS updates..")
+                            SectionText(localized("Checking for PebbleOS updates.."))
 
                             Spacer(modifier = Modifier.height(15.dp))
 
                             PebbleElevatedButton(
-                                text = "Skip Setup",
+                                text = localized("Skip Setup"),
                                 onClick = { coreNav.goBack() },
                                 primaryColor = true,
                             )
@@ -200,7 +202,7 @@ fun WatchOnboardingScreen(
                             }
                         }
 
-                        SectionText("Updating your watch to the latest version of PebbleOS...")
+                        SectionText(localized("Updating your watch to the latest version of PebbleOS..."))
                         Spacer(modifier = Modifier.height(15.dp))
                         val progress = (connectedWatch.firmwareUpdateState as? FirmwareUpdater.FirmwareUpdateStatus.InProgress)?.progress?.collectAsState()
                         if (progress != null) {
@@ -213,12 +215,12 @@ fun WatchOnboardingScreen(
                     }
 
                     if (connectedWatch !is ConnectedPebbleDevice) {
-                        SectionText("Once your Pebble is connected, we'll get it set up")
+                        SectionText(localized("Once your Pebble is connected, we'll get it set up"))
 
                         Spacer(modifier = Modifier.height(15.dp))
 
                         PebbleElevatedButton(
-                            text = "Skip Setup",
+                            text = localized("Skip Setup"),
                             onClick = { coreNav.goBack() },
                             primaryColor = true,
                         )
@@ -231,7 +233,7 @@ fun WatchOnboardingScreen(
                         }
 
                         OnboardingAppCarousel(
-                            header = "Add some Watchfaces",
+                            header = localized("Add some Watchfaces"),
                             storeHome = pebbleStoreHomes[AppType.Watchface],
                             connectedWatch,
                             footerText = null,
@@ -239,10 +241,10 @@ fun WatchOnboardingScreen(
                         )
 
                         OnboardingAppCarousel(
-                            header = "Add some Apps",
+                            header = localized("Add some Apps"),
                             storeHome = pebbleStoreHomes[AppType.Watchapp],
                             connectedWatch,
-                            footerText = "Get more apps from the Pebble App Store!",
+                            footerText = localized("Get more apps from the Pebble App Store!"),
                             snackbarDisplay = snackbarDisplay,
                         )
 
@@ -250,13 +252,13 @@ fun WatchOnboardingScreen(
                         val languagePackInstalled = connectedWatch.languagePackInstalled(languagePackRepository)
                         val installingLanguagePack =
                             connectedWatch.languagePackInstallState.installing()
-                        SectionText("Install a language pack")
+                        SectionText(localized("Install a language pack"))
                         Spacer(modifier = Modifier.height(15.dp))
                         if (installingLanguagePack != null) {
-                            Text("Installing $installingLanguagePack")
+                            Text(localized("Installing $installingLanguagePack", "$installingLanguagePack 설치 중"))
                             Spacer(modifier = Modifier.height(15.dp))
                         } else if (languagePackInstalled != null) {
-                            Text("Currently installed: $languagePackInstalled")
+                            Text(localized("Currently installed: $languagePackInstalled", "현재 설치됨: $languagePackInstalled"))
                             Spacer(modifier = Modifier.height(15.dp))
                         }
                         val languagePackInstallState = connectedWatch.languagePackInstallState as? LanguagePackInstallState.Installing
@@ -268,7 +270,7 @@ fun WatchOnboardingScreen(
                             )
                         }
                         PebbleElevatedButton(
-                            text = "Choose Language",
+                            text = localized("Choose Language"),
                             onClick = { showLanguageDialog = true },
                             primaryColor = true,
                             icon = Icons.Outlined.Language,
@@ -286,7 +288,7 @@ fun WatchOnboardingScreen(
 
                         // Support settings sync
                         if (connectedWatch.capabilities.contains(ProtocolCapsFlag.SupportsBlobDbVersion)) {
-                            SectionText("Configure your watch")
+                            SectionText(localized("Configure your watch"))
                             Spacer(modifier = Modifier.height(15.dp))
 
                             settings.Show(BoolWatchPref.Clock24h.id)
@@ -308,17 +310,17 @@ fun WatchOnboardingScreen(
                         }
 
                         if (connectedWatch.capabilities.contains(ProtocolCapsFlag.SupportsAppDictation)) {
-                            SectionText("Speech Recognition")
+                            SectionText(localized("Speech Recognition"))
                             Spacer(modifier = Modifier.height(15.dp))
                             settings.Show(OfflineSpeechRecognition)
                             SectionDivider()
                         }
 
-                        Text("Configure more in Settings", textAlign = TextAlign.Center)
+                        Text(localized("Configure more in Settings"), textAlign = TextAlign.Center)
                         SectionDivider()
 
                         PebbleElevatedButton(
-                            text = "Finished",
+                            text = localized("Finished"),
                             onClick = {
                                 scope.launch {
                                     watchOnboardingFinished.finished.trySend(Unit)
@@ -451,7 +453,7 @@ fun OnboardingAppCarousel(
                     )
                     if (entry.uuid in allCollectionUuids.orEmpty()) {
                         PebbleElevatedButton(
-                            text = "Remove",
+                            text = localized("Remove"),
                             onClick = {
                                 added = false
                                 GlobalScope.launch {
@@ -467,7 +469,7 @@ fun OnboardingAppCarousel(
                         )
                     } else {
                         PebbleElevatedButton(
-                            text = "Add",
+                            text = localized("Add"),
                             onClick = {
                                 added = true
                                 GlobalScope.launch {
@@ -477,7 +479,7 @@ fun OnboardingAppCarousel(
                                     )
                                     logger.v { "Add to locker from watch onboarding ${commonAppStore.storeApp?.title} result=$addResult" }
                                     if (!addResult) {
-                                        snackbarDisplay.showSnackbar("Failed to add app")
+                                        snackbarDisplay.showSnackbar(localized("Failed to add app"))
                                         return@launch
                                     }
                                     libPebble.launchApp(

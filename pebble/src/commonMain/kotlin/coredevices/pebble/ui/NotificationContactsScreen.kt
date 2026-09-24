@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -107,14 +109,14 @@ fun NotificationContactsScreen(topBarParams: TopBarParams, nav: NavBarNav, gotoD
                                 !viewModel.onlyNotified.value
                         },
                         label = {
-                            Text("Notified only")
+                            Text(localized("Notified only"))
                         },
                         selected = viewModel.onlyNotified.value,
                         leadingIcon = if (viewModel.onlyNotified.value) {
                             {
                                 Icon(
                                     imageVector = Icons.Filled.Done,
-                                    contentDescription = "Done icon",
+                                    contentDescription = localized("Done icon"),
                                     modifier = Modifier.size(FilterChipDefaults.IconSize)
                                 )
                             }
@@ -153,7 +155,7 @@ fun ContactNotificationViewerScreen(
     LaunchedEffect(Unit) {
         topBarParams.searchAvailable(null)
         topBarParams.actions {}
-        topBarParams.title("Contact Notifications")
+        topBarParams.title(localized("Contact Notifications"))
     }
     val libPebble = rememberLibPebble()
     val flow = remember {
@@ -206,7 +208,7 @@ fun ContactCard(entry: ContactWithCount, nav: NavBarNav, firstOrOnlyItem: Boolea
                     }
                     Icon(
                         Icons.Default.MoreHoriz,
-                        "Details",
+                        localized("Details"),
                         modifier = Modifier.padding(start = 4.dp, end = 10.dp)
                     )
                 }
@@ -230,7 +232,7 @@ fun ContactCard(entry: ContactWithCount, nav: NavBarNav, firstOrOnlyItem: Boolea
                     settingsKey = "shown_starred_contact_tooltip",
                     persistent = true,
                     firstOrOnlyItem = firstOrOnlyItem,
-                    text = "Star a contact to always receive notifications from them, even if e.g. the app is muted",
+                    text = localized("Star a contact to always receive notifications from them, even if e.g. the app is muted"),
                 ) {
                     IconToggleButton(
                         checked = favorite,
@@ -247,7 +249,7 @@ fun ContactCard(entry: ContactWithCount, nav: NavBarNav, firstOrOnlyItem: Boolea
                     ) {
                         Icon(
                             if (favorite) Icons.Outlined.Star else Icons.Outlined.StarOutline,
-                            contentDescription = "Star"
+                            contentDescription = localized("Star")
                         )
                     }
                 }

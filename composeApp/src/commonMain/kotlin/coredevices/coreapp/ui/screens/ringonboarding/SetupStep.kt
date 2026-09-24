@@ -1,5 +1,7 @@
 package coredevices.coreapp.ui.screens.ringonboarding
 
+import localization.localized
+
 import CoreNav
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -147,7 +149,7 @@ internal fun SetupStep(
                 val models = modelManager.getAvailableSTTModels()
                 value = models.firstOrNull { it.slug == recommendedSTTModel.modelSlug }
                     ?: run {
-                        snackbarDisplay.showSnackbar("Error occurred. Please try again later.")
+                        snackbarDisplay.showSnackbar(localized("Error occurred. Please try again later."))
                         pendingSTTModeDialog = null
                         null
                     }
@@ -161,7 +163,7 @@ internal fun SetupStep(
                 onGetRecommended = {
                     scope.launch {
                         if (!modelManager.downloadSTTModel(recommendedModelFinal, allowMetered = true)) {
-                            snackbarDisplay.showSnackbar("Error starting download. Please try again later.")
+                            snackbarDisplay.showSnackbar(localized("Error starting download. Please try again later."))
                         } else {
                             coreConfigHolder.update(
                                 coreConfig.copy(
@@ -223,7 +225,7 @@ internal fun SetupStep(
         }
         AlertDialog(
             onDismissRequest = { showPlatformInfoDialog = false },
-            title = { Text("On-device speech recognition") },
+            title = { Text(localized("On-device speech recognition")) },
             text = {
                 Text(
                     "Uses Apple's built-in speech recognition — no download needed. " +
@@ -238,7 +240,7 @@ internal fun SetupStep(
                 )
             },
             confirmButton = {
-                TextButton(onClick = { showPlatformInfoDialog = false }) { Text("OK") }
+                TextButton(onClick = { showPlatformInfoDialog = false }) { Text(localized("OK")) }
             },
         )
     }
@@ -248,10 +250,10 @@ internal fun SetupStep(
         when {
             mode == CactusSTTMode.PlatformOnly -> selectPlatformStt()
             mode != CactusSTTMode.RemoteOnly && !cactusSupported -> {
-                snackbarDisplay.showSnackbar("This device doesn't support local speech recognition")
+                snackbarDisplay.showSnackbar(localized("This device doesn't support local speech recognition"))
             }
             mode != CactusSTTMode.LocalOnly && coreUser == null -> {
-                snackbarDisplay.showSnackbar("You need to be signed in to use cloud speech recognition")
+                snackbarDisplay.showSnackbar(localized("You need to be signed in to use cloud speech recognition"))
                 showSignInDialog = true
             }
             mode != CactusSTTMode.RemoteOnly && !hasOfflineModels -> {
@@ -274,7 +276,7 @@ internal fun SetupStep(
         // Title — "Get Set Up"
         Column(modifier = Modifier.padding(start = 24.dp, end = 24.dp, top = 12.dp, bottom = 8.dp)) {
             Text(
-                text = "Get Set Up",
+                text = localized("Get Set Up"),
                 fontSize = 36.sp,
                 lineHeight = 44.sp,
                 fontWeight = FontWeight.ExtraBold,
@@ -284,7 +286,7 @@ internal fun SetupStep(
         }
 
         // 1 — Speech recognition
-        NumberedSection(num = 1, title = "Speech recognition") {
+        NumberedSection(num = 1, title = localized("Speech recognition")) {
             CardContainer {
                 SpeechModeChoice(
                     mode = coreConfig.sttConfig.mode,
@@ -298,8 +300,8 @@ internal fun SetupStep(
         // 2 — Ring button
         NumberedSection(
             num = 2,
-            title = "Ring Button",
-            sub = "Choose what each press does. You can change this later in Index settings.",
+            title = localized("Ring Button"),
+            sub = localized("Choose what each press does. You can change this later in Index settings."),
         ) {
             RingButtonSection(viewModel)
         }
@@ -307,8 +309,8 @@ internal fun SetupStep(
         // 3 — Index agent actions
         NumberedSection(
             num = 3,
-            title = "Index Agent",
-            sub = "Pick which actions Index can take, and where notes and reminders are saved."
+            title = localized("Index Agent"),
+            sub = localized("Pick which actions Index can take, and where notes and reminders are saved.")
         ) {
             IndexAgentActionsSection(coreNav, viewModel, showHeader = false)
         }
@@ -316,15 +318,15 @@ internal fun SetupStep(
         // 4 — Secondary action
         NumberedSection(
             num = 4,
-            title = "Secondary action",
-            sub = "Click before holding to perform a secondary voice action.",
+            title = localized("Secondary action"),
+            sub = localized("Click before holding to perform a secondary voice action."),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 PressTile(
-                    label = "Disabled",
+                    label = localized("Disabled"),
                     pattern = PressPattern.None,
                     selected = gestureRoutes[RingGesture.ClickHold] == GestureDestination.IndexAgent,
                     onClick = {
@@ -333,7 +335,7 @@ internal fun SetupStep(
                     modifier = Modifier.weight(1f),
                 )
                 PressTile(
-                    label = "Search",
+                    label = localized("Search"),
                     pattern = PressPattern.ShortHold,
                     selected = gestureRoutes[RingGesture.ClickHold] == GestureDestination.WebSearch,
                     onClick = {
@@ -347,7 +349,7 @@ internal fun SetupStep(
         // 5 — Backups
         NumberedSection(
             num = 5,
-            title = "Backups",
+            title = localized("Backups"),
             sub = "Your recordings sync to the cloud so you can restore them on a new phone. " +
                     "Optionally encrypt them for extra privacy.",
         ) {
@@ -355,7 +357,7 @@ internal fun SetupStep(
         }
 
         // 6 — Try it out (live ring demo)
-        NumberedSection(num = 6, title = "Try it out") {
+        NumberedSection(num = 6, title = localized("Try it out")) {
             RingDemo(nav = coreNav)
         }
 
@@ -364,9 +366,9 @@ internal fun SetupStep(
             modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
             verticalArrangement = Arrangement.spacedBy(6.dp),
         ) {
-            PrimaryFilledButton(text = "Finish setup", onClick = onFinish)
+            PrimaryFilledButton(text = localized("Finish setup"), onClick = onFinish)
             Text(
-                "You can change these later in settings",
+                localized("You can change these later in settings"),
                 fontSize = 13.sp,
                 color = palette.onSurfaceVariant,
                 textAlign = TextAlign.Center,
@@ -402,14 +404,14 @@ private fun BackupsContent(viewModel: SettingsViewModel) {
     if (!loggedIn) {
         CardContainer {
             Text(
-                "Sign in to back up your recordings.",
+                localized("Sign in to back up your recordings."),
                 fontSize = 14.sp,
                 lineHeight = 20.sp,
                 color = palette.onSurface,
             )
             Spacer(Modifier.height(12.dp))
             PrimaryFilledButton(
-                text = "Sign in",
+                text = localized("Sign in"),
                 onClick = { showSignInDialog = true },
             )
         }
@@ -422,20 +424,20 @@ private fun BackupsContent(viewModel: SettingsViewModel) {
         ) {
             Column {
                 BackupSwitchRow(
-                    title = "Cloud Backup",
-                    subtitle = if (backupEnabled) "Recordings sync to the cloud"
-                    else "Recordings stay on this device only",
+                    title = localized("Cloud Backup"),
+                    subtitle = if (backupEnabled) localized("Recordings sync to the cloud")
+                    else localized("Recordings stay on this device only"),
                     checked = backupEnabled,
                     enabled = true,
                     onCheckedChange = { viewModel.setBackupEnabled(it) },
                 )
                 HorizontalDivider(thickness = 1.dp, color = palette.outlineVariant)
                 BackupSwitchRow(
-                    title = "Encrypt Backups",
+                    title = localized("Encrypt Backups"),
                     subtitle = encryptionStatus
-                        ?: if (useEncryption) "Only you can read your backups"
-                        else if (backupEnabled) "Encrypt Index data so only you can read it"
-                        else "Turn on Cloud Backup to set up encryption",
+                        ?: if (useEncryption) localized("Only you can read your backups")
+                        else if (backupEnabled) localized("Encrypt Index data so only you can read it")
+                        else localized("Turn on Cloud Backup to set up encryption"),
                     checked = useEncryption,
                     enabled = backupEnabled && !enablingEncryption &&
                             (useEncryption || uiContext != null),
@@ -589,12 +591,12 @@ internal fun SpeechModeChoice(
     onPlatformInfo: (() -> Unit)? = null,
 ) {
     val options = listOfNotNull(
-        Triple(CactusSTTMode.PlatformOnly, "On-device", "Recommended - private, stays on this iPhone")
+        Triple(CactusSTTMode.PlatformOnly, localized("On-device"), localized("Recommended - private, stays on this iPhone"))
             .takeIf { showPlatformOption },
-        Triple(CactusSTTMode.RemoteOnly, "Cloud only", "Best performance, requires connection"),
-        Triple(CactusSTTMode.RemoteFirst, "Cloud, with local fallback", "Recommended, 400MB download")
+        Triple(CactusSTTMode.RemoteOnly, localized("Cloud only"), localized("Best performance, requires connection")),
+        Triple(CactusSTTMode.RemoteFirst, localized("Cloud, with local fallback"), localized("Recommended, 400MB download"))
             .takeIf { !showPlatformOption },
-        Triple(CactusSTTMode.LocalOnly, "Local only", "Complete privacy, 400MB download"),
+        Triple(CactusSTTMode.LocalOnly, localized("Local only"), localized("Complete privacy, 400MB download")),
     )
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         options.forEach { (m, title, sub) ->
@@ -660,7 +662,7 @@ private fun SpeechRadioCard(
                 IconButton(onClick = onInfo, modifier = Modifier.size(28.dp)) {
                     Icon(
                         Icons.Outlined.Info,
-                        contentDescription = "Supported languages",
+                        contentDescription = localized("Supported languages"),
                         tint = palette.onSurfaceVariant,
                         modifier = Modifier.size(18.dp),
                     )

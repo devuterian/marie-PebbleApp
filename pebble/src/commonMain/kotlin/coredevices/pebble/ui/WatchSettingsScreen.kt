@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import AppUpdateTracker
 import CommonRoutes
 import CoreAppVersion
@@ -180,10 +182,10 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
 enum class TopLevelType(val displayName: String) {
-    Phone("Phone"),
-    Watch("Watch"),
-    All("All"),
-    Notifications("Notifications"),
+    Phone(localized("Phone")),
+    Watch(localized("Watch")),
+    All(localized("All")),
+    Notifications(localized("Notifications")),
     ;
 
     fun icon(platform: Platform) = when (this) {
@@ -203,29 +205,29 @@ enum class TopLevelType(val displayName: String) {
 }
 
 enum class Section(val title: String, val icon: ImageVector) {
-    About("About", Icons.Default.Info),
-    Support("Get Help", Icons.Default.SupportAgent),
-    Defaults("Defaults", Icons.Default.Tune),
-    QuickLaunch("Quick Launch", Icons.Default.RocketLaunch), // watch only
-    NotificationsWatch("Notifications", Icons.Default.Notifications), // watch only
-    General("General", Icons.Default.Settings),
-    Apps("Apps", Icons.Default.Apps),
-    Battery("Battery", Icons.Default.BatteryFull),
-    Calendar("Calendar", Icons.Default.CalendarMonth),
-    Health("Health", Icons.AutoMirrored.Filled.DirectionsRun),
-    Speech("Speech Recognition", Icons.Default.Mic),
-    Display("Display", Icons.Default.DarkMode), // watch only
-    Weather("Weather", Icons.Default.Cloud),
-    Notifications("Notifications", Icons.Default.Notifications),
-    Time("Time", Icons.Default.Schedule), // watch only
-    Timeline("Timeline", Icons.Default.Timeline), // watch only
-    QuietTime("Quiet Time", Icons.Default.DoNotDisturb),
-    Connectivity("Connectivity", Icons.Default.Wifi),
-    Music("Music", Icons.Default.MusicNote),
-    Other("Other", Icons.Default.MoreHoriz), // watch only
-    Diagnostics("Diagnostics", Icons.Default.Timeline),
-    Debug("Debug", Icons.Default.BugReport),
-    BundledPlugins("Bundled Plugins", Icons.Default.Extension), // TODO to be removed when we have a better solution
+    About(localized("About"), Icons.Default.Info),
+    Support(localized("Get Help"), Icons.Default.SupportAgent),
+    Defaults(localized("Defaults"), Icons.Default.Tune),
+    QuickLaunch(localized("Quick Launch"), Icons.Default.RocketLaunch), // watch only
+    NotificationsWatch(localized("Notifications"), Icons.Default.Notifications), // watch only
+    General(localized("General"), Icons.Default.Settings),
+    Apps(localized("Apps"), Icons.Default.Apps),
+    Battery(localized("Battery"), Icons.Default.BatteryFull),
+    Calendar(localized("Calendar"), Icons.Default.CalendarMonth),
+    Health(localized("Health"), Icons.AutoMirrored.Filled.DirectionsRun),
+    Speech(localized("Speech Recognition"), Icons.Default.Mic),
+    Display(localized("Display"), Icons.Default.DarkMode), // watch only
+    Weather(localized("Weather"), Icons.Default.Cloud),
+    Notifications(localized("Notifications"), Icons.Default.Notifications),
+    Time(localized("Time"), Icons.Default.Schedule), // watch only
+    Timeline(localized("Timeline"), Icons.Default.Timeline), // watch only
+    QuietTime(localized("Quiet Time"), Icons.Default.DoNotDisturb),
+    Connectivity(localized("Connectivity"), Icons.Default.Wifi),
+    Music(localized("Music"), Icons.Default.MusicNote),
+    Other(localized("Other"), Icons.Default.MoreHoriz), // watch only
+    Diagnostics(localized("Diagnostics"), Icons.Default.Timeline),
+    Debug(localized("Debug"), Icons.Default.BugReport),
+    BundledPlugins(localized("Bundled Plugins"), Icons.Default.Extension), // TODO to be removed when we have a better solution
 }
 
 fun Section.navigatesDirectlyTo(): NavBarRoute? = when (this) {
@@ -377,7 +379,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                 val models = modelManager.getAvailableSTTModels()
                 value = models.firstOrNull { it.slug == recommendedSTTModel.modelSlug }
                     ?: run {
-                        snackbarDisplay.showSnackbar("Error occurred. Please try again later.")
+                        snackbarDisplay.showSnackbar(localized("Error occurred. Please try again later."))
                         logger.e { "Recommended model $recommendedSTTModel not found in available models: ${models.map { it.slug }}" }
                         pendingSTTModeDialog = null
                         null
@@ -394,7 +396,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
             onGetRecommended = {
                 scope.launch {
                     if (!modelManager.downloadSTTModel(recommendedModelFinal, allowMetered = true)) {
-                        snackbarDisplay.showSnackbar("Error starting download. Please try again later.")
+                        snackbarDisplay.showSnackbar(localized("Error starting download. Please try again later."))
                         logger.e { "Failed to start download for recommended model ${recommendedModelFinal.slug}" }
                     } else {
                         coreConfigHolder.update(
@@ -422,9 +424,9 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
     }
     ConfirmDialog(
         show = showFakeHealthDataDialog,
-        title = "Populate fake health data",
-        text = "This will wipe all existing health data and replace it with 30 days of fake data. This cannot be undone.",
-        confirmText = "Wipe & Populate",
+        title = localized("Populate fake health data"),
+        text = localized("This will wipe all existing health data and replace it with 30 days of fake data. This cannot be undone."),
+        confirmText = localized("Wipe & Populate"),
         onConfirm = {
             scope.launch { libPebble.populateDebugHealthData() }
         },
@@ -507,26 +509,28 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
         ) {
             listOfNotNull(
                 basicSettingsActionItem(
-                    title = "App Update Available",
-                    description = "Please update the Pebble App!",
+                    title = localized("App Updates"),
+                    description = if (updateState is AppUpdateState.UpdateAvailable) localized("Update available — tap to install") else localized("Check for app updates"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.About,
                     action = {
                         val update = updateState as? AppUpdateState.UpdateAvailable
                         if (uiContext != null && update != null) {
                             appUpdate.startUpdateFlow(uiContext, update.update)
+                        } else {
+                            scope.launch { appUpdate.checkForUpdates(force = true) }
                         }
                     },
                     badge = when (updateState) {
                         AppUpdateState.NoUpdateAvailable -> null
                         is AppUpdateState.UpdateAvailable -> "1"
                     },
-                    show = { updateState is AppUpdateState.UpdateAvailable },
+                    show = { platform == Platform.Android || updateState is AppUpdateState.UpdateAvailable },
                 ),
                 navBarNav?.let { nav -> basicSettingsActionItem(
-                    title = "Permissions",
+                    title = localized("Permissions"),
                     description = if (missingPermissions.isEmpty()) {
-                        "All permissions granted!"
+                        localized("All permissions granted!")
                     } else if (missingPermissions.size == 1) {
                         "${missingPermissions.first()} permission missing!"
                     } else {
@@ -542,13 +546,13 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     badge = if (missingPermissions.isEmpty() || coreConfig.hidePermissionWarningBadges) null else "${missingPermissions.size}",
                 ) },
                 SettingsItem(
-                    title = "App Version",
+                    title = localized("App Version"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.About,
                     item = {
                         ListItem(
                             headlineContent = {
-                                Text("App Version: ${appVersion.version}")
+                                Text(localized("App Version: ${appVersion.version}", "앱 버전: ${appVersion.version}"))
                             },
                             shadowElevation = ELEVATION,
                         )
@@ -556,7 +560,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     isDebugSetting = false,
                 ),
                 navBarNav?.let { nav -> basicSettingsActionItem(
-                    title = "What’s new in the app",
+                    title = localized("What’s new in the app"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.About,
                     action = {
@@ -571,7 +575,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ) },
                 navBarNav?.let { nav -> basicSettingsActionItem(
-                    title = "What’s new in PebbleOS",
+                    title = localized("What’s new in PebbleOS"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.About,
                     action = {
@@ -580,7 +584,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     actionIcon = Icons.AutoMirrored.Default.Launch,
                 ) },
                 navBarNav?.let { nav -> basicSettingsActionItem(
-                    title = "Getting Started & Troubleshooting",
+                    title = localized("Getting Started & Troubleshooting"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Support,
                     action = {
@@ -589,8 +593,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     actionIcon = Icons.AutoMirrored.Default.Launch,
                 ) },
                 navBarNav?.let { nav -> basicSettingsActionItem(
-                    title = "New Bug Report",
-                    description = "Please report a bug if anything went wrong!",
+                    title = localized("New Bug Report"),
+                    description = localized("Please report a bug if anything went wrong!"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Support,
                     action = {
@@ -603,7 +607,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ) },
                 navBarNav?.let { nav -> basicSettingsActionItem(
-                    title = "View My Bug Reports",
+                    title = localized("View My Bug Reports"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Support,
                     action = {
@@ -611,13 +615,13 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ) },
                 navBarNav?.let { nav -> basicSettingsActionItem(
-                    title = "Configure Appstore Sources",
+                    title = localized("Configure Appstore Sources"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Apps,
                     action = { nav.navigateTo(PebbleNavBarRoutes.AppstoreSettingsRoute()) },
                 ) },
                 basicSettingsDropdownItem(
-                    title = "App Theme",
+                    title = localized("App Theme"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.General,
                     keywords = "dark light system",
@@ -632,8 +636,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                 ),
                 basicSettingsToggleItem(
                     id = SettingsIds.HealthImperialUnits,
-                    title = "Imperial Units",
-                    description = "Use miles/feet/inches/lb and Fahrenheit instead of metric units",
+                    title = localized("Imperial Units"),
+                    description = localized("Use miles/feet/inches/lb and Fahrenheit instead of metric units"),
                     keywords = "weather health degrees celsius temperature miles",
                     topLevelType = TopLevelType.Phone,
                     section = Section.General,
@@ -646,8 +650,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ),
                 basicSettingsActionItem(
-                    title = "Restore System app positions",
-                    description = "Restore system apps to their usual position at the top of the menu",
+                    title = localized("Restore System app positions"),
+                    description = localized("Restore system apps to their usual position at the top of the menu"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Apps,
                     action = {
@@ -655,8 +659,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ),
                 basicSettingsDropdownItem(
-                    title = "Background Refresh Interval",
-                    description = "How often to check for updates, update apps from store, etc",
+                    title = localized("Background Refresh Interval"),
+                    description = localized("How often to check for updates, update apps from store, etc"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.General,
                     selectedItem = RegularSyncInterval.from(coreConfig.regularSyncInterval),
@@ -669,7 +673,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ),
                 basicSettingsToggleItem(
-                    title = "Enable Index Feed",
+                    title = localized("Enable Index Feed"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.General,
                     checked = coreConfig.enableIndex,
@@ -683,8 +687,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ),
                 basicSettingsToggleItem(
-                    title = "Foreground Service",
-                    description = "Show foreground service notification to keep app alive in background",
+                    title = localized("Foreground Service"),
+                    description = localized("Show foreground service notification to keep app alive in background"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.General,
                     checked = coreConfig.androidForegroundServiceForWatchConnectionV2,
@@ -698,8 +702,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { pebbleFeatures.supportsForegroundService() },
                 ),
                 basicSettingsToggleItem(
-                    title = "Watch fully charged",
-                    description = "Notify on this phone when a watch finishes charging",
+                    title = localized("Watch fully charged"),
+                    description = localized("Notify on this phone when a watch finishes charging"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.General,
                     checked = coreConfig.notifyWatchFullyCharged,
@@ -712,8 +716,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ),
                 navBarNav?.let { nav -> basicSettingsActionItem(
-                    title = "Quick replies",
-                    description = "Preset messages for notification replies on the watch (canned messages)",
+                    title = localized("Quick replies"),
+                    description = localized("Preset messages for notification replies on the watch (canned messages)"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Notifications,
                     action = {
@@ -722,8 +726,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { pebbleFeatures.supportsNotificationFiltering() },
                 ) },
                 basicSettingsToggleItem(
-                    title = "Always send notifications",
-                    description = "Send notifications to the watch even when the phone screen is on",
+                    title = localized("Always send notifications"),
+                    description = localized("Send notifications to the watch even when the phone screen is on"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Notifications,
                     checked = libPebbleConfig.notificationConfig.alwaysSendNotifications,
@@ -739,8 +743,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { pebbleFeatures.supportsNotificationFiltering() },
                 ),
                 basicSettingsToggleItem(
-                    title = "Respect Phone Do Not Disturb",
-                    description = "Notifications won't be sent to watch if phone is in Do Not Disturb mode (unless configured for that app/person in phone settings)",
+                    title = localized("Respect Phone Do Not Disturb"),
+                    description = localized("Notifications won't be sent to watch if phone is in Do Not Disturb mode (unless configured for that app/person in phone settings)"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Notifications,
                     checked = libPebbleConfig.notificationConfig.respectDoNotDisturb,
@@ -756,8 +760,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { pebbleFeatures.supportsNotificationFiltering() },
                 ),
                 basicSettingsToggleItem(
-                    title = "Mute phone notification effects",
-                    description = "Mutes the phone's own notification vibration/sound while the watch is connected",
+                    title = localized("Mute phone notification effects"),
+                    description = localized("Mutes the phone's own notification vibration/sound while the watch is connected"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Notifications,
                     checked = libPebbleConfig.notificationConfig.mutePhoneNotificationSoundsWhenConnected,
@@ -773,8 +777,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { pebbleFeatures.supportsNotificationHints() },
                 ),
                 basicSettingsToggleItem(
-                    title = "Mute phone call effects",
-                    description = "Mutes the phone's own call vibration/sound while the watch is connected",
+                    title = localized("Mute phone call effects"),
+                    description = localized("Mutes the phone's own call vibration/sound while the watch is connected"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Notifications,
                     checked = libPebbleConfig.notificationConfig.mutePhoneCallSoundsWhenConnected,
@@ -790,7 +794,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { pebbleFeatures.supportsNotificationHints() },
                 ),
                 SettingsItem(
-                    title = "Vibration Pattern",
+                    title = localized("Vibration Pattern"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Notifications,
                     show = { pebbleFeatures.supportsVibePatterns() },
@@ -806,14 +810,14 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                                     )
                                 )
                             },
-                            subtext = "Override the default on the watch",
+                            subtext = localized("Override the default on the watch"),
                         )
                     },
                     isDebugSetting = false,
                 ),
                 basicSettingsToggleItem(
-                    title = "Use vibration patterns from OS",
-                    description = "If there is a vibration pattern defined by the app which created a notification, use it on the watch (unless overridden)",
+                    title = localized("Use vibration patterns from OS"),
+                    description = localized("If there is a vibration pattern defined by the app which created a notification, use it on the watch (unless overridden)"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Notifications,
                     checked = libPebbleConfig.notificationConfig.useAndroidVibePatterns,
@@ -829,8 +833,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { pebbleFeatures.supportsVibePatterns() },
                 ),
                 basicSettingsToggleItem(
-                    title = "Send notification images",
-                    description = "Show photos sent in messages on the watch. Can also be turned off per app on the Notifications tab.",
+                    title = localized("Send notification images"),
+                    description = localized("Show photos sent in messages on the watch. Can also be turned off per app on the Notifications tab."),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Notifications,
                     checked = libPebbleConfig.notificationConfig.sendNotificationImages,
@@ -846,8 +850,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { pebbleFeatures.supportsNotificationImages() },
                 ),
                 basicSettingsToggleItem(
-                    title = "Send local-only notifications to watch",
-                    description = "Android recommends not forwarding notifications marked as local-only to external devices - check to override this",
+                    title = localized("Send local-only notifications to watch"),
+                    description = localized("Android recommends not forwarding notifications marked as local-only to external devices - check to override this"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Notifications,
                     checked = libPebbleConfig.notificationConfig.sendLocalOnlyNotifications,
@@ -863,8 +867,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { pebbleFeatures.supportsNotificationFiltering() },
                 ),
                 basicSettingsToggleItem(
-                    title = "Enable showsUserInterface actions",
-                    description = "Include notification actions which are marked as opening a user interface on the phone",
+                    title = localized("Enable showsUserInterface actions"),
+                    description = localized("Include notification actions which are marked as opening a user interface on the phone"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Notifications,
                     checked = libPebbleConfig.notificationConfig.addShowsUserInterfaceActions,
@@ -880,10 +884,10 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { pebbleFeatures.supportsNotificationFiltering() },
                 ),
                 basicSettingsNumberItem(
-                    title = "Store notifications for",
+                    title = localized("Store notifications for"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Notifications,
-                    description = "How long notifications are stored for. This enabled better deduplicating, and powers the notification history view",
+                    description = localized("How long notifications are stored for. This enabled better deduplicating, and powers the notification history view"),
                     value = libPebbleConfig.notificationConfig.storeNotifiationsForDays.toLong(),
                     onValueChange = {
                         libPebble.updateConfig(
@@ -897,11 +901,11 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { pebbleFeatures.supportsNotificationFiltering() },
                     min = 0,
                     max = 7,
-                    unit = "Days"
+                    unit = localized("Days")
                 ),
                 basicSettingsToggleItem(
-                    title = "Store disabled notifications",
-                    description = "Store notifications from disabled apps/channels, to allow viewing them in history",
+                    title = localized("Store disabled notifications"),
+                    description = localized("Store notifications from disabled apps/channels, to allow viewing them in history"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Notifications,
                     checked = libPebbleConfig.notificationConfig.storeDisabledNotifications,
@@ -935,8 +939,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { pebbleFeatures.supportsBtClassic() },
                 ),
                 basicSettingsToggleItem(
-                    title = "Disable Companion Device Manager",
-                    description = "Don't use Android's Companion Device Manager to connect. Only use this option if the app crashes every time you press 'connect' and you cannot get past this step. This will disable certain features (including Notification Channels), and certain permissions will need to be granted manually.",
+                    title = localized("Disable Companion Device Manager"),
+                    description = localized("Don't use Android's Companion Device Manager to connect. Only use this option if the app crashes every time you press 'connect' and you cannot get past this step. This will disable certain features (including Notification Channels), and certain permissions will need to be granted manually."),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Connectivity,
                     checked = coreConfig.disableCompanionDeviceManager,
@@ -951,8 +955,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                 ),
 
                 basicSettingsToggleItem(
-                    title = "Ignore Missing PRF",
-                    description = "Ignore missing PRF when connecting to development watches",
+                    title = localized("Ignore Missing PRF"),
+                    description = localized("Ignore missing PRF when connecting to development watches"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Connectivity,
                     checked = libPebbleConfig.watchConfig.ignoreMissingPrf,
@@ -968,7 +972,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     isDebugSetting = true,
                 ),
                 basicSettingsToggleItem(
-                    title = "Use reversed PPoG",
+                    title = localized("Use reversed PPoG"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Connectivity,
                     checked = libPebbleConfig.bleConfig.legacyReversedPPoG,
@@ -984,8 +988,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { false },
                 ),
                 basicSettingsToggleItem(
-                    title = "Enable Calendar",
-                    description = "Show calendar pins on timeline",
+                    title = localized("Enable Calendar"),
+                    description = localized("Show calendar pins on timeline"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Calendar,
                     checked = libPebbleConfig.watchConfig.calendarPins,
@@ -1000,8 +1004,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ),
                 basicSettingsToggleItem(
-                    title = "Calendar Reminders",
-                    description = "Alerts before calendar events",
+                    title = localized("Calendar Reminders"),
+                    description = localized("Alerts before calendar events"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Calendar,
                     checked = libPebbleConfig.watchConfig.calendarReminders,
@@ -1017,7 +1021,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { libPebbleConfig.watchConfig.calendarPins },
                 ),
                 SettingsItem(
-                    title = "Reminder Vibration Pattern",
+                    title = localized("Reminder Vibration Pattern"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Calendar,
                     show = {
@@ -1037,15 +1041,15 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                                     )
                                 )
                             },
-                            subtext = "Override the default on the watch",
-                            title = "Reminder Vibration Pattern",
+                            subtext = localized("Override the default on the watch"),
+                            title = localized("Reminder Vibration Pattern"),
                         )
                     },
                     isDebugSetting = false,
                 ),
                 basicSettingsToggleItem(
-                    title = "Declined Events",
-                    description = "Display declined calendar events",
+                    title = localized("Declined Events"),
+                    description = localized("Display declined calendar events"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Calendar,
                     checked = libPebbleConfig.watchConfig.calendarShowDeclinedEvents,
@@ -1061,8 +1065,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { libPebbleConfig.watchConfig.calendarPins },
                 ),
                 navBarNav?.let { nav -> basicSettingsActionItem(
-                    title = "Calendars",
-                    description = "Configure which calendars to display",
+                    title = localized("Calendars"),
+                    description = localized("Configure which calendars to display"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Calendar,
                     action = {
@@ -1072,7 +1076,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                 ) },
                 basicSettingsToggleItem(
                     id = EnableHealthTracking,
-                    title = "Enable Health Tracking",
+                    title = localized("Enable Health Tracking"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Health,
                     checked = healthSettings.trackingEnabled,
@@ -1086,8 +1090,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                 ),
                 basicSettingsToggleItem(
                     id = SettingsIds.HrmEnabled,
-                    title = "Heart Rate Monitor",
-                    description = "Allow the watch to measure heart rate",
+                    title = localized("Heart Rate Monitor"),
+                    description = localized("Allow the watch to measure heart rate"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Health,
                     checked = healthSettings.hrmEnabled,
@@ -1100,8 +1104,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                 ),
                 basicSettingsDropdownItem(
                     id = SettingsIds.HrmMeasurementInterval,
-                    title = "Background Sampling",
-                    description = "How often the watch checks your heart rate when you're not in a workout. This can have an impact on battery life.",
+                    title = localized("Background Sampling"),
+                    description = localized("How often the watch checks your heart rate when you're not in a workout. This can have an impact on battery life."),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Health,
                     selectedItem = healthSettings.hrmMeasurementInterval,
@@ -1113,18 +1117,18 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                     itemText = {
                         when (it) {
-                            HRMonitoringInterval.TenMin -> "Every 10 minutes"
-                            HRMonitoringInterval.ThirtyMin -> "Every 30 minutes"
-                            HRMonitoringInterval.OneHour -> "Every hour"
-                            HRMonitoringInterval.Disabled -> "Off"
+                            HRMonitoringInterval.TenMin -> localized("Every 10 minutes")
+                            HRMonitoringInterval.ThirtyMin -> localized("Every 30 minutes")
+                            HRMonitoringInterval.OneHour -> localized("Every hour")
+                            HRMonitoringInterval.Disabled -> localized("Off")
                         }
                     },
                     show = { healthSettings.trackingEnabled && healthSettings.hrmEnabled },
                 ),
                 basicSettingsToggleItem(
                     id = SettingsIds.HrmActivityTracking,
-                    title = "HR During Activities",
-                    description = "Continuously track heart rate during detected walks and runs. This can have an impact on battery life.",
+                    title = localized("HR During Activities"),
+                    description = localized("Continuously track heart rate during detected walks and runs. This can have an impact on battery life."),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Health,
                     checked = healthSettings.hrmActivityTrackingEnabled,
@@ -1137,8 +1141,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                 ),
                 basicSettingsToggleItem(
                     id = EnableActivityInsights,
-                    title = "Activity Insights",
-                    description = "Receive notifications with insights about your activity",
+                    title = localized("Activity Insights"),
+                    description = localized("Receive notifications with insights about your activity"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Health,
                     checked = healthSettings.activityInsightsEnabled,
@@ -1153,8 +1157,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                 ),
                 basicSettingsToggleItem(
                     id = EnableSleepInsights,
-                    title = "Sleep Insights",
-                    description = "Receive notifications with insights about your sleep",
+                    title = localized("Sleep Insights"),
+                    description = localized("Receive notifications with insights about your sleep"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Health,
                     checked = healthSettings.sleepInsightsEnabled,
@@ -1169,10 +1173,10 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                 ),
                 basicSettingsNumberFieldItem(
                     id = SettingsIds.HealthHeight,
-                    title = "Height",
+                    title = localized("Height"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Health,
-                    description = "Used for accurate calorie and distance estimates",
+                    description = localized("Used for accurate calorie and distance estimates"),
                     value = if (healthSettings.imperialUnits) (healthSettings.heightMm / 25.4).roundToLong()
                             else (healthSettings.heightMm / 10).toLong(),
                     onValueChange = { v ->
@@ -1190,10 +1194,10 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                 ),
                 basicSettingsNumberFieldItem(
                     id = SettingsIds.HealthWeight,
-                    title = "Weight",
+                    title = localized("Weight"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Health,
-                    description = "Used for accurate calorie estimates",
+                    description = localized("Used for accurate calorie estimates"),
                     value = if (healthSettings.imperialUnits) (healthSettings.weightDag / 45.359).roundToLong()
                             else (healthSettings.weightDag / 100).toLong(),
                     onValueChange = { v ->
@@ -1208,10 +1212,10 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                 ),
                 basicSettingsNumberFieldItem(
                     id = SettingsIds.HealthAge,
-                    title = "Age",
+                    title = localized("Age"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Health,
-                    description = "Used for heart-rate zone calculations",
+                    description = localized("Used for heart-rate zone calculations"),
                     value = healthSettings.ageYears.toLong(),
                     onValueChange = {
                         libPebble.updateHealthSettings(
@@ -1225,7 +1229,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                 ),
                 basicSettingsDropdownItem(
                     id = SettingsIds.HealthGenderId,
-                    title = "Gender",
+                    title = localized("Gender"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Health,
                     selectedItem = healthSettings.gender,
@@ -1240,11 +1244,11 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                 ),
                 basicSettingsToggleItem(
                     id = EnableHealthPlatformSync,
-                    title = if (platform == Platform.IOS) "Sync to Apple Health" else "Sync to Health Connect",
+                    title = if (platform == Platform.IOS) localized("Sync to Apple Health") else localized("Sync to Health Connect"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Health,
                     checked = healthPlatformSyncEnabled,
-                    description = "Write steps, heart rate, sleep, and workouts to your phone's health platform",
+                    description = localized("Write steps, heart rate, sleep, and workouts to your phone's health platform"),
                     show = { healthSettings.trackingEnabled && platformHealthSync.isAvailable() },
                     onCheckChanged = { enabled ->
                         scope.launch {
@@ -1261,8 +1265,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ),
                 basicSettingsActionItem(
-                    title = "Sync Now",
-                    description = if (healthIsSyncing) "Syncing..." else "Sync Pebble health data to phone",
+                    title = localized("Sync Now"),
+                    description = if (healthIsSyncing) localized("Syncing...") else localized("Sync Pebble health data to phone"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Health,
                     show = { healthPlatformSyncEnabled },
@@ -1277,8 +1281,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ),
                 basicSettingsActionItem(
-                    title = "Open Google Fit",
-                    description = "View your synced health data in Google Fit",
+                    title = localized("Open Google Fit"),
+                    description = localized("View your synced health data in Google Fit"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Health,
                     show = { healthPlatformSyncEnabled && platform == Platform.Android },
@@ -1287,8 +1291,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ),
                 basicSettingsToggleItem(
-                    title = "Show Health Tab",
-                    description = "Show Health instead of Notifications in the bottom bar",
+                    title = localized("Show Health Tab"),
+                    description = localized("Show Health instead of Notifications in the bottom bar"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Health,
                     checked = coreConfig.preferHealthTab,
@@ -1298,8 +1302,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ),
                 basicSettingsActionItem(
-                    title = "View debug stats",
-                    description = "Health statistics and averages",
+                    title = localized("View debug stats"),
+                    description = localized("Health statistics and averages"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Health,
                     keywords = "health steps sleep stats debug",
@@ -1309,8 +1313,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { debugOptionsEnabled },
                 ),
                 basicSettingsActionItem(
-                    title = "Populate fake health data",
-                    description = "Warning: this will wipe all existing health data!",
+                    title = localized("Populate fake health data"),
+                    description = localized("Warning: this will wipe all existing health data!"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Health,
                     keywords = "health debug fake data populate",
@@ -1320,8 +1324,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { debugOptionsEnabled },
                 ),
                 basicSettingsToggleItem(
-                    title = "Enable Weather",
-                    description = "Fetch weather for the current location, for the Weather App (requires location permission)",
+                    title = localized("Enable Weather"),
+                    description = localized("Fetch weather for the current location, for the Weather App (requires location permission)"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Weather,
                     checked = coreConfig.fetchWeather,
@@ -1335,7 +1339,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ),
                 basicSettingsDropdownItem(
-                    title = "Weather Refresh Interval",
+                    title = localized("Weather Refresh Interval"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Weather,
                     selectedItem = WeatherSyncInterval.from(coreConfig.weatherSyncInterval),
@@ -1349,8 +1353,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { coreConfig.fetchWeather }
                 ),
                 basicSettingsToggleItem(
-                    title = "Weather Pins",
-                    description = "Add weather pins to timeline",
+                    title = localized("Weather Pins"),
+                    description = localized("Add weather pins to timeline"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Weather,
                     checked = coreConfig.weatherPinsV2,
@@ -1365,8 +1369,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { coreConfig.fetchWeather }
                 ),
                 navBarNav?.let { nav -> basicSettingsActionItem(
-                    title = "Locations",
-                    description = "Configure weather locations",
+                    title = localized("Locations"),
+                    description = localized("Configure weather locations"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Weather,
                     action = {
@@ -1375,8 +1379,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { coreConfig.fetchWeather }
                 ) },
                 basicSettingsToggleItem(
-                    title = "Use LAN developer connection",
-                    description = "Allow connecting to developer connection over LAN, this is not secure and should only be used on trusted networks",
+                    title = localized("Use LAN developer connection"),
+                    description = localized("Allow connecting to developer connection over LAN, this is not secure and should only be used on trusted networks"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Connectivity,
                     checked = libPebbleConfig.watchConfig.lanDevConnection,
@@ -1391,8 +1395,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ),
                 basicSettingsToggleItem(
-                    title = "Show debug options",
-                    description = "Show some extra debug options around the app - not useful for most users (contains some options which might break your watch)",
+                    title = localized("Show debug options"),
+                    description = localized("Show some extra debug options around the app - not useful for most users (contains some options which might break your watch)"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Debug,
                     checked = debugOptionsEnabled,
@@ -1402,8 +1406,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ),
                 basicSettingsToggleItem(
-                    title = "PKJS Debugger",
-                    description = "Allow connection via the ${if (platform == Platform.Android) "Chrome" else "Safari"} remote inspector to debug PKJS apps. Restart watchapp after changing.",
+                    title = localized("PKJS Debugger"),
+                    description = localized("Allow connection via the ${if (platform == Platform.Android) "Chrome" else "Safari"} remote inspector to debug PKJS apps. Restart watchapp after changing.", "PKJS 앱을 디버깅할 수 있도록 ${if (platform == Platform.Android) "Chrome" else "Safari"} 원격 검사기 연결을 허용합니다. 변경한 뒤 시계 앱을 다시 실행해 주십시오."),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Debug,
                     checked = libPebbleConfig.watchConfig.pkjsInspectable,
@@ -1419,8 +1423,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     isDebugSetting = true,
                 ),
                 basicSettingsToggleItem(
-                    title = "Watch settings sync",
-                    description = "Only for debugging - disables syncing settings with watch when disabled",
+                    title = localized("Watch settings sync"),
+                    description = localized("Only for debugging - disables syncing settings with watch when disabled"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Debug,
                     checked = libPebbleConfig.watchConfig.enableWatchSettingsSync,
@@ -1436,8 +1440,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     isDebugSetting = true,
                 ),
                 basicSettingsToggleItem(
-                    title = "Use Core OTA service",
-                    description = "Check Core Devices service for Core watch firmware updates instead of Memfault (falls back to Memfault on failure)",
+                    title = localized("Use Core OTA service"),
+                    description = localized("Check Core Devices service for Core watch firmware updates instead of Memfault (falls back to Memfault on failure)"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Debug,
                     checked = coreConfig.useEngDashOta,
@@ -1452,7 +1456,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                 ),
                 basicSettingsDropdownItem(
                     id = OfflineSpeechRecognition,
-                    title = "Offline Speech Recognition",
+                    title = localized("Offline Speech Recognition"),
                     keywords = "cactus stt speech recognition offline rebble",
                     topLevelType = TopLevelType.Phone,
                     section = Section.Speech,
@@ -1476,14 +1480,14 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                                 it == CactusSTTMode.RebbleFirst ||
                                 it == CactusSTTMode.RebbleFallback
                         if (isRebble && !rebbleVoiceAvailable) {
-                            snackbarDisplay.showSnackbar("Rebble speech recognition requires a Rebble subscription")
+                            snackbarDisplay.showSnackbar(localized("Rebble speech recognition requires a Rebble subscription"))
                             showSignInDialog = true
                         } else if (isPlatform && !platformSttAvailable) {
-                            snackbarDisplay.showSnackbar("This device doesn't support system speech recognition")
+                            snackbarDisplay.showSnackbar(localized("This device doesn't support system speech recognition"))
                         } else if (it != CactusSTTMode.RemoteOnly && !isPlatform && !cactusSupported) {
-                            snackbarDisplay.showSnackbar("This device doesn't support local speech recognition")
+                            snackbarDisplay.showSnackbar(localized("This device doesn't support local speech recognition"))
                         } else if (it != CactusSTTMode.LocalOnly && !isPlatform && !isRebble && coreUser == null) {
-                            snackbarDisplay.showSnackbar("You need to be signed in to use cloud speech recognition")
+                            snackbarDisplay.showSnackbar(localized("You need to be signed in to use cloud speech recognition"))
                             showSignInDialog = true
                         } else if (needsLocal && !hasOfflineModels) {
                             pendingSTTModeDialog = it
@@ -1507,21 +1511,21 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                     itemText = { mode ->
                         when (mode) {
-                            CactusSTTMode.RemoteOnly -> "Cloud Only"
-                            CactusSTTMode.RemoteFirst -> "Cloud (with Local Fallback)"
-                            CactusSTTMode.LocalOnly -> "Local Only"
-                            CactusSTTMode.LocalFirst -> "Local (with Cloud Fallback)"
-                            CactusSTTMode.RebbleOnly -> "Rebble Only"
-                            CactusSTTMode.RebbleFirst -> "Rebble (with Local Fallback)"
-                            CactusSTTMode.RebbleFallback -> "Local (with Rebble Fallback)"
-                            CactusSTTMode.PlatformOnly -> "System (On-Device)"
+                            CactusSTTMode.RemoteOnly -> localized("Cloud Only")
+                            CactusSTTMode.RemoteFirst -> localized("Cloud (with Local Fallback)")
+                            CactusSTTMode.LocalOnly -> localized("Local Only")
+                            CactusSTTMode.LocalFirst -> localized("Local (with Cloud Fallback)")
+                            CactusSTTMode.RebbleOnly -> localized("Rebble Only")
+                            CactusSTTMode.RebbleFirst -> localized("Rebble (with Local Fallback)")
+                            CactusSTTMode.RebbleFallback -> localized("Local (with Rebble Fallback)")
+                            CactusSTTMode.PlatformOnly -> localized("System (On-Device)")
                         }
                     },
                     extraSupportingContent = {
                         (modelDownloadState as? ModelDownloadStatus.Downloading)?.let { state ->
                             Column {
                                 Text(
-                                    text = "Downloading in the background...",
+                                    text = localized("Downloading in the background..."),
                                     style = MaterialTheme.typography.bodySmall,
                                 )
                                 state.progress?.let { progress ->
@@ -1537,11 +1541,11 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ),
                 navBarNav?.let { nav -> basicSettingsActionItem(
-                    title = "Manage Offline Models",
+                    title = localized("Manage Offline Models"),
                     description = if (coreConfig.sttConfig.mode == CactusSTTMode.LocalOnly ||
                         coreConfig.sttConfig.mode == CactusSTTMode.RebbleFallback) {
-                        "Note: Offline speech recognition is lower accuracy, consider using" +
-                                "'Fallback only' mode to improve results when online"
+                        localized("Note: Offline speech recognition is lower accuracy, consider using") +
+                                localized("'Fallback only' mode to improve results when online")
                     } else {
                         null
                     },
@@ -1560,17 +1564,17 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ) },
                 basicSettingsActionItem(
-                    title = "Spoken Language",
+                    title = localized("Spoken Language"),
                     description = coreConfig.sttConfig.spokenLanguage
                         ?.let { code -> SpokenLanguageOptions.firstOrNull { it.first == code }?.second ?: code }
-                        ?: "Automatic",
+                        ?: localized("Automatic"),
                     keywords = "language stt speech recognition locale iso",
                     topLevelType = TopLevelType.Phone,
                     section = Section.Speech,
                     action = { showSpokenLanguageDialog = true },
                 ),
                 SettingsItem(
-                    title = "Cloud Recognition Provider",
+                    title = localized("Cloud Recognition Provider"),
                     isDebugSetting = false,
                     topLevelType = TopLevelType.Phone,
                     section = Section.Speech,
@@ -1582,7 +1586,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                             Res.drawable.wispr_flow_logo_black
                         }
                         ListItem(
-                            headlineContent = { Text("Cloud Recognition Provider") },
+                            headlineContent = { Text(localized("Cloud Recognition Provider")) },
                             trailingContent = {
                                 Image(
                                     painter = painterResource(logo),
@@ -1595,8 +1599,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     }
                 ),
                 basicSettingsToggleItem(
-                    title = "Ignore other Pebble apps",
-                    description = "Allow connection even when there are other Pebble apps installed on this phone. Warning: this will likely make the connection unreliable if you are using BLE! We don't recommend enabling this",
+                    title = localized("Ignore other Pebble apps"),
+                    description = localized("Allow connection even when there are other Pebble apps installed on this phone. Warning: this will likely make the connection unreliable if you are using BLE! We don't recommend enabling this"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Connectivity,
                     checked = coreConfig.ignoreOtherPebbleApps,
@@ -1610,8 +1614,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { pebbleFeatures.supportsDetectingOtherPebbleApps() },
                 ),
                 basicSettingsToggleItem(
-                    title = "Send app crashes",
-                    description = "This allows us to fix crashes in the mobile app - otherwise we don't know how often they are happening, or how to fix them",
+                    title = localized("Send app crashes"),
+                    description = localized("This allows us to fix crashes in the mobile app - otherwise we don't know how often they are happening, or how to fix them"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Diagnostics,
                     checked = enableFirebase.value,
@@ -1625,8 +1629,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ),
                 basicSettingsToggleItem(
-                    title = "Send watch analytics",
-                    description = "Only for Core Devices watches. This allows us to measure metrics e.g. battery life, and debug watch crashes (otherwise we do not know whether they are regressions in reliability or performance)",
+                    title = localized("Send watch analytics"),
+                    description = localized("Only for Core Devices watches. This allows us to measure metrics e.g. battery life, and debug watch crashes (otherwise we do not know whether they are regressions in reliability or performance)"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Diagnostics,
                     checked = enableMemfault.value,
@@ -1639,8 +1643,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ),
                 basicSettingsToggleItem(
-                    title = "Send app analytics",
-                    description = "This allows us to track metrics e.g. connectivity, so that we can track different types of error and improve reliability",
+                    title = localized("Send app analytics"),
+                    description = localized("This allows us to track metrics e.g. connectivity, so that we can track different types of error and improve reliability"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Diagnostics,
                     checked = enableMixpanel.value,
@@ -1654,8 +1658,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ),
                 basicSettingsToggleItem(
-                    title = "Show notifications in phone logs",
-                    description = "Notification logging, to diagnose processing/deduplication issues (does not include any content/app name/personal information unless separately enabled below)",
+                    title = localized("Show notifications in phone logs"),
+                    description = localized("Notification logging, to diagnose processing/deduplication issues (does not include any content/app name/personal information unless separately enabled below)"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Diagnostics,
                     checked = libPebbleConfig.notificationConfig.dumpNotificationContent,
@@ -1671,8 +1675,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { pebbleFeatures.supportsNotificationLogging() },
                 ),
                 basicSettingsToggleItem(
-                    title = "Show sensitive content in phone logs",
-                    description = "Include unredacted personal information (notification content, calendar events, app names, etc) in logs",
+                    title = localized("Show sensitive content in phone logs"),
+                    description = localized("Include unredacted personal information (notification content, calendar events, app names, etc) in logs"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Diagnostics,
                     checked = !libPebbleConfig.notificationConfig.obfuscateContent,
@@ -1692,8 +1696,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ),
                 basicSettingsToggleItem(
-                    title = "Verbose connection logging",
-                    description = "Detailed connectivity state machine logging (please don't enable this unless we ask you to)",
+                    title = localized("Verbose connection logging"),
+                    description = localized("Detailed connectivity state machine logging (please don't enable this unless we ask you to)"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Diagnostics,
                     checked = libPebbleConfig.watchConfig.verboseWatchManagerLogging,
@@ -1709,8 +1713,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     isDebugSetting = true,
                 ),
                 basicSettingsToggleItem(
-                    title = "Verbose PPoG logging",
-                    description = "Detailed Pebble Protocol over GATT logging (please don't enable this unless we ask you to)",
+                    title = localized("Verbose PPoG logging"),
+                    description = localized("Detailed Pebble Protocol over GATT logging (please don't enable this unless we ask you to)"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Diagnostics,
                     checked = libPebbleConfig.bleConfig.verbosePpogLogging,
@@ -1726,7 +1730,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     isDebugSetting = true,
                 ),
                 basicSettingsToggleItem(
-                    title = "Re-publish GATT services after BT restore",
+                    title = localized("Re-publish GATT services after BT restore"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Connectivity,
                     checked = libPebbleConfig.bleConfig.republishGattServicesOnRestore,
@@ -1742,8 +1746,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { pebbleFeatures.supportsRestartingGattServerAfterBtPowerOn() }
                 ),
                 basicSettingsToggleItem(
-                    title = "Reversed PPoG",
-                    description = "Let the watch host the data connection when it supports it. Turn off to use the older phone-hosted mode. Reconnect for this to take effect",
+                    title = localized("Reversed PPoG"),
+                    description = localized("Let the watch host the data connection when it supports it. Turn off to use the older phone-hosted mode. Reconnect for this to take effect"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Connectivity,
                     checked = libPebbleConfig.bleConfig.useReversedPpogV2,
@@ -1759,8 +1763,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     isDebugSetting = true,
                 ),
                 basicSettingsToggleItem(
-                    title = "Bluetooth state restoration",
-                    description = "Let iOS relaunch the app to restore the watch connection. Takes effect on next app launch",
+                    title = localized("Bluetooth state restoration"),
+                    description = localized("Let iOS relaunch the app to restore the watch connection. Takes effect on next app launch"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Connectivity,
                     checked = libPebbleConfig.bleConfig.centralStateRestoration,
@@ -1777,8 +1781,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     isDebugSetting = true,
                 ),
                 basicSettingsToggleItem(
-                    title = "Passive reconnection mode",
-                    description = "After a failed connection, wait for the watch to become available instead of retrying repeatedly",
+                    title = localized("Passive reconnection mode"),
+                    description = localized("After a failed connection, wait for the watch to become available instead of retrying repeatedly"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Connectivity,
                     checked = libPebbleConfig.bleConfig.autoConnectAfterFailure,
@@ -1794,8 +1798,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { pebbleFeatures.supportsBleAutoConnect() },
                 ),
                 basicSettingsToggleItem(
-                    title = "Filter BLE watch scans by UUID",
-                    description = "Disable this only if BLE scans are not finding your Core watch or Pebble 2",
+                    title = localized("Filter BLE watch scans by UUID"),
+                    description = localized("Disable this only if BLE scans are not finding your Core watch or Pebble 2"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Connectivity,
                     checked = libPebbleConfig.bleConfig.filterScanResultsByUuid,
@@ -1811,15 +1815,15 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     isDebugSetting = true,
                 ),
                 basicSettingsActionItem(
-                    title = "Post test notification",
-                    description = "Create a test notification, with actions",
+                    title = localized("Post test notification"),
+                    description = localized("Create a test notification, with actions"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Debug,
                     action = { postTestNotification(appContext) },
                     show = { pebbleFeatures.supportsPostTestNotification() },
                 ),
                 basicSettingsDropdownItem(
-                    title = "Watch type for unknown devices",
+                    title = localized("Watch type for unknown devices"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Debug,
                     items = WatchType.entries,
@@ -1837,7 +1841,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     isDebugSetting = true,
                 ),
                 basicSettingsActionItem(
-                    title = "Force JSCore GC",
+                    title = localized("Force JSCore GC"),
                     description = "",
                     topLevelType = TopLevelType.Phone,
                     section = Section.Debug,
@@ -1850,8 +1854,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     isDebugSetting = true,
                 ),
                 basicSettingsToggleItem(
-                    title = "Disable FW update notifications",
-                    description = "Ignore notifications for users who sideload their own firmware",
+                    title = localized("Disable FW update notifications"),
+                    description = localized("Ignore notifications for users who sideload their own firmware"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Debug,
                     checked = coreConfig.disableFirmwareUpdateNotifications,
@@ -1865,8 +1869,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     isDebugSetting = true,
                 ),
                 basicSettingsActionItem(
-                    title = "Do immediate background sync",
-                    description = "Sync firmware updates, locker, etc manually now (happens regularly automatically)",
+                    title = localized("Do immediate background sync"),
+                    description = localized("Sync firmware updates, locker, etc manually now (happens regularly automatically)"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Debug,
                     action = {
@@ -1877,7 +1881,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     isDebugSetting = true,
                 ),
                 basicSettingsActionItem(
-                    title = "Copy PKJS account token",
+                    title = localized("Copy PKJS account token"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Debug,
                     action = { setShowCopyTokenDialog(true) },
@@ -1885,8 +1889,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     isDebugSetting = true,
                 ),
                 basicSettingsToggleItem(
-                    title = "Use experimental plugins",
-                    description = "Enable the new plugins API. This is an experimental feature under development - not recommended unless you know what you are doing (API is unstable, and can expose private data until a permission system is implemented)",
+                    title = localized("Use experimental plugins"),
+                    description = localized("Enable the new plugins API. This is an experimental feature under development - not recommended unless you know what you are doing (API is unstable, and can expose private data until a permission system is implemented)"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Debug,
                     checked = libPebbleConfig.watchConfig.enablePlugins,
@@ -1903,8 +1907,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                 ),
                 *libPebble.configurablePlugins().map { plugin ->
                     basicSettingsActionItem(
-                        title = "Configure ${plugin.name}",
-                        description = "Settings for the ${plugin.name} plugin",
+                        title = localized("Configure ${plugin.name}", "${plugin.name} 설정"),
+                        description = localized("Settings for the ${plugin.name} plugin", "${plugin.name} 플러그인 설정"),
                         topLevelType = TopLevelType.Phone,
                         section = Section.BundledPlugins,
                         action = {
@@ -1921,8 +1925,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     )
                 }.toTypedArray(),
                 basicSettingsActionItem(
-                    title = "Sign Out - Pebble Account",
-                    description = "Sign out of your Pebble account ($coreUser)",
+                    title = localized("Sign Out - Pebble Account"),
+                    description = localized("Sign out of your Pebble account ($coreUser)", "Pebble 계정에서 로그아웃 ($coreUser)"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.General,
                     action = {
@@ -1940,16 +1944,16 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { coreUser != null },
                 ),
                 basicSettingsActionItem(
-                    title = "Sign In - Pebble Account",
-                    description = "Sign in to backup your Pebble account to backup apps, settings, etc",
+                    title = localized("Sign In - Pebble Account"),
+                    description = localized("Sign in to backup your Pebble account to backup apps, settings, etc"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.General,
                     action = { showSignInDialog = true },
                     show = { coreUser == null },
                 ),
                 basicSettingsActionItem(
-                    title = "Sign Out - Rebble",
-                    description = "Sign out of your Rebble account",
+                    title = localized("Sign Out - Rebble"),
+                    description = localized("Sign out of your Rebble account"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.General,
                     action = {
@@ -1960,8 +1964,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { loggedIn != null },
                 ),
                 basicSettingsToggleItem(
-                    title = "Auto-Resume Firmware Updates",
-                    description = "Automatically continue an interrupted firmware update when the watch reconnects",
+                    title = localized("Auto-Resume Firmware Updates"),
+                    description = localized("Automatically continue an interrupted firmware update when the watch reconnects"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.General,
                     checked = libPebbleConfig.watchConfig.autoResumeFirmwareUpdate,
@@ -1976,7 +1980,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ),
                 navBarNav?.let {basicSettingsActionItem(
-                    title = "Show Watch Onboarding",
+                    title = localized("Show Watch Onboarding"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.General,
                     action = {
@@ -1985,7 +1989,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { debugOptionsEnabled },
                 ) },
                 navBarNav?.let {basicSettingsActionItem(
-                    title = "Show Ring Onboarding",
+                    title = localized("Show Ring Onboarding"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.General,
                     action = {
@@ -1994,8 +1998,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     show = { debugOptionsEnabled },
                 ) },
                 basicSettingsToggleItem(
-                    title = "Emulate Timeline Webservice",
-                    description = "Intercept calls to Timeline webservice, instead inserting pins locally, immediately",
+                    title = localized("Emulate Timeline Webservice"),
+                    description = localized("Intercept calls to Timeline webservice, instead inserting pins locally, immediately"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Apps,
                     checked = libPebbleConfig.watchConfig.emulateRemoteTimeline,
@@ -2010,8 +2014,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ),
                 basicSettingsToggleItem(
-                    title = "Use Pebble Weather Service when apps are broken",
-                    description = "If old apps are using a broken weather API, attempt to use the Pebble Weather Service instead (will only work for some apps which use OpenWeather API)",
+                    title = localized("Use Pebble Weather Service when apps are broken"),
+                    description = localized("If old apps are using a broken weather API, attempt to use the Pebble Weather Service instead (will only work for some apps which use OpenWeather API)"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Apps,
                     checked = coreConfig.interceptPKJSWeather,
@@ -2020,8 +2024,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                 ),
                 basicSettingsToggleItem(
-                    title = "Show watch connection debug info",
-                    description = "Extra debug info on devices tab",
+                    title = localized("Show watch connection debug info"),
+                    description = localized("Extra debug info on devices tab"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Connectivity,
                     checked = coreConfig.showWatchConnectionDebugInfo,
@@ -2031,8 +2035,8 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     isDebugSetting = true,
                 ),
                 basicSettingsToggleItem(
-                    title = "Seek instead of Skip for Podcasts",
-                    description = "Icons will only update on updated PebbleOS version",
+                    title = localized("Seek instead of Skip for Podcasts"),
+                    description = localized("Icons will only update on updated PebbleOS version"),
                     topLevelType = TopLevelType.Phone,
                     section = Section.Music,
                     checked = libPebbleConfig.watchConfig.musicSeekWhenAvailable,
@@ -2071,7 +2075,7 @@ fun WatchSettingsScreen(navBarNav: NavBarNav, topBarParams: TopBarParams) {
         LaunchedEffect(Unit) {
             topBarParams.searchAvailable(viewModel.searchState)
             topBarParams.actions { }
-            topBarParams.title("Settings")
+            topBarParams.title(localized("Settings"))
             launch {
                 topBarParams.scrollToTop.collect {
                     if (listState.firstVisibleItemIndex > 0) {
@@ -2228,7 +2232,7 @@ fun WatchSettingsScreen(navBarNav: NavBarNav, topBarParams: TopBarParams) {
                                     leadingContent = {
                                         Icon(Icons.AutoMirrored.Default.ArrowForward, contentDescription = null)
                                     },
-                                    headlineContent = { Text("Notifications") },
+                                    headlineContent = { Text(localized("Notifications")) },
                                     shadowElevation = ELEVATION,
                                     modifier = Modifier.clickable {
                                         navBarNav.navigateTo(PebbleNavBarRoutes.NotificationsRoute)
@@ -2242,7 +2246,7 @@ fun WatchSettingsScreen(navBarNav: NavBarNav, topBarParams: TopBarParams) {
                                     leadingContent = {
                                         Icon(Icons.AutoMirrored.Default.ArrowForward, contentDescription = null)
                                     },
-                                    headlineContent = { Text("Health") },
+                                    headlineContent = { Text(localized("Health")) },
                                     shadowElevation = ELEVATION,
                                     modifier = Modifier.clickable {
                                         navBarNav.navigateTo(PebbleNavBarRoutes.HealthRoute)
@@ -2304,6 +2308,8 @@ fun WatchSettingsCategoryScreen(
 ) {
     val focusManager = LocalFocusManager.current
     val dismissInteractionSource = remember { MutableInteractionSource() }
+    val state = rememberSettingsItemsState(navBarNav, topBarParams) ?: return
+
     Box(
         modifier = Modifier
             .background(MaterialTheme.colorScheme.background)
@@ -2311,11 +2317,9 @@ fun WatchSettingsCategoryScreen(
             .imePadding()
             .clickable(
                 interactionSource = dismissInteractionSource,
-                indication = null,
+            indication = null,
             ) { focusManager.clearFocus() },
     ) {
-        val state = rememberSettingsItemsState(navBarNav, topBarParams) ?: return
-
         LaunchedEffect(Unit) {
             topBarParams.searchAvailable(null)
             topBarParams.actions {}
@@ -2511,7 +2515,7 @@ fun basicSettingsNumberItem(
                                 enabled = value != defaultValue,
                             ) {
                                 Text(
-                                    text = "Default: ${valueFormatter?.invoke(defaultValue) ?: "$defaultValue $unit"}",
+                                    text = localized("Default:", "기본값:") + " ${valueFormatter?.invoke(defaultValue) ?: "$defaultValue $unit"}",
                                     modifier = Modifier.widthIn(max = 150.dp),
                                     maxLines = 1,
                                     lineHeight = 12.sp,
@@ -2593,7 +2597,7 @@ fun basicSettingsNumberFieldItem(
                             },
                             enabled = value > minL,
                         ) {
-                            Icon(Icons.Default.Remove, contentDescription = "Decrease")
+                            Icon(Icons.Default.Remove, contentDescription = localized("Decrease"))
                         }
                         OutlinedTextField(
                             value = textFieldValue,
@@ -2632,7 +2636,7 @@ fun basicSettingsNumberFieldItem(
                             },
                             enabled = value < maxL,
                         ) {
-                            Icon(Icons.Default.Add, contentDescription = "Increase")
+                            Icon(Icons.Default.Add, contentDescription = localized("Increase"))
                         }
                         if (valueFormatter != null) {
                             Spacer(modifier = Modifier.width(8.dp))
@@ -2650,7 +2654,7 @@ fun basicSettingsNumberFieldItem(
                                 enabled = value != defaultValue,
                             ) {
                                 Text(
-                                    text = "Default: $defaultValue",
+                                    text = localized("Default: $defaultValue", "기본값: $defaultValue"),
                                     modifier = Modifier.widthIn(max = 150.dp),
                                     maxLines = 1,
                                     lineHeight = 12.sp,
@@ -2752,7 +2756,7 @@ fun PKJSCopyTokenDialog(onDismissRequest: () -> Unit) {
                 modifier = Modifier.fillMaxWidth().padding(top = 16.dp),
             ) {
                 Text(
-                    "Copy Account Token",
+                    localized("Copy Account Token"),
                     style = MaterialTheme.typography.headlineSmall,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
@@ -2803,19 +2807,19 @@ fun STTLanguageDialog(
     M3Dialog(
         onDismissRequest = onDismissRequest,
         icon = { Icon(Icons.Default.Language, contentDescription = null) },
-        title = { Text("Select language") },
+        title = { Text(localized("Select language")) },
         buttons = {
             TextButton(
                 onClick = onDismissRequest
             ) {
-                Text("Cancel")
+                Text(localized("Cancel"))
             }
             TextButton(
                 onClick = {
                     onLanguageSelected(targetLanguage)
                 }
             ) {
-                Text("OK")
+                Text(localized("OK"))
             }
         }
     ) {
@@ -2876,9 +2880,9 @@ fun SpokenLanguagePickerDialog(
     M3Dialog(
         onDismissRequest = onDismissRequest,
         icon = { Icon(Icons.Default.Language, contentDescription = null) },
-        title = { Text("Spoken Language") },
+        title = { Text(localized("Spoken Language")) },
         buttons = {
-            TextButton(onClick = onDismissRequest) { Text("Cancel") }
+            TextButton(onClick = onDismissRequest) { Text(localized("Cancel")) }
         },
     ) {
         Column(Modifier.fillMaxWidth()) {
@@ -2886,7 +2890,7 @@ fun SpokenLanguagePickerDialog(
                 value = query,
                 onValueChange = { query = it },
                 singleLine = true,
-                placeholder = { Text("Search languages") },
+                placeholder = { Text(localized("Search languages")) },
                 modifier = Modifier.fillMaxWidth(),
             )
             Spacer(Modifier.height(8.dp))
@@ -2894,7 +2898,7 @@ fun SpokenLanguagePickerDialog(
                 if (showAutomatic) {
                     item(key = "__automatic__") {
                         SpokenLanguageRow(
-                            label = "Automatic",
+                            label = localized("Automatic"),
                             selected = selectedCode == null,
                             onClick = { onLanguageSelected(null) },
                         )
@@ -2910,7 +2914,7 @@ fun SpokenLanguagePickerDialog(
             }
             Spacer(Modifier.height(8.dp))
             Text(
-                "Note: Selecting a language may improve accuracy for that language but not all languages on this list are guaranteed to be supported.",
+                localized("Note: Selecting a language may improve accuracy for that language but not all languages on this list are guaranteed to be supported."),
                 fontSize = 11.sp,
             )
         }
@@ -2950,9 +2954,9 @@ enum class RegularSyncInterval(
     val period: Duration,
     val displayName: String,
 ) {
-    SixHours(6.hours, "6 hours"),
-    TwelveHours(12.hours, "12 hours"),
-    TwentyFourHours(24.hours, "24 hours"),
+    SixHours(6.hours, localized("6 hours")),
+    TwelveHours(12.hours, localized("12 hours")),
+    TwentyFourHours(24.hours, localized("24 hours")),
     ;
 
     companion object {
@@ -2964,10 +2968,10 @@ enum class WeatherSyncInterval(
     val period: Duration,
     val displayName: String,
 ) {
-    FifteenMinutes(15.minutes, "15 minutes"),
-    ThirtyMinutes(30.minutes, "30 minutes"),
-    OneHour(1.hours, "1 hour"),
-    SixHours(6.hours, "6 hours"),
+    FifteenMinutes(15.minutes, localized("15 minutes")),
+    ThirtyMinutes(30.minutes, localized("30 minutes")),
+    OneHour(1.hours, localized("1 hour")),
+    SixHours(6.hours, localized("6 hours")),
     ;
 
     companion object {

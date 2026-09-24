@@ -14,5 +14,6 @@ expect class AppUpdatePlatformContent
 
 interface AppUpdate {
     val updateAvailable: StateFlow<AppUpdateState>
+    suspend fun checkForUpdates(force: Boolean = false) {}
     fun startUpdateFlow(uiContext: PlatformUiContext, update: AppUpdatePlatformContent)
 }

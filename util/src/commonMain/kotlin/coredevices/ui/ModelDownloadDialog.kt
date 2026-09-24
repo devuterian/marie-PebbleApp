@@ -1,5 +1,7 @@
 package coredevices.ui
 
+import localization.localized
+
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -76,9 +78,9 @@ fun ModelDownloadDialog(
         },
         title = {
             if (job == null) {
-                Text("Download Required")
+                Text(localized("Download Required"))
             } else {
-                Text("Downloading Models")
+                Text(localized("Downloading Models"))
             }
         },
         buttons = if (job == null) {
@@ -86,12 +88,12 @@ fun ModelDownloadDialog(
                 TextButton(
                     onClick = ::onCancel
                 ) {
-                    Text("Cancel")
+                    Text(localized("Cancel"))
                 }
                 TextButton(
                     onClick = ::onDownload
                 ) {
-                    Text("Download")
+                    Text(localized("Download"))
                 }
             }
         } else {
@@ -99,16 +101,16 @@ fun ModelDownloadDialog(
                 TextButton(
                     onClick = ::onCancel
                 ) {
-                    Text("Cancel")
+                    Text(localized("Cancel"))
                 }
             }
         }
     ) {
         if (job == null) {
-            Text("This feature requires downloading additional machine learning models. " +
+            Text(localized("This feature requires downloading additional machine learning models. ") +
                     "Please avoid downloading over a metered connection.")
         } else {
-            Text("This might take a few minutes on a slow connection...")
+            Text(localized("This might take a few minutes on a slow connection..."))
             Spacer(Modifier.height(24.dp))
             LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
         }

@@ -1,5 +1,7 @@
 package coredevices.coreapp.ui.screens
 
+import localization.localized
+
 import CommonRoutes
 import CoreNav
 import androidx.compose.foundation.background
@@ -79,7 +81,7 @@ fun BugReportsListScreen(
         LaunchedEffect(user) {
             // Clear data immediately when user changes (including sign out)
             if (user == null) {
-                error = "Please sign in to view your bug reports"
+                error = localized("Please sign in to view your bug reports")
                 loading = false
             } else {
                 loadBugReports()
@@ -89,12 +91,12 @@ fun BugReportsListScreen(
         Scaffold(
             topBar = {
                 TopAppBar(
-                    title = { Text("My Bug Reports") },
+                    title = { Text(localized("My Bug Reports")) },
                     navigationIcon = {
                         IconButton(onClick = coreNav::goBack) {
                             Icon(
                                 Icons.AutoMirrored.Default.ArrowBack,
-                                contentDescription = "Back"
+                                contentDescription = localized("Back")
                             )
                         }
                     },
@@ -102,7 +104,7 @@ fun BugReportsListScreen(
                         IconButton(onClick = { loadBugReports() }) {
                             Icon(
                                 Icons.Default.Refresh,
-                                contentDescription = "Refresh"
+                                contentDescription = localized("Refresh")
                             )
                         }
                     }
@@ -146,7 +148,7 @@ fun BugReportsListScreen(
                                 } else {
                                     // Show refresh button if user is authenticated but there was an error
                                     IconButton(onClick = { loadBugReports() }) {
-                                        Icon(Icons.Default.Refresh, contentDescription = "Retry")
+                                        Icon(Icons.Default.Refresh, contentDescription = localized("Retry"))
                                     }
                                 }
                             }
@@ -159,7 +161,7 @@ fun BugReportsListScreen(
                             contentAlignment = Alignment.Center
                         ) {
                             Text(
-                                text = "No bug reports found",
+                                text = localized("No bug reports found"),
                                 style = MaterialTheme.typography.bodyLarge
                             )
                         }
@@ -227,7 +229,7 @@ private fun TicketListItem(
                     .trim()
                 
                 Text(
-                    text = "Agent: $strippedText",
+                    text = localized("Agent: $strippedText", "담당자: $strippedText"),
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodyMedium,

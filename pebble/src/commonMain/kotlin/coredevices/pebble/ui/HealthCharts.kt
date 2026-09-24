@@ -1,5 +1,8 @@
 package coredevices.pebble.ui
 
+import localization.localized
+import localization.localizedClockTime
+
 import kotlin.math.roundToInt
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -254,9 +257,7 @@ internal fun DailySleepTimeline(segments: List<SleepSegmentUi>, totalH: Float, d
         val windowHours = 18f
         val hourOfDay = (18f + frac * windowHours) % 24f
         val h = hourOfDay.toInt(); val m = ((hourOfDay - h) * 60).toInt()
-        val ampm = if (h < 12 || h == 24) "AM" else "PM"
-        val h12 = if (h == 0 || h == 24) 12 else if (h > 12) h - 12 else h
-        "$h12:${m.toString().padStart(2, '0')} $ampm"
+        localizedClockTime(h, m)
     }
     val scrubInSegment = scrubFraction?.let { frac ->
         // Deep segments are drawn after light segments and visually overlap; pick the last
@@ -267,13 +268,13 @@ internal fun DailySleepTimeline(segments: List<SleepSegmentUi>, totalH: Float, d
     Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
         if (scrubTime != null) {
             Text(
-                "$scrubTime · ${if (scrubInSegment?.isDeep == true) "Deep sleep" else if (scrubInSegment != null) "Light sleep" else "Awake"}",
+                "$scrubTime · ${localized(if (scrubInSegment?.isDeep == true) "Deep sleep" else if (scrubInSegment != null) "Light sleep" else "Awake")}",
                 style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.8f),
             )
             Spacer(Modifier.height(4.dp))
         }
         Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
-            for (l in listOf("6 PM", "12 AM", "6 AM", "12 PM"))
+            for (l in listOf(localized("6 PM"), localized("12 AM"), localized("6 AM"), localized("12 PM")))
                 Text(l, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.5f))
         }
         Spacer(Modifier.height(4.dp))
@@ -303,8 +304,8 @@ internal fun DailySleepTimeline(segments: List<SleepSegmentUi>, totalH: Float, d
         }
         Spacer(Modifier.height(4.dp))
         Row(Modifier.fillMaxWidth(), Arrangement.spacedBy(24.dp)) {
-            LegendDot(LightSleepBarColor, "Light ${formatHours(totalH - deepH)}")
-            LegendDot(DeepSleepBarColor, "Deep ${formatHours(deepH)}")
+            LegendDot(LightSleepBarColor, "${localized("Light sleep")} ${formatHours(totalH - deepH)}")
+            LegendDot(DeepSleepBarColor, "${localized("Deep sleep")} ${formatHours(deepH)}")
         }
     }
 }

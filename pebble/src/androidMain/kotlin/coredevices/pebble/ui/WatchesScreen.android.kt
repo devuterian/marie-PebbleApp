@@ -16,6 +16,7 @@ import co.touchlab.kermit.Logger
 import coredevices.libindex.device.KnownIndexDevice
 import coredevices.util.Permission
 import io.rebble.libpebblecommon.connection.AppContext
+import localization.localized
 import java.io.ByteArrayOutputStream
 import java.net.NetworkInterface
 
@@ -68,7 +69,7 @@ actual fun RemovePairingMenuItem(
 ) {
     val context = LocalContext.current
     DropdownMenuItem(
-        text = { Text("Remove in Android settings") },
+        text = { Text(localized("Remove in Android settings", "Android 설정에서 제거")) },
         leadingIcon = { Icon(Icons.Outlined.Delete, contentDescription = null) },
         onClick = {
             val intent = Intent(Settings.ACTION_BLUETOOTH_SETTINGS)

@@ -1,5 +1,7 @@
 package coredevices.coreapp.ui.screens
 
+import localization.localized
+
 import CoreNav
 import NoOpCoreNav
 import PlatformUiContext
@@ -152,7 +154,7 @@ fun OnboardingScreen(
                         )
                         Spacer(modifier = Modifier.height(15.dp))
                         PebbleElevatedButton(
-                            text = "Get Started",
+                            text = localized("Get Started"),
                             onClick = {
                                 viewModel.stage.value = OnboardingStage.DeviceSelection
                             },
@@ -168,7 +170,7 @@ fun OnboardingScreen(
                         verticalArrangement = Arrangement.Center,
                     ) {
                         Text(
-                            text = "I have a:",
+                            text = localized("I have a:"),
                             fontSize = 28.sp,
                             fontWeight = FontWeight.Bold,
                         )
@@ -178,7 +180,7 @@ fun OnboardingScreen(
                             horizontalArrangement = Arrangement.spacedBy(16.dp, Alignment.CenterHorizontally),
                         ) {
                             DeviceChoiceCard(
-                                label = "Watch",
+                                label = localized("Watch"),
                                 icon = Icons.Default.Watch,
                                 onClick = {
                                     viewModel.deviceChoice.value = DeviceChoice.Watch
@@ -197,7 +199,7 @@ fun OnboardingScreen(
                         }
                         Spacer(modifier = Modifier.height(20.dp))
                         DeviceChoiceCard(
-                            label = "Both",
+                            label = localized("Both"),
                             icon = Icons.Default.Devices,
                             onClick = {
                                 viewModel.setIndexEnabled(true)
@@ -248,7 +250,7 @@ fun OnboardingScreen(
                                 if (warnBeforeFullScreenRequest) {
                                     Spacer(modifier = Modifier.height(10.dp))
                                     PebbleElevatedButton(
-                                        text = "OK",
+                                        text = localized("OK"),
                                         onClick = {
                                             scope.launch {
                                                 requestPermission(
@@ -273,12 +275,12 @@ fun OnboardingScreen(
                         verticalArrangement = Arrangement.Center,
                     ) {
                         Text(
-                            text = "Sign In",
+                            text = localized("Sign In"),
                             fontSize = 35.sp,
                             modifier = Modifier.padding(bottom = 25.dp),
                         )
                         Spacer(modifier = Modifier.height(10.dp))
-                        Text("Sign in to backup your Pebble account to backup apps, settings, etc", textAlign = TextAlign.Center)
+                        Text(localized("Sign in to backup your Pebble account to backup apps, settings, etc"), textAlign = TextAlign.Center)
                         SignInButtons(
                             onDismiss = { viewModel.stage.value = OnboardingStage.Done },
                             primaryColor = true,
@@ -288,7 +290,7 @@ fun OnboardingScreen(
                         )
                         if (!coreConfig.enableIndex) {
                             PebbleElevatedButton(
-                                text = "Skip",
+                                text = localized("Skip"),
                                 onClick = { viewModel.stage.value = OnboardingStage.Done },
                                 primaryColor = true,
                             )
@@ -303,7 +305,7 @@ fun OnboardingScreen(
                         verticalArrangement = Arrangement.Center,
                     ) {
                         PebbleElevatedButton(
-                            text = "Connect a Pebble!",
+                            text = localized("Connect a Pebble!"),
                             onClick = ::exitOnboarding,
                             primaryColor = true,
                         )

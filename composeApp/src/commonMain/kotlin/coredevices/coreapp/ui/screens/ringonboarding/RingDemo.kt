@@ -1,5 +1,7 @@
 package coredevices.coreapp.ui.screens.ringonboarding
 
+import localization.localized
+
 import CoreNav
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -141,14 +143,14 @@ internal fun RingDemo(nav: CoreNav) {
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                "Not working? Report a bug",
+                localized("Not working? Report a bug"),
                 fontSize = 11.sp,
                 color = LocalPalette.current.onPrimary.copy(alpha = 0.7f),
             )
             Spacer(Modifier.width(4.dp))
             Icon(
                 Icons.AutoMirrored.Filled.OpenInNew,
-                contentDescription = "Open bug report",
+                contentDescription = localized("Open bug report"),
                 modifier = Modifier.size(14.dp),
                 tint = LocalPalette.current.onPrimary.copy(alpha = 0.7f),
             )
@@ -188,7 +190,7 @@ internal fun RingDemo(nav: CoreNav) {
                         }
                         Spacer(Modifier.height(4.dp))
                         Text(
-                            "Please wait for the download to complete before trying.",
+                            localized("Please wait for the download to complete before trying."),
                             fontSize = 12.sp,
                             textAlign = TextAlign.Center,
                             color = LocalPalette.current.onPrimary.copy(alpha = 0.7f),
@@ -206,7 +208,7 @@ internal fun RingDemo(nav: CoreNav) {
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                "Try it out! Hold the button and speak into the ring, then release.",
+                                localized("Try it out! Hold the button and speak into the ring, then release."),
                                 fontSize = 14.sp,
                                 textAlign = TextAlign.Center,
                                 modifier = Modifier.weight(1f),
@@ -217,7 +219,7 @@ internal fun RingDemo(nav: CoreNav) {
                 }
 
                 transfer.status == RingTransferStatus.Started -> {
-                    Text("Receiving recording...", fontSize = 14.sp)
+                    Text(localized("Receiving recording..."), fontSize = 14.sp)
                     Spacer(Modifier.height(8.dp))
                     val progress = (latestRingEvent as? RingEvent.Transfer.InProgress)
                         ?.takeIf { it.transferId == transfer.id }
@@ -247,7 +249,7 @@ internal fun RingDemo(nav: CoreNav) {
                         )
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            "Recording too short! Try holding the button a bit longer.",
+                            localized("Recording too short! Try holding the button a bit longer."),
                             fontSize = 14.sp,
                             textAlign = TextAlign.Center,
                             modifier = Modifier.weight(1f),
@@ -263,7 +265,7 @@ internal fun RingDemo(nav: CoreNav) {
                     )
                     Spacer(Modifier.height(4.dp))
                     Text(
-                        "Transfer failed",
+                        localized("Transfer failed"),
                         color = LocalPalette.current.error,
                         fontSize = 14.sp,
                     )
@@ -319,9 +321,9 @@ internal fun RingDemo(nav: CoreNav) {
                                 feedItem?.semanticResult != null ->
                                     SemanticResultActionTaken(feedItem.semanticResult!!)
                                 entryStatus == RecordingEntryStatus.transcription_error ->
-                                    Text("No action taken")
+                                    Text(localized("No action taken"))
                                 else ->
-                                    Text("Thinking...")
+                                    Text(localized("Thinking..."))
                             }
                         }
                     }

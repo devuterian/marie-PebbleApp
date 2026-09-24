@@ -1,5 +1,7 @@
 package coredevices.coreapp.ui.screens.ringonboarding
 
+import localization.localized
+
 import CoreNav
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Canvas
@@ -65,76 +67,60 @@ private data class FaqEntry(
 private val FaqEntries: List<FaqEntry> = listOf(
     FaqEntry(
         "bug", Icons.Default.BugReport,
-        "What if I find a bug?",
-        ann(
-            "This app is a work in progress. We're constantly experimenting and building new " +
+        localized("What if I find a bug?"),
+        ann(localized("This app is a work in progress. We're constantly experimenting and building new " +
                     "features. If you have any problems, we'd love if you report them to us with " +
                     "as much detail as possible. We'll fix it as soon as we can.\n\n" +
-                    "Settings → Get Help → Report a bug (be sure to tap Index)"
-        ),
+                    "Settings → Get Help → Report a bug (be sure to tap Index)", "아직 개발 중인 앱이라 계속 기능을 다듬고 있습니다. 문제가 생기면 상황을 자세히 알려 주십시오. 최대한 빨리 고치겠습니다.\n\n설정 → 도움받기 → 버그 제보에서 Index를 선택하십시오.")),
     ),
     FaqEntry(
         "listen", Icons.Default.Bluetooth,
-        "Is it always listening?",
-        ann(
-            "Nope! Index 01 only listens while you're holding the button. When you release, " +
-                    "it'll be processed by your phone if in range."
-        ),
+        localized("Is it always listening?"),
+        ann(localized("Nope! Index 01 only listens while you're holding the button. When you release, " +
+                    "it'll be processed by your phone if in range.", "아닙니다! 버튼을 누르고 있을 때만 녹음합니다. 버튼을 놓으면 연결 범위 안에 있는 휴대폰에서 처리합니다.")),
     ),
     FaqEntry(
         "ask", Icons.Outlined.Lightbulb,
-        "What can I record?",
-        ann(
-            "Jot down notes, add a reminder or todo, set timers and alarms, or whatever else " +
+        localized("What can I record?"),
+        ann(localized("Jot down notes, add a reminder or todo, set timers and alarms, or whatever else " +
                     "you need to remember! Double-click-and-hold to ask quick questions and get " +
-                    "the answer* in a notification.\n\n*Included free for now; pricing may change."
-        ),
+                    "the answer* in a notification.\n\n*Included free for now; pricing may change.", "메모, 할 일, 미리 알림, 타이머, 알람 등 기억하고 싶은 내용을 말씀하십시오. 두 번 누르고 길게 누르면 질문할 수 있고 답은 알림으로 옵니다.\n\n현재는 무료이며 나중에 요금이 달라질 수 있습니다.")),
     ),
     FaqEntry(
         "mic", Icons.Default.Mic,
-        "Where's the microphone?",
-        ann(
-            "Look for the small hole, that's the mic.\n\n" +
+        localized("Where's the microphone?"),
+        ann(localized("Look for the small hole, that's the mic.\n\n" +
                     "Hold it within 5-10 cm of your mouth when recording, and wear the ring " +
-                    "so your finger doesn't cover the hole."
-        ),
+                    "so your finger doesn't cover the hole.", "작은 구멍이 마이크입니다. 녹음할 때 입에서 5~10cm 정도 떨어뜨리십시오. 손가락으로 구멍을 가리지 않도록 착용하십시오.")),
         image = Res.drawable.index01_mic,
     ),
     FaqEntry(
         "how", Icons.Default.Mic,
-        "How do I use it?",
-        ann(
-            "Hold the button, speak your mind, then release. You'll see a green light blink " +
+        localized("How do I use it?"),
+        ann(localized("Hold the button, speak your mind, then release. You'll see a green light blink " +
                     "twice on your ring, then a notification in 5-10 seconds on your phone with " +
-                    "the transcription."
-        ),
+                    "the transcription.", "버튼을 누른 채 말하고 손을 떼면 됩니다. 링에서 초록 불이 두 번 깜빡인 뒤 5~10초 안에 휴대폰으로 받아 쓴 내용이 옵니다.")),
     ),
     FaqEntry(
         "offline", Icons.Default.MobileOff,
-        "What if I want to ditch my phone?",
-        ann(
-            "Index 01 can store up to 5 minutes of recordings. When you get back to your " +
-                    "phone, just click the button to wake it and your recordings will automatically sync!"
-        ),
+        localized("What if I want to ditch my phone?"),
+        ann(localized("Index 01 can store up to 5 minutes of recordings. When you get back to your " +
+                    "phone, just click the button to wake it and your recordings will automatically sync!", "Index 01에 녹음을 최대 5분까지 저장할 수 있습니다. 휴대폰 근처로 돌아와 버튼을 누르면 자동으로 동기화됩니다.")),
     ),
     FaqEntry(
         "charge", Icons.Default.BatteryChargingFull,
-        "How do I charge it?",
-        ann(
-            "You don't! Index 01 will last up to two years (or more) with 20 six second " +
-                    "recordings each day."
-        ),
+        localized("How do I charge it?"),
+        ann(localized("You don't! Index 01 will last up to two years (or more) with 20 six second " +
+                    "recordings each day.", "충전할 필요 없습니다! 하루에 6초씩 20번 녹음하면 최대 2년 이상 사용할 수 있습니다.")),
     ),
     FaqEntry(
         "offline2", Icons.Default.WifiOff,
-        "Can it be used while offline / in bad cell service?",
-        ann(
-            "Yes! Your recordings are always saved to Index 01 and synced to your phone " +
+        localized("Can it be used while offline / in bad cell service?", "인터넷이 없거나 신호가 약해도 쓸 수 있습니까?"),
+        ann(localized("Yes! Your recordings are always saved to Index 01 and synced to your phone " +
                     "regardless of internet status.\n\nIf you select the optional local speech " +
                     "recognition and a local AI model, Index 01 can even process your recordings " +
                     "offline. We recommend setting it up as cloud with a local fallback for the " +
-                    "best experience."
-        ),
+                    "best experience.", "네! 인터넷이 없어도 녹음은 Index 01에 저장되고 휴대폰과 동기화됩니다. 기기 내 음성 인식과 AI 모델을 선택하면 오프라인에서도 처리할 수 있습니다. 평소에는 클라우드를 쓰고 연결이 안 될 때 기기 내 처리를 쓰도록 설정하는 걸 권합니다.")),
     ),
 )
 
@@ -203,7 +189,7 @@ internal fun FaqTourStep(
         ) {
             if (pagerState.currentPage > 0) {
                 OutlinedPillButton(
-                    text = "Back",
+                    text = localized("Back"),
                     onClick = {
                         scope.launch { pagerState.animateScrollToPage(pagerState.currentPage - 1) }
                     },
@@ -211,7 +197,7 @@ internal fun FaqTourStep(
             }
             Box(modifier = Modifier.weight(1f)) {
                 PrimaryFilledButton(
-                    text = if (isLast) "Continue to setup" else "Next",
+                    text = if (isLast) localized("Continue to setup") else localized("Next"),
                     onClick = {
                         if (isLast) {
                             onContinue()

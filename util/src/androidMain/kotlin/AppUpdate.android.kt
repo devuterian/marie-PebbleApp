@@ -32,7 +32,8 @@ import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.minutes
 
 actual data class AppUpdatePlatformContent(
-    val androidUpdate: AppUpdateInfo
+    val androidUpdate: AppUpdateInfo? = null,
+    val githubAsset: GitHubAppAsset? = null
 )
 
 class AndroidAppUpdate(
@@ -86,10 +87,11 @@ class AndroidAppUpdate(
         )
 
     override fun startUpdateFlow(uiContext: PlatformUiContext, update: AppUpdatePlatformContent) {
-        if (update.androidUpdate.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
+        val androidUpdate = update.androidUpdate ?: return
+        if (androidUpdate.isUpdateTypeAllowed(AppUpdateType.IMMEDIATE)) {
             logger.d { "Starting update flow" }
             appUpdateManager.startUpdateFlowForResult(
-                update.androidUpdate,
+                androidUpdate,
                 AppUpdateType.IMMEDIATE,
                 uiContext.activity,
                 REQUEST_CODE_APP_UPDATE

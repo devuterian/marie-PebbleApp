@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import CommonRoutes
 import CoreNav
 import CoreRoute
@@ -333,21 +335,21 @@ fun WatchHomeScreen(
         pendingFirmwareSideload?.let { pending ->
             AlertDialog(
                 onDismissRequest = deepLinkHandler::dismissPendingFirmwareSideload,
-                title = { Text("Sideload firmware?") },
+                title = { Text(localized("Sideload firmware?")) },
                 text = {
                     Text(
                         "Install ${pending.fileName} on every connected watch? Only install " +
-                                "firmware from sources you trust."
+                                localized("firmware from sources you trust.")
                     )
                 },
                 confirmButton = {
                     TextButton(onClick = deepLinkHandler::confirmPendingFirmwareSideload) {
-                        Text("Install")
+                        Text(localized("Install"))
                     }
                 },
                 dismissButton = {
                     TextButton(onClick = deepLinkHandler::dismissPendingFirmwareSideload) {
-                        Text("Cancel")
+                        Text(localized("Cancel"))
                     }
                 },
             )
@@ -415,12 +417,12 @@ fun WatchHomeScreen(
                 onDismissRequest = {
                     coreConfigHolder.update(coreConfig.copy(enableIndex = false))
                 },
-                title = { Text("Index Permissions") },
+                title = { Text(localized("Index Permissions")) },
                 buttons = {
                     TextButton(onClick = {
                         coreConfigHolder.update(coreConfig.copy(enableIndex = false))
                     }) {
-                        Text("Cancel")
+                        Text(localized("Cancel"))
                     }
                     Spacer(Modifier.width(8.dp))
                     TextButton(onClick = {
@@ -433,12 +435,12 @@ fun WatchHomeScreen(
                             }
                         }
                     }) {
-                        Text("Continue")
+                        Text(localized("Continue"))
                     }
                 },
             ) {
-                Text("Index requires additional permissions to function.\n" +
-                        "Please grant the following permissions:")
+                Text(localized("Index requires additional permissions to function.\n", "Index를 사용하려면 추가 권한이 필요합니다.\n") +
+                        localized("Please grant the following permissions:"))
                 Spacer(Modifier.height(8.dp))
                 for (permission in missingRequiredPermissions) {
                     Text(permission.name(), fontWeight = FontWeight.Bold)
@@ -483,7 +485,7 @@ fun WatchHomeScreen(
                 Crossfade(
                     modifier = Modifier.animateContentSize(),
                     targetState = params.searchState?.show == true,
-                    label = "Search"
+                    label = localized("Search")
                 ) { showSearch ->
                     val focusRequester = remember { FocusRequester() }
                     val focusManager = LocalFocusManager.current
@@ -515,7 +517,7 @@ fun WatchHomeScreen(
                                     },
                                     expanded = false,
                                     onExpandedChange = { },
-                                    placeholder = { Text("Search") },
+                                    placeholder = { Text(localized("Search")) },
                                     modifier = Modifier.focusRequester(focusRequester),
                                     trailingIcon = {
                                         IconButton(onClick = {
@@ -524,7 +526,7 @@ fun WatchHomeScreen(
                                         }) {
                                             Icon(
                                                 Icons.Outlined.Close,
-                                                contentDescription = "Clear search"
+                                                contentDescription = localized("Clear search")
                                             )
                                         }
                                     },
@@ -532,7 +534,7 @@ fun WatchHomeScreen(
                                         IconButton(onClick = onSearchDone) {
                                             Icon(
                                                 Icons.Outlined.Search,
-                                                contentDescription = "Search"
+                                                contentDescription = localized("Search")
                                             )
                                         }
                                     },
@@ -575,7 +577,7 @@ fun WatchHomeScreen(
                                     TopBarIconButtonWithToolTip(
                                         onClick = { params.searchState?.show = true },
                                         icon = Icons.Filled.Search,
-                                        description = "Search",
+                                        description = localized("Search"),
                                     )
                                 }
                             }

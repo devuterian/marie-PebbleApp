@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement.SpaceEvenly
@@ -166,7 +168,7 @@ fun NotificationAppsScreen(topBarParams: TopBarParams, nav: NavBarNav, gotoDefau
                                 }
                             },
                             label = {
-                                Text("Notified only")
+                                Text(localized("Notified only"))
                             },
                             selected = viewModel.onlyNotified.value,
                             enabled = notifiedOnlyEnabled,
@@ -174,7 +176,7 @@ fun NotificationAppsScreen(topBarParams: TopBarParams, nav: NavBarNav, gotoDefau
                                 {
                                     Icon(
                                         imageVector = Icons.Filled.Done,
-                                        contentDescription = "Done icon",
+                                        contentDescription = localized("Done icon"),
                                         modifier = Modifier.size(FilterChipDefaults.IconSize)
                                     )
                                 }
@@ -196,7 +198,7 @@ fun NotificationAppsScreen(topBarParams: TopBarParams, nav: NavBarNav, gotoDefau
                                 trailingIcon = {
                                     Icon(
                                         imageVector = if (filterExpanded.value) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                                        contentDescription = if (filterExpanded.value) "Collapse" else "Expand",
+                                        contentDescription = if (filterExpanded.value) localized("Collapse") else localized("Expand"),
                                     )
                                 },
                                 elevation = FilterChipDefaults.filterChipElevation(elevation = 2.dp),
@@ -218,7 +220,7 @@ fun NotificationAppsScreen(topBarParams: TopBarParams, nav: NavBarNav, gotoDefau
                                         leadingIcon = {
                                             if (viewModel.enabledFilter.value == filterOption) Icon(
                                                 imageVector = Icons.Filled.Done,
-                                                contentDescription = "Done"
+                                                contentDescription = localized("Done")
                                             )
                                         }
                                     )
@@ -238,7 +240,7 @@ fun NotificationAppsScreen(topBarParams: TopBarParams, nav: NavBarNav, gotoDefau
                                 leadingIcon = {
                                     Icon(
                                         imageVector = Icons.AutoMirrored.Filled.Sort,
-                                        contentDescription = "Sort Options",
+                                        contentDescription = localized("Sort Options"),
                                         modifier = Modifier
                                             .size(FilterChipDefaults.IconSize)
                                             .graphicsLayer {
@@ -250,7 +252,7 @@ fun NotificationAppsScreen(topBarParams: TopBarParams, nav: NavBarNav, gotoDefau
                                 trailingIcon = {
                                     Icon(
                                         imageVector = if (expanded.value) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                                        contentDescription = if (expanded.value) "Collapse" else "Expand",
+                                        contentDescription = if (expanded.value) localized("Collapse") else localized("Expand"),
                                     )
                                 },
                                 elevation = FilterChipDefaults.filterChipElevation(elevation = 2.dp),
@@ -280,7 +282,7 @@ fun NotificationAppsScreen(topBarParams: TopBarParams, nav: NavBarNav, gotoDefau
                                         leadingIcon = {
                                             if (viewModel.sortBy.value == sortOption) Icon(
                                                 imageVector = Icons.Filled.Done,
-                                                contentDescription = "Done"
+                                                contentDescription = localized("Done")
                                             )
                                         }
                                     )
@@ -293,13 +295,13 @@ fun NotificationAppsScreen(topBarParams: TopBarParams, nav: NavBarNav, gotoDefau
                                     viewModel.showSystemApps.value =
                                         !viewModel.showSystemApps.value
                                 },
-                                label = { Text("Show system apps") },
+                                label = { Text(localized("Show system apps")) },
                                 selected = viewModel.showSystemApps.value,
                                 leadingIcon = if (viewModel.showSystemApps.value) {
                                     {
                                         Icon(
                                             imageVector = Icons.Filled.Done,
-                                            contentDescription = "Done icon",
+                                            contentDescription = localized("Done icon"),
                                             modifier = Modifier.size(FilterChipDefaults.IconSize)
                                         )
                                     }
@@ -322,13 +324,13 @@ fun NotificationAppsScreen(topBarParams: TopBarParams, nav: NavBarNav, gotoDefau
                     ListItem(
                         headlineContent = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text("All Apps", fontSize = 17.sp)
+                                Text(localized("All Apps"), fontSize = 17.sp)
                             }
                         },
                         trailingContent = {
                             Row {
                                 PebbleElevatedButton(
-                                    text = "Mute All",
+                                    text = localized("Mute All"),
                                     onClick = {
                                         libPebble.updateNotificationAppMuteState(
                                             packageName = null,
@@ -339,7 +341,7 @@ fun NotificationAppsScreen(topBarParams: TopBarParams, nav: NavBarNav, gotoDefau
                                     modifier = Modifier.padding(horizontal = 5.dp),
                                 )
                                 PebbleElevatedButton(
-                                    text = "Enable All",
+                                    text = localized("Enable All"),
                                     onClick = {
                                         libPebble.updateNotificationAppMuteState(
                                             packageName = null,
@@ -359,7 +361,7 @@ fun NotificationAppsScreen(topBarParams: TopBarParams, nav: NavBarNav, gotoDefau
                         ListItem(
                             headlineContent = {
                                 Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Text("New app default", fontSize = 17.sp)
+                                    Text(localized("New app default"), fontSize = 17.sp)
                                 }
                             },
                             trailingContent = {

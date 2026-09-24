@@ -1,5 +1,7 @@
 package coredevices.coreapp.ui
 
+import localization.localized
+
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -114,9 +116,9 @@ fun SttModelUpdatePrompt() {
         title = {
             Text(
                 when {
-                    downloading -> "Updating voice model"
-                    failed -> "Update failed"
-                    else -> "Voice model update"
+                    downloading -> localized("Updating voice model")
+                    failed -> localized("Update failed")
+                    else -> localized("Voice model update")
                 }
             )
         },
@@ -125,21 +127,21 @@ fun SttModelUpdatePrompt() {
                 TextButton(onClick = {
                     modelManager.cancelDownload()
                     downloading = false
-                }) { Text("Cancel") }
+                }) { Text(localized("Cancel")) }
             } else {
-                TextButton(onClick = { needsUpdate = false }) { Text("Later") }
-                TextButton(onClick = { startDownload() }) { Text(if (failed) "Retry" else "Update") }
+                TextButton(onClick = { needsUpdate = false }) { Text(localized("Later")) }
+                TextButton(onClick = { startDownload() }) { Text(if (failed) localized("Retry") else localized("Update")) }
             }
         },
     ) {
         when {
             downloading -> {
-                Text("Downloading the updated model. This may take a few minutes.")
+                Text(localized("Downloading the updated model. This may take a few minutes."))
                 Spacer(Modifier.height(24.dp))
                 LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
             }
-            failed -> Text("The download didn't finish. Check your connection and try again.")
-            else -> Text("We've improved on-device voice recognition. Update the model to keep transcribing offline.")
+            failed -> Text(localized("The download didn't finish. Check your connection and try again."))
+            else -> Text(localized("We've improved on-device voice recognition. Update the model to keep transcribing offline."))
         }
     }
 }

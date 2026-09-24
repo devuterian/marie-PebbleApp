@@ -11,21 +11,22 @@ import android.content.Intent
 import android.widget.Toast
 import co.touchlab.kermit.Logger
 import io.rebble.libpebblecommon.connection.AppContext
+import localization.localized
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 
 actual fun postTestNotification(appContext: AppContext) {
     val context = appContext.context
-    val title = "Test Notification"
+    val title = localized("Test Notification", "테스트 알림")
     val currentTime = LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm:ss"))
-    val body = "Test @ $currentTime"
+    val body = localized("Test @ $currentTime", "$currentTime 테스트")
     val notificationId = 1000
     val notificationManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as android.app.NotificationManager
     val notificationChannel = android.app.NotificationChannel(
         "test_channel",
-        "Test Channel",
+        localized("Test Channel", "테스트 알림"),
         android.app.NotificationManager.IMPORTANCE_DEFAULT
     )
     notificationManager.createNotificationChannel(notificationChannel)
@@ -39,13 +40,13 @@ actual fun postTestNotification(appContext: AppContext) {
         .setSmallIcon(android.R.drawable.ic_dialog_info)
         .setAutoCancel(true)
         .setColor(0xFF00FF00.toInt())
-        .addAction(Notification.Action.Builder(null, "Test", pendingIntent).build())
+        .addAction(Notification.Action.Builder(null, localized("Test"), pendingIntent).build())
         .addAction(
-            Notification.Action.Builder(null, "Reply", pendingIntent)
+            Notification.Action.Builder(null, localized("Reply"), pendingIntent)
                 .addRemoteInput(
                     RemoteInput.Builder(REPLY_KEY)
-                        .setLabel("Reply")
-                        .setChoices(arrayOf("Choice 1", "Choice 2", "Choice 3"))
+                        .setLabel(localized("Reply"))
+                        .setChoices(arrayOf(localized("Choice 1", "선택 1"), localized("Choice 2", "선택 2"), localized("Choice 3", "선택 3")))
                         .build())
                 .build()
         )
@@ -61,6 +62,6 @@ class TestActionReceiver : BroadcastReceiver() {
         val results = RemoteInput.getResultsFromIntent(intent) ?: return
         val reply = results.getCharSequence(REPLY_KEY)
         Logger.d("TestActionReceiver got $intent with reply '$reply'")
-        Toast.makeText(context, "Reply: $reply", Toast.LENGTH_LONG).show()
+        Toast.makeText(context, localized("Reply: $reply", "답장: $reply"), Toast.LENGTH_LONG).show()
     }
 }

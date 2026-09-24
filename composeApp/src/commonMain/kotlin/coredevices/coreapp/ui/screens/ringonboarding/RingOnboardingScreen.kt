@@ -2,6 +2,8 @@
 
 package coredevices.coreapp.ui.screens.ringonboarding
 
+import localization.localized
+
 import CoreNav
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.BorderStroke
@@ -252,7 +254,7 @@ internal fun TopBarRow(
             Icon(
                 imageVector = if (leadingIsClose) Icons.Default.Close
                 else Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = if (leadingIsClose) "Close" else "Back",
+                contentDescription = if (leadingIsClose) localized("Close") else localized("Back"),
                 tint = LocalPalette.current.onSurface,
             )
         }
@@ -272,7 +274,7 @@ internal fun TopBarRow(
             IconButton(onClick = onTrailingClose) {
                 Icon(
                     imageVector = Icons.Default.Close,
-                    contentDescription = "Exit onboarding",
+                    contentDescription = localized("Exit onboarding"),
                     tint = LocalPalette.current.onSurface,
                 )
             }

@@ -1,5 +1,7 @@
 package coredevices.util.models
 
+import localization.localized
+
 import coredevices.util.CommonBuildKonfig
 import coredevices.util.Platform
 import coredevices.util.transcription.CactusModelPathProvider
@@ -63,7 +65,7 @@ class ModelManager(
             ),
             buildModelInfo(
                 slug = CommonBuildKonfig.CACTUS_STT_MODEL_ENG,
-                intendedTask = "Higher accuracy for English",
+                intendedTask = localized("Higher accuracy for English"),
                 supportsMultiLanguage = false
             )
         )

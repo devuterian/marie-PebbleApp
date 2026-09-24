@@ -1,5 +1,8 @@
 package coredevices.pebble.ui
 
+import localization.localized
+import localization.isKoreanUi
+
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -56,7 +59,7 @@ fun HealthScreen(topBarParams: TopBarParams, nav: NavBarNav) {
     val hasHrmWatch by vm.hasHrmWatch.collectAsState()
 
     LaunchedEffect(Unit) {
-        topBarParams.title("Health")
+        topBarParams.title(localized("Health"))
         topBarParams.actions {}
         topBarParams.searchAvailable(null)
     }
@@ -86,7 +89,7 @@ fun HealthScreen(topBarParams: TopBarParams, nav: NavBarNav) {
             ) {
                 Icon(Icons.Default.Settings, null, Modifier.size(16.dp))
                 Spacer(Modifier.width(4.dp))
-                Text("Health Settings")
+                Text(localized("Health Settings"))
             }
             Spacer(Modifier.height(8.dp))
         }
@@ -98,7 +101,7 @@ private fun TimeRangeSelector(sel: HealthTimeRange, onSel: (HealthTimeRange) -> 
     SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
         HealthTimeRange.entries.forEachIndexed { i, r ->
             SegmentedButton(sel == r, { onSel(r) }, SegmentedButtonDefaults.itemShape(i, HealthTimeRange.entries.size),
-                label = { Text(when (r) { HealthTimeRange.Daily -> "Day"; HealthTimeRange.Weekly -> "Week"; HealthTimeRange.Monthly -> "Month" }) })
+                label = { Text(when (r) { HealthTimeRange.Daily -> localized("Day"); HealthTimeRange.Weekly -> localized("Week"); HealthTimeRange.Monthly -> localized("Month") }) })
         }
     }
 }
@@ -106,10 +109,10 @@ private fun TimeRangeSelector(sel: HealthTimeRange, onSel: (HealthTimeRange) -> 
 @Composable
 private fun DateNavigator(label: String, offset: Int, onBack: () -> Unit, onFwd: () -> Unit) {
     Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween, Alignment.CenterVertically) {
-        IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, "Previous") }
+        IconButton(onClick = onBack) { Icon(Icons.AutoMirrored.Filled.KeyboardArrowLeft, localized("Previous")) }
         Text(label, style = MaterialTheme.typography.titleSmall)
         IconButton(onClick = onFwd, enabled = offset < 0) {
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, "Next",
+            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, localized("Next"),
                 tint = if (offset < 0) MaterialTheme.colorScheme.onSurface else MaterialTheme.colorScheme.onSurface.copy(alpha = 0.3f))
         }
     }
@@ -134,7 +137,7 @@ private fun CardHeader(color: Color, cardName: String, label: String, subtitle: 
                 if (typicalValue != null) {
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        "TYPICAL $typicalValue",
+                        "${localized("Typical").uppercase()} $typicalValue",
                         color = TypicalBadgeColor,
                         fontSize = 10.sp,
                         fontWeight = FontWeight.Bold,
@@ -161,9 +164,9 @@ private fun ActivityCard(st: ActivityUiState, range: HealthTimeRange, imperial: 
     val sl = if (idx != null && idx < st.barLabels.size) st.barLabels[idx] else null
 
     val headerLabel = when (range) {
-        HealthTimeRange.Daily -> "Today"
-        HealthTimeRange.Weekly -> "Average"
-        HealthTimeRange.Monthly -> "Average"
+        HealthTimeRange.Daily -> localized("Today")
+        HealthTimeRange.Weekly -> localized("Average")
+        HealthTimeRange.Monthly -> localized("Average")
     }
     val headerVal = when {
         sv != null && range == HealthTimeRange.Monthly -> "${sv / 7}"
@@ -173,8 +176,8 @@ private fun ActivityCard(st: ActivityUiState, range: HealthTimeRange, imperial: 
         else -> "${st.averageSteps}"
     }
     val headerSub = when {
-        sl != null && range == HealthTimeRange.Daily -> "at $sl:00"
-        sl != null && range == HealthTimeRange.Monthly -> "daily avg · $sl"
+        sl != null && range == HealthTimeRange.Daily -> localized("at $sl:00", "$sl:00 기준")
+        sl != null && range == HealthTimeRange.Monthly -> localized("daily avg · $sl", "일평균 · $sl")
         sl != null -> sl
         else -> ""
     }
@@ -190,14 +193,14 @@ private fun ActivityCard(st: ActivityUiState, range: HealthTimeRange, imperial: 
     HealthCard(ActivityBgColor) {
         CardHeader(
             color = ActivityHeaderColor,
-            cardName = "Steps",
+            cardName = localized("Steps"),
             label = headerLabel,
             subtitle = headerSub,
             mainValue = if (sessionInfo != null) sessionInfo.label else headerVal,
             typicalValue = typicalStr,
         )
-        if (st.isLoading) { ChartPlaceholder("Loading...", "") }
-        else if (st.barValues.all { it == 0L }) { ChartPlaceholder("No activity data", "Wear your watch to start tracking steps") }
+        if (st.isLoading) { ChartPlaceholder(localized("Loading..."), "") }
+        else if (st.barValues.all { it == 0L }) { ChartPlaceholder(localized("No activity data"), localized("Wear your watch to start tracking steps")) }
         else {
             val tm = rememberTextMeasurer()
             if (range == HealthTimeRange.Daily) {
@@ -213,11 +216,10 @@ private fun ActivityCard(st: ActivityUiState, range: HealthTimeRange, imperial: 
                 }
                 BarChart(st.barValues, st.barLabels, ActivityBarColor, scrub, tm, averageLine = avgLine)
             }
-            val prefix = if (range == HealthTimeRange.Daily) "" else "Avg "
             StatsRow(ActivityBgColor,
-                "${prefix}Distance" to formatDistance(st.totalDistanceM, imperial),
-                "${prefix}Calories" to "${st.totalCaloriesKcal}",
-                "${prefix}Active" to "${st.totalActiveMinutes / 60}:${(st.totalActiveMinutes % 60).toString().padStart(2, '0')}",
+                localized(if (range == HealthTimeRange.Daily) "Distance" else "Average distance") to formatDistance(st.totalDistanceM, imperial),
+                localized(if (range == HealthTimeRange.Daily) "Calories" else "Average calories") to "${st.totalCaloriesKcal}",
+                localized(if (range == HealthTimeRange.Daily) "Active time" else "Average active time") to "${st.totalActiveMinutes / 60}:${(st.totalActiveMinutes % 60).toString().padStart(2, '0')}",
             )
         }
     }
@@ -232,8 +234,8 @@ private fun SleepCard(st: SleepUiState, range: HealthTimeRange) {
     val dd = scrubEntry?.deepHours ?: st.deepSleepHours
 
     val sleepLabel = when (range) {
-        HealthTimeRange.Daily -> "Total"
-        else -> "Average"
+        HealthTimeRange.Daily -> localized("Total")
+        else -> localized("Average")
     }
     val sub = scrubEntry?.label ?: ""
     val typicalStr = if (st.typicalSleepHours > 0f) formatHours(st.typicalSleepHours) else null
@@ -241,16 +243,16 @@ private fun SleepCard(st: SleepUiState, range: HealthTimeRange) {
     HealthCard(SleepBgColor) {
         CardHeader(
             color = SleepHeaderColor,
-            cardName = "Sleep",
+            cardName = localized("Sleep"),
             label = sleepLabel,
             subtitle = sub,
             mainValue = formatHours(dh),
-            secondLabel = "Deep sleep",
+            secondLabel = localized("Deep sleep"),
             secondValue = formatHours(dd),
             typicalValue = typicalStr,
         )
-        if (st.isLoading) { ChartPlaceholder("Loading...", "") }
-        else if (st.totalSleepHours == 0f) { ChartPlaceholder("No sleep data", "Wear your watch to bed to track sleep") }
+        if (st.isLoading) { ChartPlaceholder(localized("Loading..."), "") }
+        else if (st.totalSleepHours == 0f) { ChartPlaceholder(localized("No sleep data"), localized("Wear your watch to bed to track sleep")) }
         else {
             when (range) {
                 HealthTimeRange.Daily -> DailySleepTimeline(st.segments, st.totalSleepHours, st.deepSleepHours)
@@ -264,9 +266,9 @@ private fun SleepCard(st: SleepUiState, range: HealthTimeRange) {
 @Composable
 private fun SleepStatsRow(st: SleepUiState) {
     Row(Modifier.fillMaxWidth().background(SleepBgColor).padding(horizontal = 16.dp, vertical = 8.dp), Arrangement.SpaceEvenly) {
-        StatItem("Avg Deep", "${st.avgDeepSleepMins}m")
-        if (st.avgFallAsleep.isNotEmpty()) StatItem("Avg Fall Asleep", st.avgFallAsleep)
-        if (st.avgWakeUp.isNotEmpty()) StatItem("Avg Wake Up", st.avgWakeUp)
+        StatItem(localized("Avg Deep"), formatMinutes(st.avgDeepSleepMins))
+        if (st.avgFallAsleep.isNotEmpty()) StatItem(localized("Avg Fall Asleep"), st.avgFallAsleep)
+        if (st.avgWakeUp.isNotEmpty()) StatItem(localized("Avg Wake Up"), st.avgWakeUp)
     }
 }
 
@@ -291,18 +293,18 @@ private fun HeartRateCard(st: HeartRateUiState, range: HealthTimeRange) {
 
     val hv = when { sv != null -> "$sv"; st.latestHR != null -> "${st.latestHR}"; st.averageHR != null -> "${st.averageHR}"; else -> "--" }
     val hs = when {
-        sv != null && idx != null -> "bpm at $tStr"
-        idx != null -> "no data at $tStr"
-        st.latestHR != null -> "latest bpm"
-        else -> "avg bpm"
+        sv != null && idx != null -> localized("bpm at $tStr", "$tStr 기준 bpm")
+        idx != null -> localized("no data at $tStr", "$tStr 기록 없음")
+        st.latestHR != null -> localized("latest bpm")
+        else -> localized("avg bpm")
     }
 
     val rhrIdx = rhrScrub.scrubIndex
         ?.takeIf { range == HealthTimeRange.Weekly && it < st.restingHRSeries.size }
     val rhrValue = if (rhrIdx != null) st.restingHRSeries[rhrIdx] else st.restingHR
     val rhrLabel = when {
-        rhrIdx != null && rhrIdx < st.restingHRLabels.size -> "Resting · ${st.restingHRLabels[rhrIdx]}"
-        rhrValue != null -> "Resting"
+        rhrIdx != null && rhrIdx < st.restingHRLabels.size -> "${localized("Resting")} · ${st.restingHRLabels[rhrIdx]}"
+        rhrValue != null -> localized("Resting")
         else -> null
     }
     val rhrDisplayValue = when {
@@ -314,15 +316,15 @@ private fun HeartRateCard(st: HeartRateUiState, range: HealthTimeRange) {
     HealthCard(HRBgColor) {
         CardHeader(
             color = HRHeaderColor,
-            cardName = "Heart Rate",
+            cardName = localized("Heart Rate"),
             label = "",
             subtitle = hs,
             mainValue = hv,
             secondLabel = rhrLabel,
             secondValue = rhrDisplayValue,
         )
-        if (st.isLoading) { ChartPlaceholder("Loading...", "") }
-        else if (st.averageHR == null) { ChartPlaceholder("No heart rate data", "Heart rate is measured automatically by your watch") }
+        if (st.isLoading) { ChartPlaceholder(localized("Loading..."), "") }
+        else if (st.averageHR == null) { ChartPlaceholder(localized("No heart rate data"), localized("Heart rate is measured automatically by your watch")) }
         else {
             if (range == HealthTimeRange.Daily && st.hrSamples.any { it != null }) {
                 val tm = rememberTextMeasurer(); HRLineChart(st.hrSamples, scrub, tm)
@@ -337,7 +339,7 @@ private fun HeartRateCard(st: HeartRateUiState, range: HealthTimeRange) {
 }
 
 @Composable
-private fun ChartPlaceholder(title: String, subtitle: String = "Wear your watch to start tracking") {
+private fun ChartPlaceholder(title: String, subtitle: String = localized("Wear your watch to start tracking")) {
     Column(Modifier.fillMaxWidth().padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
         Text(title, color = Color.White, style = MaterialTheme.typography.titleSmall)
         Spacer(Modifier.height(4.dp))
@@ -374,21 +376,26 @@ private fun formatDistance(m: Long, imperial: Boolean): String {
     } else { if (m >= 1000) "${(m / 100).toInt() / 10.0} km" else "$m m" }
 }
 
-internal fun formatHours(h: Float): String { val total = (h * 60).roundToInt(); return "${total / 60}h ${total % 60}m" }
+internal fun formatHours(h: Float, language: String = if (isKoreanUi()) "ko" else "en"): String {
+    val total = (h * 60).roundToInt()
+    return if (language == "ko") "${total / 60}시간 ${total % 60}분" else "${total / 60}h ${total % 60}m"
+}
+internal fun formatMinutes(total: Long): String = if (isKoreanUi()) "${total / 60}시간 ${total % 60}분" else "${total}m"
 private fun formatSteps(s: Long): String = if (s >= 1000) "${s / 1000}k" else "$s"
-internal fun kotlinx.datetime.DayOfWeek.shortName(): String = name.take(3).lowercase().replaceFirstChar { it.uppercase() }
-internal fun kotlinx.datetime.Month.shortName(): String = name.take(3).lowercase().replaceFirstChar { it.uppercase() }
-internal fun kotlinx.datetime.Month.fullName(): String = name.lowercase().replaceFirstChar { it.uppercase() }
+internal fun kotlinx.datetime.DayOfWeek.shortName(language: String = if (isKoreanUi()) "ko" else "en"): String = if (language == "ko") listOf("월", "화", "수", "목", "금", "토", "일")[ordinal] else name.take(3).lowercase().replaceFirstChar { it.uppercase() }
+internal fun kotlinx.datetime.Month.shortName(language: String = if (isKoreanUi()) "ko" else "en"): String = if (language == "ko") "${ordinal + 1}월" else name.take(3).lowercase().replaceFirstChar { it.uppercase() }
+internal fun kotlinx.datetime.Month.fullName(language: String = if (isKoreanUi()) "ko" else "en"): String = if (language == "ko") "${ordinal + 1}월" else name.lowercase().replaceFirstChar { it.uppercase() }
 
-internal fun formatDayLabel(target: LocalDate, today: LocalDate): String {
+internal fun formatDayLabel(target: LocalDate, today: LocalDate, language: String = if (isKoreanUi()) "ko" else "en"): String {
     val diff = (today.toEpochDays() - target.toEpochDays()).toInt()
-    if (diff == 0) return "Today"
-    if (diff == 1) return "Yesterday"
+    if (diff == 0) return if (language == "ko") "오늘" else "Today"
+    if (diff == 1) return if (language == "ko") "어제" else "Yesterday"
+    if (language == "ko") return "${target.monthNumber}월 ${target.dayOfMonth}일 (${target.dayOfWeek.shortName(language)})"
     val day = "${target.dayOfMonth}${ordinalSuffix(target.dayOfMonth)}"
     return if (target.month == today.month && target.year == today.year) {
-        "${target.dayOfWeek.shortName()} $day"
+        "${target.dayOfWeek.shortName(language)} $day"
     } else {
-        "${target.dayOfWeek.shortName()} $day ${target.month.shortName()}"
+        "${target.dayOfWeek.shortName(language)} $day ${target.month.shortName(language)}"
     }
 }
 

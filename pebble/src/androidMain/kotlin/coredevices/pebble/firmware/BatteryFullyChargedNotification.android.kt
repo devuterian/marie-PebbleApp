@@ -1,5 +1,7 @@
 package coredevices.pebble.firmware
 
+import localization.localized
+
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -23,8 +25,8 @@ actual fun postWatchFullyChargedNotification(appContext: AppContext, watchName: 
     )
     val builder = NotificationCompat.Builder(context, BATTERY_CHANNEL_ID)
         .setSmallIcon(R.drawable.ic_notification)
-        .setContentTitle("Watch Fully Charged")
-        .setContentText("$watchName is fully charged")
+        .setContentTitle(localized("Watch Fully Charged", "시계 충전 완료"))
+        .setContentText(localized("$watchName is fully charged", "$watchName 충전이 끝났습니다"))
         .setPriority(NotificationCompat.PRIORITY_DEFAULT)
         .setContentIntent(viewPendingIntent)
         .setAutoCancel(true)
@@ -39,10 +41,10 @@ private const val WATCH_FULLY_CHARGED_NOTIFICATION_ID = 1001
 private fun Context.createBatteryNotificationChannel() {
     val channel = NotificationChannel(
         BATTERY_CHANNEL_ID,
-        "Battery",
+        localized("Battery", "배터리"),
         NotificationManager.IMPORTANCE_DEFAULT
     ).apply {
-        description = "Watch fully charged notifications"
+        description = localized("Watch fully charged notifications", "시계 충전 완료 알림")
     }
     val manager = getSystemService(NotificationManager::class.java)
     manager.createNotificationChannel(channel)

@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -144,7 +146,7 @@ fun ColorPickerDialog(
                             onDismissWithoutResult()
                         },
                         content = {
-                            Text("Cancel")
+                            Text(localized("Cancel"))
                         },
                         modifier = Modifier.weight(1f),
                     )
@@ -153,7 +155,7 @@ fun ColorPickerDialog(
                             onColorSelected(null)
                         },
                         content = {
-                            Text("None")
+                            Text(localized("None"))
                         },
                         modifier = Modifier.weight(1f),
                     )
@@ -261,7 +263,7 @@ fun SelectColorOrNone(
     }
     ListItem(
         headlineContent = {
-            Text("Color")
+            Text(localized("Color"))
         },
         supportingContent = {
             val surfaceColor = MaterialTheme.colorScheme.surface
@@ -279,7 +281,7 @@ fun SelectColorOrNone(
                         .background(bgColor, shape = RoundedCornerShape(8.dp))
                 ) {
                     Text(
-                        text = color?.displayName ?: "Default",
+                        text = color?.displayName ?: localized("Default"),
                         color = textColor,
                         modifier = Modifier.padding(vertical = 6.dp, horizontal = 8.dp),
                     )
@@ -288,12 +290,12 @@ fun SelectColorOrNone(
         },
         trailingContent = {
             PebbleElevatedButton(
-                text = "Select",
+                text = localized("Select"),
                 onClick = {
                     showColorChooser = true
                 },
                 icon = Icons.Default.ColorLens,
-                contentDescription = "Select color",
+                contentDescription = localized("Select color"),
                 primaryColor = true,
                 modifier = Modifier.padding(8.dp),
             )
@@ -372,7 +374,7 @@ fun RgbColorPickerDialog(
                         )
                     }
                     if (presets.isNotEmpty()) {
-                        Text("Presets", modifier = Modifier.padding(bottom = 4.dp))
+                        Text(localized("Presets"), modifier = Modifier.padding(bottom = 4.dp))
                         Column(
                             modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp),
                             verticalArrangement = Arrangement.spacedBy(6.dp),
@@ -416,7 +418,7 @@ fun RgbColorPickerDialog(
                             hexInput = it.uppercase().take(6)
                             applyHex(hexInput)
                         },
-                        label = { Text("Hex") },
+                        label = { Text(localized("Hex")) },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
@@ -426,16 +428,16 @@ fun RgbColorPickerDialog(
                         TextButton(
                             onClick = onDismissWithoutResult,
                             modifier = Modifier.weight(1f),
-                        ) { Text("Cancel") }
+                        ) { Text(localized("Cancel")) }
                         TextButton(
                             onClick = { setRgb(defaultRgb) },
                             modifier = Modifier.weight(1f),
                             enabled = rgb != (defaultRgb and 0x00FFFFFFu),
-                        ) { Text("Reset") }
+                        ) { Text(localized("Reset")) }
                         TextButton(
                             onClick = { onColorSelected(rgb) },
                             modifier = Modifier.weight(1f),
-                        ) { Text("OK") }
+                        ) { Text(localized("OK")) }
                     }
                 }
             }
@@ -525,7 +527,7 @@ fun SelectRgbColor(
     val swatchColor = Color(0xFF000000u.toInt() or (currentRgb and 0x00FFFFFFu).toInt())
     val matchedPreset = presets.firstOrNull { it.rgb == currentRgb }
     ListItem(
-        headlineContent = { Text("Color") },
+        headlineContent = { Text(localized("Color")) },
         supportingContent = {
             Box(modifier = Modifier.padding(4.dp)) {
                 Box(
@@ -543,10 +545,10 @@ fun SelectRgbColor(
         },
         trailingContent = {
             PebbleElevatedButton(
-                text = "Select",
+                text = localized("Select"),
                 onClick = { showPicker = true },
                 icon = Icons.Default.ColorLens,
-                contentDescription = "Select color",
+                contentDescription = localized("Select color"),
                 primaryColor = true,
                 modifier = Modifier.padding(8.dp),
             )

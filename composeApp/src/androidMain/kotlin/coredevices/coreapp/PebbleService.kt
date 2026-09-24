@@ -1,5 +1,7 @@
 package coredevices.coreapp
 
+import localization.localized
+
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.Service
@@ -117,7 +119,7 @@ class PebbleService: Service(), KoinComponent {
         val notificationChannel = NotificationChannelCompat.Builder(
             NOTIFICATION_CHANNEL_ID,
             NotificationManager.IMPORTANCE_MIN)
-        .setName(NOTIFICATION_CHANNEL_NAME)
+        .setName(localized(NOTIFICATION_CHANNEL_NAME, "페블 연결 서비스"))
         .build()
         notificationManagerCompat.createNotificationChannel(notificationChannel)
 
@@ -130,7 +132,7 @@ class PebbleService: Service(), KoinComponent {
 
         val notification = NotificationCompat.Builder(this, NOTIFICATION_CHANNEL_ID)
             .setContentTitle("Pebble")
-            .setContentText("Keeping Pebble connection alive")
+            .setContentText(localized("Keeping Pebble connection alive", "페블 연결을 유지하고 있습니다"))
             .setOngoing(true)
             .setSmallIcon(R.drawable.ic_notification)
             .setContentIntent(contentIntent)

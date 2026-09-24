@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -142,7 +144,7 @@ class ModelManagementScreenViewModel(
                     )
                 )
             )
-            _snackbarMessages.tryEmit("Speech recognition switched to Cloud Only")
+            _snackbarMessages.tryEmit(localized("Speech recognition switched to Cloud Only"))
         }
     }
 
@@ -192,14 +194,14 @@ class ModelManagementScreenViewModel(
                     }
                 )
             } catch (e: Exception) {
-                AvailableModelsState.Error(e.message ?: "Unknown error")
+                AvailableModelsState.Error(e.message ?: localized("Unknown error"))
             }
         }
         viewModelScope.launch {
             _availableLanguageModels.value = try {
                 AvailableModelsState.Success(modelManager.getAvailableLanguageModels())
             } catch (e: Exception) {
-                AvailableModelsState.Error(e.message ?: "Unknown error")
+                AvailableModelsState.Error(e.message ?: localized("Unknown error"))
             }
         }
     }
@@ -230,21 +232,21 @@ fun ModelDownloadPromptDialog(
 
             )
         },
-        title = { Text("Download Required") },
+        title = { Text(localized("Download Required")) },
         verticalButtons = {
             TextButton(
                 onClick = onGetRecommended,
             ) {
                 if (isLite) {
-                    Text("Download lite model: ${downloadSizeInMb}MB")
+                    Text(localized("Download lite model: ${downloadSizeInMb}MB", "가벼운 모델 다운로드: ${downloadSizeInMb}MB"))
                 } else {
-                    Text("Download offline model: ${downloadSizeInMb}MB")
+                    Text(localized("Download offline model: ${downloadSizeInMb}MB", "오프라인 모델 다운로드: ${downloadSizeInMb}MB"))
                 }
             }
             TextButton(
                 onClick = onDismiss,
             ) {
-                Text("Cancel")
+                Text(localized("Cancel"))
             }
         }
     ) {
@@ -256,7 +258,7 @@ fun ModelDownloadPromptDialog(
         )
         if (isLite) {
             Spacer(modifier = Modifier.height(8.dp))
-            Text("Your device may struggle with larger models, a reduced accuracy model will be used.")
+            Text(localized("Your device may struggle with larger models, a reduced accuracy model will be used."))
         }
     }
 }
@@ -276,7 +278,7 @@ fun ModelManagementScreen(
     onSetCurrentSTTModel: (String) -> Unit,
 ) {
     LaunchedEffect(Unit) {
-        topBarParams.title("Manage Models")
+        topBarParams.title(localized("Manage Models"))
         topBarParams.searchAvailable(null)
         topBarParams.actions {}
     }
@@ -385,7 +387,7 @@ private fun ModelListItem(
             .clickable(enabled = downloadState == DownloadState.Downloaded) {
                 onSelect()
             },
-        overlineContent = { if (isRecommended) { Text("Recommended for your device") } },
+        overlineContent = { if (isRecommended) { Text(localized("Recommended for your device")) } },
         headlineContent = { Text(model.slug) },
         supportingContent = { model.intendedTask?.let { Text(it) } },
         leadingContent = {
@@ -423,7 +425,7 @@ private fun ModelListItem(
                             IconButton(
                                 onClick = onDownloadCancel,
                             ) {
-                                Icon(Icons.Default.Cancel, contentDescription = "Download")
+                                Icon(Icons.Default.Cancel, contentDescription = localized("Download"))
                             }
                         }
                     }
@@ -432,7 +434,7 @@ private fun ModelListItem(
                             onClick = { onDownload?.invoke() },
                             enabled = onDownload != null
                         ) {
-                            Icon(Icons.Default.Download, contentDescription = "Download")
+                            Icon(Icons.Default.Download, contentDescription = localized("Download"))
                         }
                     }
                     DownloadState.Downloaded -> {
@@ -441,7 +443,7 @@ private fun ModelListItem(
                         ) {
                             Icon(
                                 Icons.Default.Delete,
-                                contentDescription = "Delete",
+                                contentDescription = localized("Delete"),
                                 tint = MaterialTheme.colorScheme.error
                             )
                         }
@@ -497,7 +499,7 @@ fun ModelManagementScreenPreview() {
                 ModelManagementScreenViewModel.AvailableModelsState.Success(
                     listOf(
                         ModelInfo(createdAt = Clock.System.now(), slug = "parakeet-tdt-0.6b-v3"),
-                        ModelInfo(createdAt = Clock.System.now(), slug = "parakeet-tdt-0.6b-v2", intendedTask = "Higher accuracy for English")
+                        ModelInfo(createdAt = Clock.System.now(), slug = "parakeet-tdt-0.6b-v2", intendedTask = localized("Higher accuracy for English"))
                     )
                 )
             ),

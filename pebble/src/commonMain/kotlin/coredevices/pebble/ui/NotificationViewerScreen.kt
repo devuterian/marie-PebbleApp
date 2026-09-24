@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -123,7 +125,7 @@ fun NotificationHistoryList(
             ListItem(
                 headlineContent = {
                     Text(
-                        text = notification.title ?: "<Empty>",
+                        text = notification.title ?: localized("<Empty>"),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                     )
@@ -131,7 +133,7 @@ fun NotificationHistoryList(
                 supportingContent = {
                     Text(
                         text = notification.body?.take(100)?.replace("\n", " ")
-                            ?: "<Empty>",
+                            ?: localized("<Empty>"),
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         fontSize = 10.sp,
@@ -157,7 +159,7 @@ fun NotificationHistoryList(
                         )
                         val sentText =
                             if (notification.decision == NotificationDecision.SendToWatch) {
-                                "Displayed"
+                                localized("Displayed")
                             } else {
                                 "Not displayed - ${notification.decision.displayName()}"
                             }
@@ -170,16 +172,16 @@ fun NotificationHistoryList(
 }
 
 fun NotificationDecision.displayName(): String = when (this) {
-    NotificationDecision.SendToWatch -> "Sent"
-    NotificationDecision.NotSentLocalOnly -> "Local Only"
-    NotificationDecision.NotSentGroupSummary -> "Group Summary"
-    NotificationDecision.NotSentAppMuted -> "App Muted"
-    NotificationDecision.NotSendChannelMuted -> "Channel Muted"
-    NotificationDecision.NotSentDuplicate -> "Duplicate"
-    NotificationDecision.NotSendContactMuted -> "Contact Muted"
-    NotificationDecision.NotSentScreenOn -> "Screen On"
-    NotificationDecision.NotSentRuleFiltered -> "Rule Filtered"
-    NotificationDecision.NotSentEmpty -> "Empty"
+    NotificationDecision.SendToWatch -> localized("Sent")
+    NotificationDecision.NotSentLocalOnly -> localized("Local Only")
+    NotificationDecision.NotSentGroupSummary -> localized("Group Summary")
+    NotificationDecision.NotSentAppMuted -> localized("App Muted")
+    NotificationDecision.NotSendChannelMuted -> localized("Channel Muted")
+    NotificationDecision.NotSentDuplicate -> localized("Duplicate")
+    NotificationDecision.NotSendContactMuted -> localized("Contact Muted")
+    NotificationDecision.NotSentScreenOn -> localized("Screen On")
+    NotificationDecision.NotSentRuleFiltered -> localized("Rule Filtered")
+    NotificationDecision.NotSentEmpty -> localized("Empty")
 }
 
 private val FORMAT = LocalDateTime.Format {

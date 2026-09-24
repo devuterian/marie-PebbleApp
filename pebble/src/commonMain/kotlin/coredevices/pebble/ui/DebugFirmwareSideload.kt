@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import CoreNav
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -128,7 +130,7 @@ fun DebugFirmwareSideload(watchIdentifier: String, coreNav: CoreNav) {
                             )
                         }
                     },
-                    title = { Text("Debug Firmware Update") }
+                    title = { Text(localized("Debug Firmware Update")) }
                 )
             },
             snackbarHost = { SnackbarHost(snackbarHostState) }
@@ -165,7 +167,7 @@ fun DebugFirmwareSideload(watchIdentifier: String, coreNav: CoreNav) {
                             val reconnectedWatch =
                                 libPebble.connectedWatchFor<ConnectedPebbleDevice>(identifier = identifier)
                             launch {
-                                snackbarHostState.showSnackbar("Update complete")
+                                snackbarHostState.showSnackbar(localized("Update complete"))
                             }
                             loopCount.value++
                             if (!loop.value) break // stop if not looping
@@ -183,7 +185,7 @@ fun DebugFirmwareSideload(watchIdentifier: String, coreNav: CoreNav) {
                         setUpdateState(
                             UiFirmwareUpdateStatus.Error(
                                 e,
-                                e.message ?: "Unknown error"
+                                e.message ?: localized("Unknown error")
                             )
                         )
                     }
@@ -212,7 +214,7 @@ fun DebugFirmwareSideload(watchIdentifier: String, coreNav: CoreNav) {
                 when (updateState) {
                     is UiFirmwareUpdateStatus.Idle -> {
                         Text(
-                            "Idle",
+                            localized("Idle"),
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.titleMedium
                         )
@@ -220,7 +222,7 @@ fun DebugFirmwareSideload(watchIdentifier: String, coreNav: CoreNav) {
                             Button(onClick = {
                                 launchInstallFirmwareDialog(listOf("*/*"))
                             }, modifier = Modifier.padding(5.dp)) {
-                                Text("Sideload FW")
+                                Text(localized("Sideload FW"))
                             }
                             Button(
                                 onClick = {
@@ -239,7 +241,7 @@ fun DebugFirmwareSideload(watchIdentifier: String, coreNav: CoreNav) {
                             ) {
                                 val text = when {
                                     availableUpdate  is FirmwareUpdateCheckResult.FoundUpdate -> "Update FW to ${availableUpdate.version.stringVersion}"
-                                    else -> "No FW available"
+                                    else -> localized("No FW available")
                                 }
                                 Text(text)
                             }
@@ -266,13 +268,13 @@ fun DebugFirmwareSideload(watchIdentifier: String, coreNav: CoreNav) {
                                 )
                             }
                         }, modifier = Modifier.padding(5.dp)) {
-                            Text("Sideload from container")
+                            Text(localized("Sideload from container"))
                         }
                     }
 
                     is UiFirmwareUpdateStatus.Starting -> {
                         Text(
-                            "Starting",
+                            localized("Starting"),
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.titleMedium
                         )
@@ -292,7 +294,7 @@ fun DebugFirmwareSideload(watchIdentifier: String, coreNav: CoreNav) {
 
                     is UiFirmwareUpdateStatus.WaitingForReboot -> {
                         Text(
-                            "Waiting for reboot",
+                            localized("Waiting for reboot"),
                             textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.titleMedium
                         )
@@ -305,7 +307,7 @@ fun DebugFirmwareSideload(watchIdentifier: String, coreNav: CoreNav) {
                             style = MaterialTheme.typography.titleMedium
                         )
                         Button(onClick = { launchInstallFirmwareDialog(listOf("*/*")) }) {
-                            Text("Install firmware")
+                            Text(localized("Install firmware"))
                         }
                     }
                 }
@@ -315,7 +317,7 @@ fun DebugFirmwareSideload(watchIdentifier: String, coreNav: CoreNav) {
                         loopCount.value = 0
                     })
                     Text(
-                        "Loop Test",
+                        localized("Loop Test"),
                         modifier = Modifier
                             .clickable {
                                 loop.value = !loop.value
@@ -332,7 +334,7 @@ fun DebugFirmwareSideload(watchIdentifier: String, coreNav: CoreNav) {
                         loopCount.value = 0
                     })
                     Text(
-                        "Loop From PRF",
+                        localized("Loop From PRF"),
                         modifier = Modifier
                             .clickable {
                                 loopPrf.value = !loopPrf.value
@@ -351,11 +353,11 @@ fun DebugFirmwareSideload(watchIdentifier: String, coreNav: CoreNav) {
                             setUpdateState(UiFirmwareUpdateStatus.Idle)
                         }
                     ) {
-                        Text("Cancel update")
+                        Text(localized("Cancel update"))
                     }
                 }
                 if (loop.value) {
-                    Text("Loops completed: ${loopCount.value}")
+                    Text(localized("Loops completed: ${loopCount.value}", "완료한 반복 횟수: ${loopCount.value}"))
                 }
             }
         }

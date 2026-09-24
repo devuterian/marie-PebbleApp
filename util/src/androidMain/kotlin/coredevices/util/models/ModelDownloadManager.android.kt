@@ -1,5 +1,7 @@
 package coredevices.util.models
 
+import localization.localized
+
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -230,8 +232,8 @@ class ModelDownloadService : JobService(), KoinComponent {
         logger.i { "Starting download job for model: $modelSlug, stt = $isStt" }
         createChannel()
         val notification = notifBuilder()
-            .setContentTitle("Downloading Model")
-            .setContentText("Downloading model: $modelSlug.\nThis could take a few minutes...")
+            .setContentTitle(localized("Downloading Model", "모델 다운로드 중"))
+            .setContentText(localized("Downloading model: $modelSlug.\nThis could take a few minutes...", "$modelSlug 모델을 내려받는 중입니다.\n몇 분 정도 걸릴 수 있습니다."))
             .setSmallIcon(android.R.drawable.stat_sys_download)
             .setProgress(0, 0, true)
             .setOngoing(true)
@@ -259,8 +261,8 @@ class ModelDownloadService : JobService(), KoinComponent {
                 notificationManager.notify(
                     modelSlug.hashCode(),
                     notifBuilder()
-                        .setContentTitle("Model Downloaded")
-                        .setContentText("Successfully downloaded model: $modelSlug")
+                        .setContentTitle(localized("Model Downloaded", "모델 다운로드 완료"))
+                        .setContentText(localized("Successfully downloaded model: $modelSlug", "$modelSlug 모델을 내려받았습니다"))
                         .setSmallIcon(android.R.drawable.stat_sys_download_done)
                         .setOngoing(false)
                         .build()
@@ -271,8 +273,8 @@ class ModelDownloadService : JobService(), KoinComponent {
                 notificationManager.notify(
                     modelSlug.hashCode(),
                     notifBuilder()
-                        .setContentTitle("Model Download Failed")
-                        .setContentText("Download timed out: $modelSlug")
+                        .setContentTitle(localized("Model Download Failed", "모델 다운로드 실패"))
+                        .setContentText(localized("Download timed out: $modelSlug", "$modelSlug 다운로드 시간이 초과됐습니다"))
                         .setSmallIcon(android.R.drawable.stat_notify_error)
                         .setOngoing(false)
                         .build()
@@ -288,8 +290,8 @@ class ModelDownloadService : JobService(), KoinComponent {
                 notificationManager.notify(
                     modelSlug.hashCode(),
                     notifBuilder()
-                        .setContentTitle("Model Download Failed")
-                        .setContentText("Failed to download model: $modelSlug")
+                        .setContentTitle(localized("Model Download Failed", "모델 다운로드 실패"))
+                        .setContentText(localized("Failed to download model: $modelSlug", "$modelSlug 모델을 내려받지 못했습니다"))
                         .setSmallIcon(android.R.drawable.stat_notify_error)
                         .setOngoing(false)
                         .build()
@@ -332,14 +334,14 @@ class ModelDownloadService : JobService(), KoinComponent {
             heartbeatStore.clear(modelSlug)
         }
         val title = when (reason) {
-            JobParameters.STOP_REASON_CONSTRAINT_CONNECTIVITY -> "Model Download Paused"
-            JobParameters.STOP_REASON_TIMEOUT -> "Model Download Error"
-            else -> "Model Download Cancelled"
+            JobParameters.STOP_REASON_CONSTRAINT_CONNECTIVITY -> localized("Model Download Paused", "모델 다운로드 일시 정지")
+            JobParameters.STOP_REASON_TIMEOUT -> localized("Model Download Error", "모델 다운로드 오류")
+            else -> localized("Model Download Cancelled", "모델 다운로드 취소")
         }
         val text = when (reason) {
-            JobParameters.STOP_REASON_CONSTRAINT_CONNECTIVITY -> "Download paused due to network conditions."
-            JobParameters.STOP_REASON_TIMEOUT -> "Timed out trying to download model: $modelSlug."
-            else -> "Cancelled download."
+            JobParameters.STOP_REASON_CONSTRAINT_CONNECTIVITY -> localized("Download paused due to network conditions.", "인터넷 연결 문제로 다운로드가 잠시 멈췄습니다.")
+            JobParameters.STOP_REASON_TIMEOUT -> localized("Timed out trying to download model: $modelSlug.", "$modelSlug 다운로드 시간이 초과됐습니다.")
+            else -> localized("Cancelled download.", "다운로드를 취소했습니다.")
         }
         val icon = when (reason) {
             JobParameters.STOP_REASON_CONSTRAINT_CONNECTIVITY -> android.R.drawable.stat_sys_warning
@@ -374,10 +376,10 @@ class ModelDownloadService : JobService(), KoinComponent {
     private fun createChannel() {
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "Model Downloads",
+            localized("Model Downloads", "모델 다운로드"),
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
-            description = "Speech and language model download progress"
+            description = localized("Speech and language model download progress", "음성 인식·언어 모델 다운로드 진행 상황")
         }
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(channel)

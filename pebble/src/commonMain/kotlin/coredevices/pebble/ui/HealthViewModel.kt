@@ -1,5 +1,8 @@
 package coredevices.pebble.ui
 
+import localization.localized
+import localization.localizedClockTime
+
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -151,14 +154,14 @@ class HealthViewModel(
             HealthTimeRange.Weekly -> {
                 val end = today.plus(DatePeriod(days = offset * 7))
                 val start = end.minus(DatePeriod(days = 6))
-                _dateLabel.value = "${start.dayOfWeek.shortName()} ${start.dayOfMonth} ${start.month.shortName()} - ${end.dayOfWeek.shortName()} ${end.dayOfMonth} ${end.month.shortName()}"
+                _dateLabel.value = localized("${start.dayOfWeek.shortName()} ${start.dayOfMonth} ${start.month.shortName()} - ${end.dayOfWeek.shortName()} ${end.dayOfMonth} ${end.month.shortName()}", "${start.monthNumber}월 ${start.dayOfMonth}일 - ${end.monthNumber}월 ${end.dayOfMonth}일")
                 loadWeekly(start, end, tz)
             }
             HealthTimeRange.Monthly -> {
                 val target = today.plus(DatePeriod(months = offset))
                 val ms = LocalDate(target.year, target.month, 1)
                 val me = if (offset == 0) today else ms.plus(DatePeriod(months = 1)).minus(DatePeriod(days = 1))
-                _dateLabel.value = "${ms.month.fullName()} ${ms.year}"
+                _dateLabel.value = localized("${ms.month.fullName()} ${ms.year}", "${ms.year}년 ${ms.month.fullName()}")
                 loadMonthly(ms, me, tz)
             }
         }
@@ -198,7 +201,7 @@ class HealthViewModel(
             val eH = ((ov.startTime + ov.duration - dayStart).toFloat() / 3600).toInt().coerceIn(0, 23)
             val type = OverlayType.fromValue(ov.type) ?: OverlayType.Walk
             val durMin = ov.duration / 60
-            val label = "${type.name} · ${durMin}min"
+            val label = localized("${type.name} · ${durMin}min", "${localized(type.name)} · ${durMin}분")
             ActivitySessionUi(sH, eH, type, label)
         }
 
@@ -453,9 +456,7 @@ internal fun buildDailySleepSegments(dayStart: Long, dailySleep: DailySleep?): L
 private fun formatTimeOfDay(epochSec: Long, tz: TimeZone): String {
     val dt = Instant.fromEpochSeconds(epochSec).toLocalDateTime(tz)
     val h = dt.hour; val m = dt.minute
-    val ampm = if (h < 12) "AM" else "PM"
-    val h12 = if (h == 0) 12 else if (h > 12) h - 12 else h
-    return "$h12:${m.toString().padStart(2, '0')} $ampm"
+    return localizedClockTime(h, m)
 }
 
 internal fun averageTimeOfDay(secondsOfDay: List<Long>): Long {
@@ -477,7 +478,5 @@ internal fun averageTimeOfDay(secondsOfDay: List<Long>): Long {
 private fun formatTimeFromSeconds(secOfDay: Long): String {
     val h = ((secOfDay / 3600) % 24).toInt()
     val m = ((secOfDay % 3600) / 60).toInt()
-    val ampm = if (h < 12) "AM" else "PM"
-    val h12 = if (h == 0) 12 else if (h > 12) h - 12 else h
-    return "$h12:${m.toString().padStart(2, '0')} $ampm"
+    return localizedClockTime(h, m)
 }

@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -46,7 +48,7 @@ fun CalendarScreen(navBarNav: NavBarNav, topBarParams: TopBarParams) {
     LaunchedEffect(Unit) {
         topBarParams.searchAvailable(null)
         topBarParams.actions {}
-        topBarParams.title("Calendar Settings")
+        topBarParams.title(localized("Calendar Settings"))
     }
     Box(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
         val libPebble = rememberLibPebble()
@@ -78,7 +80,7 @@ fun CalendarScreen(navBarNav: NavBarNav, topBarParams: TopBarParams) {
                         ) {
                             Column(modifier = Modifier.fillMaxWidth()) {
                                 Text(
-                                    text = "Calendar permission missing",
+                                    text = localized("Calendar permission missing"),
                                     modifier = Modifier.padding(15.dp)
                                         .align(Alignment.CenterHorizontally),
                                     textAlign = TextAlign.Center,
@@ -92,7 +94,7 @@ fun CalendarScreen(navBarNav: NavBarNav, topBarParams: TopBarParams) {
                                     modifier = Modifier.align(Alignment.CenterHorizontally),
                                 ) {
                                     Text(
-                                        text = "Approve",
+                                        text = localized("Approve"),
                                         modifier = Modifier.padding(15.dp),
                                         textAlign = TextAlign.Center,
                                         color = MaterialTheme.colorScheme.onPrimary,
@@ -116,7 +118,7 @@ fun CalendarScreen(navBarNav: NavBarNav, topBarParams: TopBarParams) {
                             )
                         ) {
                             Text(
-                                text = "Calendar permission is approved, but no calendars were found.\n\n Is sharing enabled in the Google Calendar app? See: Settings -> General -> Share Google Calendar data with other apps",
+                                text = localized("Calendar permission is approved, but no calendars were found.\n\n Is sharing enabled in the Google Calendar app? See: Settings -> General -> Share Google Calendar data with other apps", "캘린더 권한은 허용됐지만 일정을 찾지 못했습니다.\n\nGoogle Calendar 앱의 설정 → 일반 → 다른 앱과 Google Calendar 데이터 공유가 켜져 있는지 확인하십시오."),
                                 modifier = Modifier.padding(15.dp)
                                     .align(Alignment.CenterHorizontally),
                                 textAlign = TextAlign.Center,
@@ -153,7 +155,7 @@ fun CalendarScreen(navBarNav: NavBarNav, topBarParams: TopBarParams) {
                         if (entry.enabled && (!entry.syncEvents || !entry.visible)) {
                             Row {
                                 Text(
-                                    text = "Not synced by Android - toggle checkbox to ask Android to sync",
+                                    text = localized("Not synced by Android - toggle checkbox to ask Android to sync"),
                                     color = coreOrange,
                                 )
                             }

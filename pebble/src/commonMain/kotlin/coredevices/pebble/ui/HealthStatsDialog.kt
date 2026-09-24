@@ -1,5 +1,9 @@
 package coredevices.pebble.ui
 
+import localization.localized
+import localization.isKoreanUi
+import localization.localizedClockTime
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -84,7 +88,7 @@ fun HealthStatsDialog(libPebble: LibPebble, onDismissRequest: () -> Unit) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("Health Debug Stats")
+                Text(localized("Health Debug Stats"))
                 if (isRefreshing) {
                     CircularProgressIndicator(
                         modifier = Modifier.height(20.dp).width(20.dp),
@@ -92,13 +96,13 @@ fun HealthStatsDialog(libPebble: LibPebble, onDismissRequest: () -> Unit) {
                     )
                 } else {
                     IconButton(onClick = { syncAndRefresh() }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Refresh health data")
+                        Icon(Icons.Default.Refresh, contentDescription = localized("Refresh health data"))
                     }
                 }
             }
         },
         buttons = {
-            TextButton(onClick = onDismissRequest) { Text("Close") }
+            TextButton(onClick = onDismissRequest) { Text(localized("Close")) }
         },
     ) {
         Box(Modifier.heightIn(max = 400.dp)) {
@@ -111,7 +115,7 @@ fun HealthStatsDialog(libPebble: LibPebble, onDismissRequest: () -> Unit) {
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("Today's Steps", style = MaterialTheme.typography.bodyMedium)
+                            Text(localized("Today's Steps"), style = MaterialTheme.typography.bodyMedium)
                             Text("${s.todaySteps}", style = MaterialTheme.typography.bodyMedium)
                         }
 
@@ -121,12 +125,12 @@ fun HealthStatsDialog(libPebble: LibPebble, onDismissRequest: () -> Unit) {
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                "Average",
+                                localized("Average"),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             Text(
-                                "${s.averageStepsPerDay}/day",
+                                if (isKoreanUi()) "${s.averageStepsPerDay}/일" else "${s.averageStepsPerDay}/day",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -139,10 +143,10 @@ fun HealthStatsDialog(libPebble: LibPebble, onDismissRequest: () -> Unit) {
                             modifier = Modifier.fillMaxWidth(),
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-                            Text("Last Night's Sleep", style = MaterialTheme.typography.bodyMedium)
+                            Text(localized("Last Night's Sleep"), style = MaterialTheme.typography.bodyMedium)
                             Text(
                                 s.lastNightSleepHours?.let {
-                                    "${it.format(1)}h"
+                                    if (isKoreanUi()) formatHours(it.toFloat()) else "${it.format(1)}h"
                                 }
                                     ?: "--",
                                 style = MaterialTheme.typography.bodyMedium,
@@ -162,12 +166,12 @@ fun HealthStatsDialog(libPebble: LibPebble, onDismissRequest: () -> Unit) {
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
                             Text(
-                                "Average",
+                                localized("Average"),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             Text(
-                                "${avgSleepHrs.format(1)}h/night",
+                                if (isKoreanUi()) "${formatHours(avgSleepHrs.toFloat())}/일" else "${avgSleepHrs.format(1)}h/night",
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
@@ -176,7 +180,7 @@ fun HealthStatsDialog(libPebble: LibPebble, onDismissRequest: () -> Unit) {
                         Spacer(Modifier.height(4.dp))
 
                         Text(
-                            "Typical steps by weekday",
+                            localized("Typical steps by weekday"),
                             style = MaterialTheme.typography.bodyMedium,
                         )
                         for (wd in DayOfWeek.entries) {
@@ -186,7 +190,7 @@ fun HealthStatsDialog(libPebble: LibPebble, onDismissRequest: () -> Unit) {
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(
-                                    wd.name.lowercase().replaceFirstChar { it.uppercase() },
+                                    weekdayName(wd),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -205,7 +209,7 @@ fun HealthStatsDialog(libPebble: LibPebble, onDismissRequest: () -> Unit) {
                         Spacer(Modifier.height(4.dp))
 
                         Text(
-                            "Typical sleep by weekday",
+                            localized("Typical sleep by weekday"),
                             style = MaterialTheme.typography.bodyMedium,
                         )
                         for (wd in DayOfWeek.entries) {
@@ -215,7 +219,7 @@ fun HealthStatsDialog(libPebble: LibPebble, onDismissRequest: () -> Unit) {
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(
-                                    wd.name.lowercase().replaceFirstChar { it.uppercase() },
+                                    weekdayName(wd),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
@@ -235,7 +239,7 @@ fun HealthStatsDialog(libPebble: LibPebble, onDismissRequest: () -> Unit) {
                     }
                 } else {
                     Text(
-                        "Loading health statistics...",
+                        localized("Loading health statistics..."),
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -251,11 +255,18 @@ fun Float.format(digits: Int): String = toDouble().format(digits)
 private fun formatHm(totalSeconds: Int): String {
     val h = totalSeconds / 3600
     val m = (totalSeconds % 3600) / 60
-    return "${h}h${m.toString().padStart(2, '0')}m"
+    return if (isKoreanUi()) "${h}시간 ${m}분" else "${h}h${m.toString().padStart(2, '0')}m"
 }
 
 private fun formatClock(secondsOfDay: Int): String {
     val h = secondsOfDay / 3600
     val m = (secondsOfDay % 3600) / 60
-    return "${h.toString().padStart(2, '0')}:${m.toString().padStart(2, '0')}"
+    return localizedClockTime(h, m)
 }
+
+private fun weekdayName(day: DayOfWeek): String =
+    if (isKoreanUi()) {
+        listOf("월요일", "화요일", "수요일", "목요일", "금요일", "토요일", "일요일")[day.ordinal]
+    } else {
+        day.name.lowercase().replaceFirstChar { it.uppercase() }
+    }

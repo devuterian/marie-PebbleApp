@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -54,7 +56,7 @@ fun CannedRepliesScreen(nav: NavBarNav, topBarParams: TopBarParams) {
     LaunchedEffect(Unit) {
         topBarParams.searchAvailable(null)
         topBarParams.actions {}
-        topBarParams.title("Quick replies")
+        topBarParams.title(localized("Quick replies"))
     }
 
     val libPebble = rememberLibPebble()
@@ -152,7 +154,7 @@ fun CannedRepliesScreen(nav: NavBarNav, topBarParams: TopBarParams) {
         ) {
             item(key = "header") {
                 Text(
-                    text = "Custom replies appear in the \"Canned messages\" menu when replying to notifications on the watch.",
+                    text = localized("Custom replies appear in the \"Canned messages\" menu when replying to notifications on the watch.", "시계에서 알림에 답장할 때 미리 작성한 메시지 메뉴에 표시됩니다."),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(vertical = 8.dp),
@@ -189,7 +191,7 @@ fun CannedRepliesScreen(nav: NavBarNav, topBarParams: TopBarParams) {
                                 },
                             ),
                         ) {
-                            Icon(Icons.Default.DragHandle, contentDescription = "Reorder")
+                            Icon(Icons.Default.DragHandle, contentDescription = localized("Reorder"))
                         }
                         OutlinedTextField(
                             value = text,
@@ -203,14 +205,14 @@ fun CannedRepliesScreen(nav: NavBarNav, topBarParams: TopBarParams) {
                                 .weight(1f)
                                 .focusRequester(focusRequester),
                             singleLine = true,
-                            label = { Text("Reply ${index + 1}") },
+                            label = { Text(localized("Reply ${index + 1}", "답장 ${index + 1}")) },
                         )
                         IconButton(onClick = {
                             responses.removeAt(index)
                             responseKeys.removeAt(index)
                             dirty = true
                         }) {
-                            Icon(Icons.Default.Close, contentDescription = "Remove")
+                            Icon(Icons.Default.Close, contentDescription = localized("Remove"))
                         }
                     }
                 }
@@ -233,13 +235,13 @@ fun CannedRepliesScreen(nav: NavBarNav, topBarParams: TopBarParams) {
                 enabled = responses.size < MAX_RESPONSES,
             ) {
                 Icon(Icons.Default.Add, contentDescription = null)
-                Text("Add reply", modifier = Modifier.padding(start = 4.dp))
+                Text(localized("Add reply"), modifier = Modifier.padding(start = 4.dp))
             }
             Button(
                 onClick = { save() },
                 enabled = dirty,
             ) {
-                Text("Save")
+                Text(localized("Save"))
             }
         }
     }
@@ -253,15 +255,15 @@ fun UnsavedRepliesDialog(
 ) {
     AlertDialog(
         onDismissRequest = onCancel,
-        title = { Text("Unsaved changes") },
-        text = { Text("You have unsaved changes to your quick replies.") },
+        title = { Text(localized("Unsaved changes")) },
+        text = { Text(localized("You have unsaved changes to your quick replies.")) },
         confirmButton = {
-            TextButton(onClick = onSave) { Text("Save") }
+            TextButton(onClick = onSave) { Text(localized("Save")) }
         },
         dismissButton = {
             Row {
-                TextButton(onClick = onCancel) { Text("Cancel") }
-                TextButton(onClick = onDiscard) { Text("Discard") }
+                TextButton(onClick = onCancel) { Text(localized("Cancel")) }
+                TextButton(onClick = onDiscard) { Text(localized("Discard")) }
             }
         },
     )

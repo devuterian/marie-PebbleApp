@@ -66,49 +66,49 @@ class HealthUtilsTest {
     @Test
     fun formatDayLabel_today() {
         val today = LocalDate(2026, 4, 21)
-        assertEquals("Today", formatDayLabel(today, today))
+        assertEquals("Today", formatDayLabel(today, today, "en"))
     }
 
     @Test
     fun formatDayLabel_yesterday() {
         val today = LocalDate(2026, 4, 21)
         val yesterday = LocalDate(2026, 4, 20)
-        assertEquals("Yesterday", formatDayLabel(yesterday, today))
+        assertEquals("Yesterday", formatDayLabel(yesterday, today, "en"))
     }
 
     @Test
     fun formatDayLabel_sameMonth() {
         val today = LocalDate(2026, 4, 21)
         val target = LocalDate(2026, 4, 18)
-        assertEquals("Sat 18th", formatDayLabel(target, today))
+        assertEquals("Sat 18th", formatDayLabel(target, today, "en"))
     }
 
     @Test
     fun formatDayLabel_differentMonth() {
         val today = LocalDate(2026, 4, 2)
         val target = LocalDate(2026, 3, 30)
-        assertEquals("Mon 30th Mar", formatDayLabel(target, today))
+        assertEquals("Mon 30th Mar", formatDayLabel(target, today, "en"))
     }
 
     @Test
     fun formatDayLabel_1st() {
         val today = LocalDate(2026, 4, 5)
         val target = LocalDate(2026, 4, 1)
-        assertEquals("Wed 1st", formatDayLabel(target, today))
+        assertEquals("Wed 1st", formatDayLabel(target, today, "en"))
     }
 
     @Test
     fun formatDayLabel_2nd() {
         val today = LocalDate(2026, 4, 5)
         val target = LocalDate(2026, 4, 2)
-        assertEquals("Thu 2nd", formatDayLabel(target, today))
+        assertEquals("Thu 2nd", formatDayLabel(target, today, "en"))
     }
 
     @Test
     fun formatDayLabel_3rd() {
         val today = LocalDate(2026, 4, 5)
         val target = LocalDate(2026, 4, 3)
-        assertEquals("Fri 3rd", formatDayLabel(target, today))
+        assertEquals("Fri 3rd", formatDayLabel(target, today, "en"))
     }
 
     @Test
@@ -316,14 +316,24 @@ class HealthUtilsTest {
     }
 
     @Test
-    fun formatHours_wholeNumber() = assertEquals("7h 0m", formatHours(7.0f))
+    fun formatHours_wholeNumber() = assertEquals("7h 0m", formatHours(7.0f, "en"))
 
     @Test
-    fun formatHours_withMinutes() = assertEquals("7h 30m", formatHours(7.5f))
+    fun formatHours_withMinutes() = assertEquals("7h 30m", formatHours(7.5f, "en"))
 
     @Test
-    fun formatHours_zero() = assertEquals("0h 0m", formatHours(0f))
+    fun formatHours_zero() = assertEquals("0h 0m", formatHours(0f, "en"))
 
     @Test
-    fun formatHours_nearWholeHourCarriesIntoHours() = assertEquals("3h 0m", formatHours(2.9959f))
+    fun formatHours_nearWholeHourCarriesIntoHours() = assertEquals("3h 0m", formatHours(2.9959f, "en"))
+
+    @Test
+    fun formatHours_korean() = assertEquals("7시간 30분", formatHours(7.5f, "ko"))
+
+    @Test
+    fun formatDayLabel_korean() {
+        val today = LocalDate(2026, 4, 21)
+        assertEquals("오늘", formatDayLabel(today, today, "ko"))
+        assertEquals("4월 18일 (토)", formatDayLabel(LocalDate(2026, 4, 18), today, "ko"))
+    }
 }

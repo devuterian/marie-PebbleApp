@@ -1,3 +1,5 @@
+
+import localization.localized
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material3.Icon
@@ -34,7 +36,7 @@ fun BugReportButton(
             ))
         }
     ) {
-        Icon(Icons.Default.BugReport, contentDescription = "Report a bug")
+        Icon(Icons.Default.BugReport, contentDescription = localized("Report a bug"))
     }
 }
 

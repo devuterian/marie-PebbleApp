@@ -1,5 +1,7 @@
 package coredevices.coreapp
 
+import localization.localized
+
 import co.touchlab.kermit.Logger
 import com.mmk.kmpnotifier.notification.NotifierManager
 import com.russhwolf.settings.Settings
@@ -108,8 +110,8 @@ class CommonAppDelegate(
                     settings.putString(STT_UPDATE_NOTIFIED_VERSION_KEY, CommonBuildKonfig.CACTUS_WEIGHTS_VERSION)
                     NotifierManager.getLocalNotifier().notify(
                         STT_UPDATE_NOTIFICATION_ID,
-                        "Offline voice recognition",
-                        "We've improved offline voice recognition. Open the app to update the model."
+                        localized("Offline voice recognition"),
+                        localized("We've improved offline voice recognition. Open the app to update the model.")
                     )
                 }
             } else if (settings.hasKey(STT_MODE_BEFORE_UPDATE_KEY)) {
@@ -149,6 +151,7 @@ class CommonAppDelegate(
     }
 
     fun init() {
+        GlobalScope.launch { appUpdate.checkForUpdates() }
         usersDao.init()
         GlobalScope.launch(Dispatchers.Default) {
             usersDao.initUserDevToken(pebbleAccountProvider.get().devToken.value)
@@ -224,7 +227,7 @@ class CommonAppDelegate(
                         pebbleAppDelegate.performBackgroundWork(scope)
                     })
                     add(scope.launch {
-                        appUpdate.updateAvailable.value
+                        appUpdate.checkForUpdates()
                     })
                 }
             }

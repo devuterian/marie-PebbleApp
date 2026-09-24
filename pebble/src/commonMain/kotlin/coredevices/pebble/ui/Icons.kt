@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement.Center
 import androidx.compose.foundation.layout.Column
@@ -49,7 +51,7 @@ fun IconPickerDialog(
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { searchQuery = it },
-                    label = { Text("Search Icons") },
+                    label = { Text(localized("Search Icons")) },
                     modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
                     singleLine = true
                 )
@@ -79,7 +81,7 @@ fun IconPickerDialog(
                             onDismissWithoutResult()
                         },
                         content = {
-                            Text("Cancel")
+                            Text(localized("Cancel"))
                         },
                         modifier = Modifier.weight(1f),
                     )
@@ -88,7 +90,7 @@ fun IconPickerDialog(
                             onIconSelected(null)
                         },
                         content = {
-                            Text("None")
+                            Text(localized("None"))
                         },
                         modifier = Modifier.weight(1f),
                     )
@@ -127,24 +129,24 @@ fun SelectIconOrNone(
     }
     ListItem(
         headlineContent = {
-            Text("Icon")
+            Text(localized("Icon"))
         },
         supportingContent = {
             Column {
                 currentIcon?.let { icon ->
                     IconImage(icon, modifier = Modifier.size(45.dp))
                 }
-                Text(currentIcon?.name ?: "Default")
+                Text(currentIcon?.name ?: localized("Default"))
             }
         },
         trailingContent = {
             PebbleElevatedButton(
-                text = "Select",
+                text = localized("Select"),
                 onClick = {
                     showIconChooser = true
                 },
                 icon = Icons.Default.AppShortcut,
-                contentDescription = "Select icon",
+                contentDescription = localized("Select icon"),
                 primaryColor = true,
                 modifier = Modifier.padding(8.dp),
             )

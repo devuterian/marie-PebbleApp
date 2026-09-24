@@ -15,4 +15,5 @@
     <cache-path
         name="bugreports"
         path="bugreports/" />
+    <cache-path name="app_updates" path="app-updates/" />
 </paths>

@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
@@ -81,8 +83,8 @@ fun watchPrefs(): List<SettingsItem> {
     val showConfirmReset = remember { mutableStateOf(false) }
     ConfirmDialog(
         show = showConfirmReset,
-        title = "Reset To Defaults?",
-        text = "Reset all settings to defaults",
+        title = localized("Reset To Defaults?"),
+        text = localized("Reset all settings to defaults"),
         onConfirm = {
             settings.forEach { setting ->
                 if (setting.value != setting.pref.defaultValue) {
@@ -92,16 +94,16 @@ fun watchPrefs(): List<SettingsItem> {
                 }
             }
         },
-        confirmText = "Reset",
+        confirmText = localized("Reset"),
     )
     val reset = basicSettingsActionItem(
-        title = "Reset To Defaults",
+        title = localized("Reset To Defaults"),
         topLevelType = TopLevelType.Watch,
         section = Section.Defaults,
         action = {
             showConfirmReset.value = true
         },
-        description = "Reset all watch settings to defaults",
+        description = localized("Reset all watch settings to defaults"),
     )
     return listOf(reset) + mapped
 }
@@ -345,13 +347,13 @@ private fun quickLaunchOptions(libPebble: LibPebble): List<QuickLaunchOption> {
         apps.filter { app -> app.isSynced() }
     }.collectAsState(emptyList())
     return remember(installedApps) {
-        listOf(QuickLaunchOption(null, "None")) +
-                QuickLaunchOption(QUIET_TIME_TOGGLE_UUID, "Quiet Time") +
-                QuickLaunchOption(BACKLIGHT_UUID, "Backlight") +
-                QuickLaunchOption(MOTION_BACKLIGHT_UUID, "Motion Backlight") +
-                QuickLaunchOption(AIRPLANE_MODE_UUID, "Airplane Mode") +
-                QuickLaunchOption(TIMELINE_PAST_UUID, "Timeline Past") +
-                QuickLaunchOption(TIMELINE_FUTURE_UUID, "Timeline Future") +
+        listOf(QuickLaunchOption(null, localized("None"))) +
+                QuickLaunchOption(QUIET_TIME_TOGGLE_UUID, localized("Quiet Time")) +
+                QuickLaunchOption(BACKLIGHT_UUID, localized("Backlight")) +
+                QuickLaunchOption(MOTION_BACKLIGHT_UUID, localized("Motion Backlight")) +
+                QuickLaunchOption(AIRPLANE_MODE_UUID, localized("Airplane Mode")) +
+                QuickLaunchOption(TIMELINE_PAST_UUID, localized("Timeline Past")) +
+                QuickLaunchOption(TIMELINE_FUTURE_UUID, localized("Timeline Future")) +
                 installedApps.map { app ->
                     QuickLaunchOption(app.properties.id, app.properties.title)
                 }

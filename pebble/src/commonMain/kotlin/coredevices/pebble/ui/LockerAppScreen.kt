@@ -1,5 +1,7 @@
 package coredevices.pebble.ui
 
+import localization.localized
+
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -239,8 +241,8 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                 if (entry != null) {
                     ConfirmDialog(
                         show = showRemoveConfirmDialog,
-                        title = "Remove ${entry.title}?",
-                        text = "Are you sure you want to remove this app from your Pebble?",
+                        title = localized("Remove ${entry.title}?", "${entry.title}을(를) 제거하시겠습니까?"),
+                        text = localized("Are you sure you want to remove this app from your Pebble?"),
                         onConfirm = {
                             // Don't use local scope: that will die because we moved back
                             GlobalScope.launch {
@@ -251,7 +253,7 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                                 topBarParams.showSnackbar("Removed ${entry.title}")
                             }
                         },
-                        confirmText = "Remove",
+                        confirmText = localized("Remove"),
                     )
                 }
                 val showRemove = entry?.commonAppType is CommonAppType.Locker
@@ -259,7 +261,7 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                     TopBarIconButtonWithToolTip(
                         onClick = { showRemoveConfirmDialog.value = true },
                         icon = Icons.Filled.Delete,
-                        description = "Remove",
+                        description = localized("Remove"),
                         enabled = !showRemoveConfirmDialog.value,
                     )
                 }
@@ -277,7 +279,7 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                     if (commonAppStore?.headerImageUrl != null) {
                         AsyncImage(
                             model = commonAppStore.headerImageUrl,
-                            contentDescription = "banner",
+                            contentDescription = localized("banner", "배너"),
                             modifier = Modifier.fillMaxWidth().padding(10.dp)
                                 .clip(RoundedCornerShape(8.dp)),
                             contentScale = ContentScale.FillWidth,
@@ -373,7 +375,7 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                                     ) {
                                         Icon(
                                             icon,
-                                            contentDescription = "Hearts",
+                                            contentDescription = localized("Hearts"),
                                             tint = if (isHearted) {
                                                 MaterialTheme.colorScheme.primary
                                             } else {
@@ -441,9 +443,9 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                                 && !viewModel.addedToLocker
                     if (showStartApp) {
                         val text = if (entry.type == AppType.Watchapp) {
-                            "Start App"
+                            localized("Start App")
                         } else {
-                            "Start Watchface"
+                            localized("Start Watchface")
                         }
                         PebbleElevatedButton(
                             text = text,
@@ -488,7 +490,7 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             PebbleElevatedButton(
-                                text = "Add To Watch",
+                                text = localized("Add To Watch"),
                                 onClick = {
                                     // Global scope because it could take a second to download/sync/load app
                                     GlobalScope.launch {
@@ -499,7 +501,7 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                                             entry.commonAppType.storeSource
                                         )
                                         if (!addResult) {
-                                            topBarParams.showSnackbar("Failed to add app")
+                                            topBarParams.showSnackbar(localized("Failed to add app"))
                                             return@launch
                                         }
                                         if (watch != null) {
@@ -512,7 +514,7 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                                     }
                                 },
                                 icon = Icons.Default.Add,
-                                contentDescription = "Add To Watch",
+                                contentDescription = localized("Add To Watch"),
                                 primaryColor = true,
                                 modifier = Modifier.padding(end = 8.dp),
                             )
@@ -575,14 +577,14 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                         )
                         if (entry.commonAppType is CommonAppTypeLocal && entry.commonAppType.order > 0) {
                             PebbleElevatedButton(
-                                text = "Move To Top",
+                                text = localized("Move To Top"),
                                 onClick = {
                                     scope.launch {
                                         libPebble.setAppOrder(entry.uuid, -1)
                                     }
                                 },
                                 icon = Icons.Default.VerticalAlignTop,
-                                contentDescription = "Move To Top",
+                                contentDescription = localized("Move To Top"),
                                 primaryColor = false,
                                 modifier = Modifier.padding(5.dp),
                             )
@@ -599,7 +601,7 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                                 )
                             ) {
                                 Text(
-                                    text = "This app's settings page may not work any more",
+                                    text = localized("This app's settings page may not work any more"),
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onErrorContainer,
                                     modifier = Modifier.padding(15.dp)
@@ -632,7 +634,7 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                             items(screenshotsToDisplay, key = { it }) { screenshotUrl ->
                                 AsyncImage(
                                     model = screenshotUrl,
-                                    contentDescription = "Screenshot",
+                                    contentDescription = localized("Screenshot"),
                                     modifier = Modifier.size(110.dp).clip(RoundedCornerShape(7.dp)),
                                 )
                             }
@@ -649,7 +651,7 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                         }
                     if (platform == Platform.Android && entry.androidCompanion != null) {
                         PropertyRow(
-                            name = "COMPANION",
+                            name = localized("COMPANION"),
                             nameModifier = propertyNameModifier,
                             value = entry.androidCompanion.name,
                             onClick = entry.androidCompanion.url?.let { url ->
@@ -660,7 +662,7 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                     val description = viewModel.selectedStoreEntry?.description ?: entry.description
                     if (description != null && description.isNotBlank()) {
                         PropertyRow(
-                            name = "DESCRIPTION",
+                            name = localized("DESCRIPTION"),
                             nameModifier = propertyNameModifier,
                             value = description,
                             multiRow = true,
@@ -668,7 +670,7 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                     }
 
                     PropertyRow(
-                        name = "DEVELOPER",
+                        name = localized("DEVELOPER"),
                         nameModifier = propertyNameModifier,
                         value = entry.developerName,
                         onClick = if (entry.developerId != null && storeSource != null) {
@@ -678,7 +680,7 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                                     PebbleNavBarRoutes.AppStoreCollectionRoute(
                                         sourceId = storeSource.id,
                                         path = "dev/$developerId",
-                                        title = "Developer: ${entry.developerName}"
+                                        title = localized("Developer: ${entry.developerName}", "개발자: ${entry.developerName}")
                                     )
                                 )
                             }
@@ -690,7 +692,7 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                     entry.version?.let { version ->
                         val sideloadedText =
                             if (entry.commonAppType is CommonAppType.Locker && entry.commonAppType.sideloaded) {
-                                " (sideloaded)"
+                                localized(" (sideloaded)")
                             } else {
                                 ""
                             }
@@ -705,25 +707,25 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                             ""
                         }
                         PropertyRow(
-                            name = "VERSION",
+                            name = localized("VERSION"),
                             nameModifier = propertyNameModifier,
                             value = "$version$sideloadedText$updatedDateText"
                         )
                     }
                     (viewModel.selectedStoreEntry?.sourceLink ?: entry.sourceLink)?.let { sourceLink ->
                         PropertyRow(
-                            name = "SOURCE CODE",
+                            name = localized("SOURCE CODE"),
                             nameModifier = propertyNameModifier,
-                            value = "External Link",
+                            value = localized("External Link"),
                             onClick = { urlLauncher.open(sourceLink) }
                         )
                     }
 
                     commonAppStore?.developerLink?.let { developerLink ->
                         PropertyRow(
-                            name = "WEBSITE LINK",
+                            name = localized("WEBSITE LINK"),
                             nameModifier = propertyNameModifier,
-                            value = "External Link",
+                            value = localized("External Link"),
                             onClick = { urlLauncher.open(developerLink) }
                         )
                     }
@@ -734,9 +736,9 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                         contactStoreId != null
                     ) {
                         PropertyRow(
-                            name = "CONTACT DEVELOPER",
+                            name = localized("CONTACT DEVELOPER"),
                             nameModifier = propertyNameModifier,
-                            value = "Send Message",
+                            value = localized("Send Message"),
                             onClick = {
                                 navBarNav.navigateTo(
                                     PebbleRoutes.ContactDeveloperRoute(
@@ -752,9 +754,9 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                         if (changelog.isNotEmpty()) {
                             val show = remember { mutableStateOf(false) }
                             PropertyRow(
-                                name = "CHANGELOG",
+                                name = localized("CHANGELOG"),
                                 nameModifier = propertyNameModifier,
-                                value = "View",
+                                value = localized("View"),
                                 onClick = { show.value = true },
                                 onClickIcon = Icons.AutoMirrored.Default.ArrowForward,
                             )
@@ -763,13 +765,13 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                                     onDismissRequest = {
                                         show.value = false
                                     },
-                                    title = { Text("Changelog") },
+                                    title = { Text(localized("Changelog")) },
                                     text = {
                                         LazyColumn {
                                             items(changelog) { item ->
                                                 Row(modifier = Modifier.padding(5.dp)) {
                                                     Text(
-                                                        item.version ?: "Unknown version",
+                                                        item.version ?: localized("Unknown version"),
                                                         fontSize = 20.sp,
                                                         fontWeight = FontWeight.Bold
                                                     )
@@ -797,7 +799,7 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                                     confirmButton = {
                                         TextButton(onClick = {
                                             show.value = false
-                                        }) { Text("Dismiss") }
+                                        }) { Text(localized("Dismiss")) }
                                     }
                                 )
                             }
@@ -815,7 +817,7 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                             null
                         }
                         PropertyRow(
-                            name = "STORE",
+                            name = localized("STORE"),
                             nameModifier = propertyNameModifier,
                             value = storeSource.title,
                             onClick = onClick,
@@ -905,15 +907,15 @@ fun AppCapability.icon(): ImageVector = when (this) {
 }
 
 fun AppCapability.name(): String = when (this) {
-    AppCapability.Health -> "Health"
-    AppCapability.Location -> "Location"
-    AppCapability.Timeline -> "Timeline"
+    AppCapability.Health -> localized("Health")
+    AppCapability.Location -> localized("Location")
+    AppCapability.Timeline -> localized("Timeline")
 }
 
 fun AppCapability.description(): String = when (this) {
-    AppCapability.Health -> "Can access health data"
-    AppCapability.Location -> "Can access location"
-    AppCapability.Timeline -> "Can create timeline pins"
+    AppCapability.Health -> localized("Can access health data")
+    AppCapability.Location -> localized("Can access location")
+    AppCapability.Timeline -> localized("Can create timeline pins")
 }
 
 suspend fun LibPebble.launchApp(
@@ -923,8 +925,8 @@ suspend fun LibPebble.launchApp(
 ): Boolean {
     logger.d { "launchApp: ${entry.uuid} - ${entry.title}" }
     val typeText = when (entry.type) {
-        AppType.Watchface -> "Watchface"
-        AppType.Watchapp -> "WatchApp"
+        AppType.Watchface -> localized("Watchface")
+        AppType.Watchapp -> localized("WatchApp")
     }
     if (!entry.isSynced()) {
         try {
@@ -982,7 +984,7 @@ suspend fun CommonApp.showSettings(
             //TODO: Handle multiple watches connected, selector?
             if (watch == null) {
                 logger.w("No connected watch found, cannot show settings")
-                topBarParams.showSnackbar("No connected watch")
+                topBarParams.showSnackbar(localized("No connected watch"))
                 return
             }
             val session = if (watch.currentPKJSSession.value?.uuid == uuid) {

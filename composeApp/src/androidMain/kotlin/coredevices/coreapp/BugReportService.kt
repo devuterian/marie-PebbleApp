@@ -1,5 +1,7 @@
 package coredevices.coreapp
 
+import localization.localized
+
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -24,7 +26,7 @@ class BugReportService : Service(), CoroutineScope {
         get() = Dispatchers.IO + job
 
     private val notificationBuilder = NotificationCompat.Builder(this, CHANNEL_ID)
-        .setContentTitle("Bug Report")
+        .setContentTitle(localized("Bug Report", "버그 제보"))
         .setSmallIcon(android.R.drawable.ic_dialog_info)
 
     companion object {
@@ -110,10 +112,10 @@ class BugReportService : Service(), CoroutineScope {
     private fun createNotificationChannel() {
         val channel = NotificationChannel(
             CHANNEL_ID,
-            "Bug Report Processing",
+            localized("Bug Report Processing", "버그 제보 처리"),
             NotificationManager.IMPORTANCE_DEFAULT
         ).apply {
-            description = "Shows progress while processing bug reports"
+            description = localized("Shows progress while processing bug reports", "버그 제보를 처리하는 동안 진행 상황을 표시합니다")
         }
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(channel)
@@ -135,7 +137,7 @@ class BugReportService : Service(), CoroutineScope {
 
     private fun postFinishedNotification(text: String) {
         val notification = NotificationCompat.Builder(this, CHANNEL_ID)
-            .setContentTitle("Bug Report")
+            .setContentTitle(localized("Bug Report", "버그 제보"))
             .setContentText(text)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setOngoing(false)
