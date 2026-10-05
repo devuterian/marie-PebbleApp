@@ -42,7 +42,6 @@ import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Cloud
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.DoNotDisturb
-import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Mic
@@ -233,7 +232,6 @@ enum class Section(val title: String, val icon: ImageVector) {
     Other(localized("Other"), Icons.Default.MoreHoriz), // watch only
     Diagnostics(localized("Diagnostics"), Icons.Default.Timeline),
     Debug(localized("Debug"), Icons.Default.BugReport),
-    BundledPlugins(localized("Bundled Plugins"), Icons.Default.Extension), // TODO to be removed when we have a better solution
 }
 
 fun Section.navigatesDirectlyTo(): NavBarRoute? = when (this) {
@@ -1933,25 +1931,6 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                     isDebugSetting = true,
                 ),
-                *libPebble.configurablePlugins().map { plugin ->
-                    basicSettingsActionItem(
-                        title = localized("Configure ${plugin.name}", "${plugin.name} 설정"),
-                        description = localized("Settings for the ${plugin.name} plugin", "${plugin.name} 플러그인 설정"),
-                        topLevelType = TopLevelType.Phone,
-                        section = Section.BundledPlugins,
-                        action = {
-                            WatchappSettingsUrlCache.put(plugin.uuid, plugin.configPageUrl)
-                            navBarNav?.navigateTo(
-                                PebbleRoutes.WatchappSettingsRoute(
-                                    uuid = plugin.uuid,
-                                    title = plugin.name,
-                                )
-                            )
-                        },
-                        show = { libPebbleConfig.watchConfig.enablePlugins },
-                        isDebugSetting = true,
-                    )
-                }.toTypedArray(),
                 basicSettingsActionItem(
                     title = localized("Sign Out - Pebble Account"),
                     description = localized("Sign out of your Pebble account ($coreUser)", "Pebble 계정에서 로그아웃 ($coreUser)"),

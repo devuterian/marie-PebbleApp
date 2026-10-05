@@ -24,6 +24,7 @@ import coredevices.ring.agent.BuiltinServletRepository
 import coredevices.ring.agent.ContextualActionPredictor
 import coredevices.ring.agent.ShareActionHandler
 import coredevices.ring.agent.ShortcutActionHandler
+import coredevices.ring.agent.builtin_servlets.calendar.TargetCalendarSeeder
 import coredevices.ring.agent.builtin_servlets.reminders.BuiltInReminderFeedItems
 import coredevices.ring.agent.builtin_servlets.reminders.BuiltInReminderIntegration
 import coredevices.ring.agent.builtin_servlets.reminders.ReminderIntegrationFactory
@@ -75,6 +76,7 @@ import coredevices.ring.service.recordings.RecordingPreprocessor
 import coredevices.ring.service.recordings.RecordingProcessingQueue
 import coredevices.ring.service.recordings.RecordingProcessor
 import coredevices.ring.service.recordings.button.RecordingOperationFactory
+import coredevices.ring.backup.BackupExporter
 import coredevices.ring.encryption.DocumentEncryptor
 import coredevices.ring.encryption.EncryptionManager
 import coredevices.ring.service.RingHacksDelegate
@@ -96,6 +98,7 @@ import kotlinx.coroutines.SupervisorJob
 import org.koin.core.module.Module
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
+import io.rebble.libpebblecommon.connection.LibPebble
 import org.koin.dsl.bind
 import org.koin.dsl.binds
 import org.koin.dsl.module
@@ -229,6 +232,7 @@ val experimentalModule = module {
     single { RecordingProcessingQueue(get(), get(), get(), get(), get(), get(), get(), get()) }
     singleOf(::RecordingOperationFactory)
     singleOf(::RealRecordingStorage) bind RecordingStorage::class
+    singleOf(::BackupExporter)
     singleOf(::DocumentEncryptor)
     singleOf(::EncryptionManager)
     singleOf(::RecordingPreprocessor)
@@ -238,6 +242,7 @@ val experimentalModule = module {
     singleOf(::IndexSettingsSummary)
     singleOf(::IndexRebootLogStore)
     singleOf(::ExperimentalDevices)
+    single { TargetCalendarSeeder(get(), get<LibPebble>(), get()) }
     singleOf(::PrefsCollectionIndexStorage) bind CollectionIndexStorage::class
     factory { HackyPermissionRequesterProvider { get<PermissionRequester>() } }
     singleOf(::LLMLocationProvider)

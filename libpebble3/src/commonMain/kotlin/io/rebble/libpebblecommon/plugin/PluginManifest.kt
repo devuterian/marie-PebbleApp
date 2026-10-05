@@ -12,24 +12,30 @@ import kotlinx.serialization.json.jsonPrimitive
  */
 @Serializable
 data class PluginManifest(
-    val uuid: String,
-    val name: String,
+    // No uuid/name: a plugin's identity is its pbw's (appinfo uuid + name).
     val description: String = "",
     val script: String = "plugin.js",
-    /**
-     * Settings page. Either an http(s) URL or, for a page shipped alongside the script, a
-     * bundled filename.
-     */
-    val configPage: String? = null,
     /**
      * What the user has to let this plugin do. Declared once for the whole plugin rather than
      * per source: a plugin reaches its API the same way whichever of its sources is being read,
      * and the network permissions are enforced at the plugin's one way out.
      */
     val usesPermissions: List<PluginPermission> = emptyList(),
+    /**
+     * Hosted OAuth connectors this plugin may use, keyed by slug. The host will only run a broker
+     * flow for a slug declared here, so a plugin cannot reach a connector by guessing its name.
+     */
+    val oauth: Map<String, OAuthConnector> = emptyMap(),
     val sources: List<SourceDeclaration> = emptyList(),
     val actions: List<ActionDeclaration> = emptyList(),
 )
+
+/**
+ * A declared hosted-OAuth connector. Empty today — its presence under a slug is the whole
+ * declaration (see [PluginManifest.oauth]); fields land here if a connector ever needs options.
+ */
+@Serializable
+class OAuthConnector
 
 @Serializable
 data class SourceDeclaration(
