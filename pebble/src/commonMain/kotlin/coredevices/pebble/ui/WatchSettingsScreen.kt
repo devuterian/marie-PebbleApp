@@ -608,6 +608,19 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                     },
                     show = { platform == Platform.Android || updateState is AppUpdateState.UpdateAvailable },
                 ),
+                basicSettingsToggleItem(
+                    title = localized("Prerelease app updates"),
+                    description = localized("Also offer app versions attached to prereleases"),
+                    topLevelType = TopLevelType.Phone,
+                    section = Section.About,
+                    keywords = "app update prerelease preview",
+                    checked = coreConfig.prereleaseAppUpdates ?: coreConfig.prereleaseFirmwareWatches.isNotEmpty(),
+                    onCheckChanged = {
+                        coreConfigHolder.update(coreConfig.copy(prereleaseAppUpdates = it))
+                        scope.launch { appUpdate.checkForUpdates(force = true) }
+                    },
+                    show = { platform == Platform.Android },
+                ),
                 navBarNav?.let { nav -> basicSettingsActionItem(
                     title = localized("Permissions"),
                     description = if (missingPermissions.isEmpty()) {

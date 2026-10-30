@@ -59,7 +59,8 @@ class GitHubAppUpdate(
 
     override suspend fun checkForUpdates(force: Boolean) = checkLock.withLock {
         val now = System.currentTimeMillis()
-        val includePrereleases = config.value.prereleaseFirmwareWatches.isNotEmpty()
+        val includePrereleases = config.value.prereleaseAppUpdates
+            ?: config.value.prereleaseFirmwareWatches.isNotEmpty()
         val channel = if (includePrereleases) "preview" else "stable"
         if (!force && now - (lastChecks[channel] ?: 0L) < 6 * 60 * 60 * 1000L) return@withLock
         try {

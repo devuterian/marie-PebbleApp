@@ -215,6 +215,8 @@ private val korean = mapOf(
     "Failed to download firmware" to "펌웨어를 내려받지 못했습니다",
     "Failed to parse manifest" to "펌웨어 정보를 읽지 못했습니다",
     "App Updates" to "앱 업데이트",
+    "Prerelease app updates" to "앱 프리릴리즈 받기",
+    "Also offer app versions attached to prereleases" to "프리릴리즈에 올라온 앱 버전도 업데이트로 알립니다",
     "Update available — tap to install" to "새 버전이 있습니다. 눌러서 설치해 주십시오",
     "Check for app updates" to "앱 업데이트 확인",
     "Language Packs" to "언어팩",

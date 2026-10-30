@@ -103,6 +103,8 @@ data class CoreConfig(
     val notifyWatchFullyCharged: Boolean = true,
     val officialFirmwareWatches: Set<String> = emptySet(),
     val prereleaseFirmwareWatches: Set<String> = emptySet(),
+    /** Null follows the firmware setting: preview app builds while any watch takes prereleases. */
+    val prereleaseAppUpdates: Boolean? = null,
     /** Set the day/night backlight switch times from the local sunrise/sunset during weather sync. */
     val backlightColorAutoSunriseSunset: Boolean = true,
     val autoFirmwareUpdate: Boolean = false,
