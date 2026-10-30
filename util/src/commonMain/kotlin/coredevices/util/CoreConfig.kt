@@ -4,6 +4,7 @@ import co.touchlab.kermit.Logger
 import com.russhwolf.settings.Settings
 import com.russhwolf.settings.set
 import coredevices.util.models.CactusSTTMode
+import io.rebble.libpebblecommon.database.entity.QuietTimeSchedule
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -102,6 +103,11 @@ data class CoreConfig(
     val notifyWatchFullyCharged: Boolean = true,
     val officialFirmwareWatches: Set<String> = emptySet(),
     val prereleaseFirmwareWatches: Set<String> = emptySet(),
+    /** Set the day/night backlight switch times from the local sunrise/sunset during weather sync. */
+    val backlightColorAutoSunriseSunset: Boolean = true,
+    val autoFirmwareUpdate: Boolean = false,
+    /** Null means updates are installed any time. */
+    val autoFirmwareUpdateWindow: QuietTimeSchedule? = null,
 )
 
 @Serializable

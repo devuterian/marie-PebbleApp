@@ -28,6 +28,7 @@ actual fun notifyFirmwareUpdate(
     body: String,
     key: Int,
     identifier: PebbleIdentifier,
+    showUpdateAction: Boolean,
 ) {
     val context = appContext.context
     context.createFwupNotificationChannel()
@@ -68,17 +69,20 @@ actual fun notifyFirmwareUpdate(
         .setPriority(NotificationCompat.PRIORITY_DEFAULT)
         .setContentIntent(viewPendingIntent)
         .setAutoCancel(true)
-        .addAction(
-            NotificationCompat.Action.Builder(null, localized("Update Now", "지금 업데이트"), updatePhonePendingIntent)
-                .setShowsUserInterface(true)
-                .build()
-        )
-        .extend(
-            NotificationCompat.WearableExtender()
-                .addAction(
-                    NotificationCompat.Action.Builder(null, localized("Update Now", "지금 업데이트"), updateIntentWatch).build()
-                )
-        )
+    if (showUpdateAction) {
+        builder
+            .addAction(
+                NotificationCompat.Action.Builder(null, localized("Update Now", "지금 업데이트"), updatePhonePendingIntent)
+                    .setShowsUserInterface(true)
+                    .build()
+            )
+            .extend(
+                NotificationCompat.WearableExtender()
+                    .addAction(
+                        NotificationCompat.Action.Builder(null, localized("Update Now", "지금 업데이트"), updateIntentWatch).build()
+                    )
+            )
+    }
     val notificationManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     notificationManager.notify(key, builder.build())

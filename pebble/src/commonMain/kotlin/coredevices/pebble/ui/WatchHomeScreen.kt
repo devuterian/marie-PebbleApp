@@ -86,6 +86,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.navigation.NavController
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -271,16 +272,6 @@ fun WatchHomeScreen(
         }
         val pebbleNavHostController = navControllers[currentTab]!!
 
-        // The Index tab — and EVERY destination inside it (home, recording
-        // detail, list/object detail, full feed, all-lists, all-answers,
-        // settings, etc.) — renders its own inline header. Hide the chrome
-        // TopAppBar for the entire Index tab regardless of which inner
-        // route is active so we don't get a stacked "double top bar" when
-        // navigating from home into a detail screen.
-        LaunchedEffect(currentTab) {
-            viewModel.setHidden(currentTab == WatchHomeNavTab.Index)
-        }
-
         LaunchedEffect(Unit) {
             watchOnboardingFinished.finished.receiveAsFlow().collect {
                 logger.d { "Onboarding finished - switching to apps tab" }
@@ -299,6 +290,12 @@ fun WatchHomeScreen(
                         viewModel.disableNextTransitionAnimation.value = false
                     }
                     viewModel.setCanGoBack(pebbleNavHostController.previousBackStackEntry != null)
+                    // Index screens render their own inline header; a locker page pushed inside
+                    // the tab still needs the chrome's.
+                    viewModel.setHidden(
+                        currentTab == WatchHomeNavTab.Index &&
+                            !destination.hasRoute<PebbleNavBarRoutes.LockerAppRoute>()
+                    )
                 }
             pebbleNavHostController.addOnDestinationChangedListener(listener)
             onDispose {
@@ -370,6 +367,7 @@ fun WatchHomeScreen(
                     it.consumed = true
                     logger.v { "navigateToPebbleDeepLink: $it" }
                     val tab = when (it.route) {
+                        is PebbleNavBarRoutes.WatchfacesRoute -> WatchHomeNavTab.WatchFaces
                         is PebbleNavBarRoutes.LockerAppRoute -> WatchHomeNavTab.WatchFaces
                         is PebbleNavBarRoutes.AppstoreSettingsRoute -> WatchHomeNavTab.WatchFaces
                         is PebbleNavBarRoutes.IndexRoute -> WatchHomeNavTab.Index
@@ -472,15 +470,30 @@ fun WatchHomeScreen(
         val rings by ringsFlow.collectAsState(initial = libIndex.rings.value)
         var hasSeenWatchOnboarding by remember { mutableStateOf(settings.hasSeenWatchOnboarding())}
         var hasSeenRingOnboarding by remember { mutableStateOf(settings.hasSeenRingOnboarding())}
+        val pluginsEnabled = libPebble.config.collectAsState().value.watchConfig.enablePlugins
+        // Re-read when plugins are switched, because switching them off resets it.
+        var hasSeenPermissionsIntro by remember(pluginsEnabled) { mutableStateOf(settings.hasSeenPermissionsIntro()) }
+        var startingOnboarding = false
         if (watches.any { it is CommonConnectedDevice } && !hasSeenWatchOnboarding) {
             hasSeenWatchOnboarding = true
             settings.setHasSeenWatchOnboarding(true)
             coreNav.navigateTo(CommonRoutes.WatchOnboardingRoute)
+            startingOnboarding = true
         }
         if (rings.any { it is InterviewedIndexDevice && !hasSeenRingOnboarding }) {
             hasSeenRingOnboarding = true
             coreConfigHolder.update(coreConfig.copy(enableIndex = true))
             coreNav.navigateTo(CommonRoutes.RingOnboardingRoute)
+            startingOnboarding = true
+        }
+        // Watch and ring onboarding show this themselves, so only people past one get the dialog.
+        if (!startingOnboarding && (hasSeenWatchOnboarding || hasSeenRingOnboarding) && pluginsEnabled &&
+            !hasSeenPermissionsIntro
+        ) {
+            PermissionsIntroDialog(onDismissRequest = {
+                hasSeenPermissionsIntro = true
+                settings.setHasSeenPermissionsIntro(true)
+            })
         }
 
         Scaffold(
@@ -669,7 +682,9 @@ fun WatchHomeScreen(
             val scopedCoreNav = remember(pebbleNavHostController, coreNav, isInnerScopedRoute) {
                 object : CoreNav {
                     override fun navigateTo(route: CoreRoute) {
-                        if (isInnerScopedRoute(route)) {
+                        if (route is CommonRoutes.LockerAppRoute) {
+                            pebbleNavHostController.navigate(route.toNavBarRoute())
+                        } else if (isInnerScopedRoute(route)) {
                             pebbleNavHostController.navigate(route)
                         } else {
                             coreNav.navigateTo(route)
@@ -806,7 +821,8 @@ enum class WatchHomeNavTab(
     Index(
         Res.string.index,
         Icons.AutoMirrored.Outlined.Notes,
-        PebbleNavBarRoutes.IndexRoute
+        PebbleNavBarRoutes.IndexRoute,
+        { indexTabBadgeCount() }
     ),
     Watches(Res.string.devices, Icons.Outlined.Watch, PebbleNavBarRoutes.WatchesRoute),
     Health(Res.string.health, Icons.AutoMirrored.Filled.DirectionsRun, PebbleNavBarRoutes.HealthRoute),
@@ -836,6 +852,12 @@ enum class WatchHomeNavTab(
             return tabs
         }
     }
+}
+
+@Composable
+private fun indexTabBadgeCount(): Int {
+    val badge: IndexTabBadge = koinInject()
+    return badge.count.collectAsState(0).value
 }
 
 @Preview

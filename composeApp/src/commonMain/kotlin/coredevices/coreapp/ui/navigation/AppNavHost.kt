@@ -32,9 +32,12 @@ import coredevices.coreapp.ui.screens.WatchOnboardingScreen
 import coredevices.pebble.PebbleDeepLinkHandler
 import coredevices.pebble.ui.PebbleRoutes
 import coredevices.pebble.ui.addPebbleRoutes
+import coredevices.pebble.ui.toNavBarRoute
 import coredevices.ring.ui.navigation.addRingRoutes
 import coredevices.ring.ui.screens.IndexScreen
+import coredevices.ring.ui.theme.IndexThemeHost
 import coredevices.ui.GenericWebViewScreen
+import coredevices.util.BugReportContext
 import coredevices.util.CommonBuildKonfig
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
@@ -89,6 +92,14 @@ fun AppNavHost(navController: NavHostController, startDestination: Any) {
     val coreNav = remember {
         object : CoreNav {
             override fun navigateTo(route: CoreRoute) {
+                if (route is CommonRoutes.LockerAppRoute) {
+                    pebbleDeepLinks.navigateToTab(route.toNavBarRoute())
+                    return
+                }
+                if (route is CommonRoutes.LockerTabRoute) {
+                    pebbleDeepLinks.navigateToLockerTab(route.initialTab)
+                    return
+                }
                 if (route == PebbleRoutes.WatchHomeRoute) {
                     navController.popBackStack(CommonRoutes.OnboardingRoute, true)
                 }
@@ -130,7 +141,7 @@ fun AppNavHost(navController: NavHostController, startDestination: Any) {
         if (CommonBuildKonfig.QA) {
             composable<CommonRoutes.BugReport>(
                 deepLinks = listOf(
-                    NavDeepLink("pebblecore://deep-link/bug-report?pebble={pebble}")
+                    NavDeepLink("pebblecore://deep-link/bug-report?pebble={pebble}&context={context}&text={text}")
                 )
             ) {
                 val route: CommonRoutes.BugReport = it.toRoute()
@@ -139,6 +150,8 @@ fun AppNavHost(navController: NavHostController, startDestination: Any) {
                     pebble = route.pebble,
                     recordingPath = route.recordingPath,
                     screenshotPath = route.screenshotPath,
+                    screenContext = BugReportContext.decodeBugReportContext(route.context),
+                    initialText = route.text,
                 )
             }
             composable<CommonRoutes.AlphaTestInstructionsRoute> {
@@ -196,9 +209,11 @@ fun AppNavHost(navController: NavHostController, startDestination: Any) {
                 )
             }
             composable<CommonRoutes.RingOnboardingRoute> {
-                RingOnboardingScreen(
-                    coreNav = coreNav,
-                )
+                IndexThemeHost {
+                    RingOnboardingScreen(
+                        coreNav = coreNav,
+                    )
+                }
             }
         }
     }

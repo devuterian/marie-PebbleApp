@@ -227,6 +227,7 @@ kotlin {
                 implementation(libs.settings.test)
                 implementation(libs.coroutines.test)
                 implementation(libs.ktor.client.mock)
+                implementation(libs.firebase.common.internal)
             }
         }
 
@@ -249,6 +250,8 @@ kotlin {
             dependencies {
                 implementation(libs.androidx.test.runner)
                 implementation(libs.kotlin.test)
+                implementation(libs.settings.test)
+                implementation(libs.room.testing)
             }
         }
 

@@ -50,8 +50,9 @@ internal expect suspend fun signInWithCredential(credential: AuthCredential)
 // existing Firebase account, so linking is not possible. Completing sign-in would switch
 // to the existing account's UID and orphan the anonymous account's per-UID Firestore data
 // (locker entries, user doc fields). The caller must confirm with the user before
-// proceeding via [forceSignInWithCredential].
-internal class AccountSwitchRequiredException(val credential: AuthCredential) : Exception(
+// proceeding via [forceSignInWithCredential]. [credential] is null when the original was
+// consumed by the failed link and a fresh one must be requested from the provider.
+internal class AccountSwitchRequiredException(val credential: AuthCredential?) : Exception(
     "Sign-in target account already exists; switching would abandon anonymous-account data"
 )
 
@@ -75,7 +76,12 @@ private fun SignInButton(
     val analyticsBackend: AnalyticsBackend = koinInject()
     val settings: Settings = koinInject()
     val context = rememberUiContext()
-    var pendingSwitchCredential by remember { mutableStateOf<AuthCredential?>(null) }
+    var pendingSwitch by remember { mutableStateOf<AccountSwitchRequiredException?>(null) }
+    suspend fun forceSwitch(e: AccountSwitchRequiredException) {
+        val credential = e.credential ?: credentialProvider(context!!) ?: return
+        forceSignInWithCredential(credential)
+        completeSignIn(analyticsBackend, settings, credential, onSuccess)
+    }
     PebbleElevatedButton(
         onClick = {
             // Must use GlobalScope here: on iOS, presenting the native Apple/Google sign-in sheet
@@ -95,14 +101,13 @@ private fun SignInButton(
                 } catch (e: AccountSwitchRequiredException) {
                     if (skipAccountSwitchConfirmation) {
                         try {
-                            forceSignInWithCredential(e.credential)
-                            completeSignIn(analyticsBackend, settings, e.credential, onSuccess)
+                            forceSwitch(e)
                         } catch (e2: Exception) {
                             Logger.e(e2) { "Error during forced account switch: ${e2.message}" }
                             onError("Network error during sign in")
                         }
                     } else {
-                        pendingSwitchCredential = e.credential
+                        pendingSwitch = e
                     }
                 } catch (e: Exception) {
                     Logger.e(e) { "Error signing in with credential: ${e.message}" }
@@ -116,21 +121,20 @@ private fun SignInButton(
         modifier = modifier,
     )
 
-    pendingSwitchCredential?.let { credential ->
+    pendingSwitch?.let { e ->
         AccountSwitchConfirmationDialog(
             onConfirm = {
-                pendingSwitchCredential = null
+                pendingSwitch = null
                 GlobalScope.launch(Dispatchers.Main) {
                     try {
-                        forceSignInWithCredential(credential)
-                        completeSignIn(analyticsBackend, settings, credential, onSuccess)
+                        forceSwitch(e)
                     } catch (e: Exception) {
                         Logger.e(e) { "Error completing forced account switch: ${e.message}" }
                         onError("Network error during sign in")
                     }
                 }
             },
-            onDismiss = { pendingSwitchCredential = null },
+            onDismiss = { pendingSwitch = null },
         )
     }
 }

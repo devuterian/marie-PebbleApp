@@ -14,8 +14,6 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -35,7 +33,6 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CutCornerShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -60,6 +57,7 @@ import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material.icons.filled.SwitchAccount
 import androidx.compose.material.icons.filled.SystemUpdateAlt
 import androidx.compose.material.icons.filled.Terminal
 import androidx.compose.material.icons.filled.Warning
@@ -100,7 +98,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
@@ -149,9 +146,6 @@ import coredevices.pebble.account.PebbleAccount
 import coredevices.pebble.firmware.FirmwareUpdateUiTracker
 import coredevices.pebble.firmware.isCoreDevice
 import coredevices.pebble.rememberLibPebble
-import coredevices.pebble.services.LanguagePack
-import coredevices.pebble.services.description
-import coredevices.pebble.services.canContribute
 import coredevices.pebble.services.LanguagePackRepository
 import coredevices.pebble.services.displayName
 import coredevices.ui.ConfirmDialog
@@ -199,8 +193,6 @@ import io.rebble.libpebblecommon.timeline.toPebbleColor
 import io.rebble.libpebblecommon.util.getTempFilePath
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.TimeoutCancellationException
-import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -217,7 +209,6 @@ import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.ui.tooling.preview.Preview
 import org.koin.compose.koinInject
 import org.koin.dsl.module
-import theme.coreOrange
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.uuid.Uuid
@@ -807,6 +798,7 @@ fun RingItem(
     val coreConfig by koinInject<CoreConfigFlow>().flow.collectAsState()
     val uiContext = rememberUiContext()
     var showRingAlreadyPairedDialog by remember { mutableStateOf(false) }
+    var showSyncDisabledDialog by remember { mutableStateOf(false) }
     var companionApproved by remember(ring.identifier) {
         mutableStateOf(companionDevice.hasApprovedDevice(ring.identifier))
     }
@@ -868,6 +860,10 @@ fun RingItem(
                         if (ring.pairingState is IndexPairingState.Error || ring.pairingState is IndexPairingState.NotPaired) {
                             Button(
                                 onClick = {
+                                    if (coreConfig.disableRingBluetoothSync) {
+                                        showSyncDisabledDialog = true
+                                        return@Button
+                                    }
                                     scope.launch {
                                         uiContext?.let { companionDevice.registerDevice(ring.identifier, it, false) }
                                         companionApproved = companionDevice.hasApprovedDevice(ring.identifier)
@@ -983,6 +979,23 @@ fun RingItem(
             }
         },
     )
+
+    if (showSyncDisabledDialog) {
+        M3Dialog(
+            onDismissRequest = { showSyncDisabledDialog = false },
+            icon = { Icon(Icons.Default.SwitchAccount, null) },
+            title = { Text("Bluetooth Sync Disabled") },
+            buttons = {
+                TextButton(onClick = { showSyncDisabledDialog = false }) { Text("OK") }
+            },
+        ) {
+            Text(
+                "Bluetooth sync is disabled for this profile, so an Index 01 can't be paired here.\n\n" +
+                        "Switch to your primary profile to pair, or if you're not using multiple profiles " +
+                        "on this phone, turn off \"Disable Bluetooth Sync\" in Index settings."
+            )
+        }
+    }
 
     if (showRingAlreadyPairedDialog) {
         val platform = koinInject<Platform>()
@@ -1840,7 +1853,7 @@ data class TestNotificationContent(
 
 fun ConnectedPebbleDevice.languagePackInstalled(repository: LanguagePackRepository): String? {
     val languagePackInstalledAtConnectionTime = installedLanguagePack
-    val languagePackRecentlyInstalledSinceConnection = (languagePackInstallState as? LanguagePackInstallState.Idle)?.successfullyInstalledLanguage
+    val languagePackRecentlyInstalledSinceConnection = (languagePackInstallState as? LanguagePackInstallState.Idle)?.activeLanguage
     return languagePackRecentlyInstalledSinceConnection ?: languagePackInstalledAtConnectionTime?.let { repository.displayNameForInstalled(it) }
 }
 
@@ -1931,91 +1944,6 @@ private fun NotificationDialog(
             TextButton(onClick = onDismiss) {
                 Text(localized("Cancel"))
             }
-        }
-    )
-}
-
-@Composable
-fun LanguageDialog(watch: ConnectedPebbleDevice, onDismissRequest: () -> Unit) {
-    val languagePackRepository: LanguagePackRepository = koinInject()
-    val languagePacks by produceState(languagePackRepository.cachedLanguagePacksForWatch(watch), watch) {
-        value = languagePackRepository.languagePacksForWatch(watch)
-    }
-    val scope = rememberCoroutineScope()
-    val uriHandler = LocalUriHandler.current
-    var selectedLanguagePack: LanguagePack? by remember { mutableStateOf(null) }
-    LaunchedEffect(languagePacks) {
-        selectedLanguagePack = languagePacks.firstOrNull { it.id == selectedLanguagePack?.id }
-    }
-    var preparing by remember { mutableStateOf(false) }
-    var error by remember { mutableStateOf<String?>(null) }
-    val dismiss = { if (!preparing) onDismissRequest() }
-    AlertDialog(
-        onDismissRequest = dismiss,
-        title = { Text(localized("Language Packs")) },
-        text = {
-            Column {
-                error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
-                LazyColumn(modifier = Modifier.weight(1f, fill = false)) {
-                    items(languagePacks, key = { it.id }) { lp ->
-                        val isSelected = selectedLanguagePack == lp
-                        Column(
-                            modifier = Modifier.clickable(enabled = !preparing) {
-                                selectedLanguagePack = lp
-                                error = null
-                            }.border(
-                                width = 2.dp,
-                                color = if (isSelected) coreOrange else Color.Transparent,
-                                shape = RoundedCornerShape(8.dp)
-                            ).padding(9.dp),
-                        ) {
-                            Text(lp.displayName())
-                            Text(
-                                lp.description(),
-                                style = MaterialTheme.typography.bodySmall,
-                            )
-                        }
-                    }
-                }
-                selectedLanguagePack?.takeIf { it.canContribute() }?.published?.let { published ->
-                    TextButton(onClick = { uriHandler.openUri(published.translationUrl) }) {
-                        Text("Help translate")
-                    }
-                }
-            }
-        },
-        confirmButton = {
-            TextButton(
-                onClick = {
-                    val lp = selectedLanguagePack ?: return@TextButton
-                    preparing = true
-                    scope.launch {
-                        try {
-                            if (lp.published != null) {
-                                val path = languagePackRepository.prepareDownload(lp)
-                                watch.installLanguagePack(path, lp.displayName())
-                            } else {
-                                watch.installLanguagePack(lp.file, lp.displayName())
-                            }
-                            onDismissRequest()
-                        } catch (e: TimeoutCancellationException) {
-                            error = localized("Download timed out. Please try again.", "다운로드 시간이 초과됐어요. 다시 시도해 주세요.")
-                        } catch (e: CancellationException) {
-                            throw e
-                        } catch (e: Exception) {
-                            logger.w(e) { "Language pack download failed" }
-                            error = localized("Could not download or verify the language pack. Please try again.", "언어 팩을 받거나 확인하지 못했어요. 다시 시도해 주세요.")
-                        } finally {
-                            preparing = false
-                        }
-                    }
-                },
-                enabled = selectedLanguagePack != null && !preparing &&
-                    watch.languagePackInstallState.installing() == null,
-            ) { Text(if (preparing) localized("Downloading…", "다운로드 중…") else localized("Install")) }
-        },
-        dismissButton = {
-            TextButton(onClick = dismiss, enabled = !preparing) { Text(localized("Cancel")) }
         }
     )
 }
@@ -2192,7 +2120,7 @@ fun WatchDetails(
         watch.color()?.uiDescription
     }
     FlowRow(verticalArrangement = Arrangement.Center) {
-        if (watch is ConnectedPebbleDevice) {
+        if (watch is ConnectedPebble.DevConnection) {
             val devConnectionActive by watch.devConnectionActive.collectAsState()
             if (devConnectionActive) {
                 Icon(
