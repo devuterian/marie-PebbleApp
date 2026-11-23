@@ -1,8 +1,11 @@
 package coredevices.coreapp.api
 
+import localization.localized
+
 import PlatformContext
 import co.touchlab.kermit.Logger
 import coredevices.coreapp.push.AtlasPushMessage
+import coredevices.util.WatchNotifier
 import coredevices.util.emailOrNull
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.auth.auth
@@ -18,6 +21,7 @@ import kotlinx.coroutines.withContext
 class BugReports(
     private val platformContext: PlatformContext,
     private val bugReportsService: BugReportsService,
+    private val watchNotifier: WatchNotifier,
 ) {
     private val logger = Logger.withTag("BugReports")
     private val _ticketDetails = MutableStateFlow<BugReportsListResponse?>(null)
@@ -44,6 +48,7 @@ class BugReports(
                     message = message.body,
                     conversationId = message.conversationId,
                 )
+                watchNotifier.send("support-message/${message.conversationId}", localized("Pebble Support message", "Pebble 고객지원 메시지"), message.body)
             }
         }
     }

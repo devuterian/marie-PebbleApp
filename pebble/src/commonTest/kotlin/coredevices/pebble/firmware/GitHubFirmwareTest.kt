@@ -86,7 +86,6 @@ class GitHubFirmwareTest {
             val update = assertIs<FirmwareUpdateCheckResult.FoundUpdate>(
                 release(tag).officialUpdateFor("obelix_pvt", running("v4.37.0-ver005-egg-salad"), true))
             assertEquals(tag, update.version.stringVersion)
-            assertEquals(true, update.canDowngrade)
         }
     }
 

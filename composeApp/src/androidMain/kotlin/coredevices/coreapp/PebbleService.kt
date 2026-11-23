@@ -35,7 +35,6 @@ class PebbleService: Service(), KoinComponent {
     companion object {
         const val NOTIFICATION_CHANNEL_ID = "pebble"
         const val NOTIFICATION_CHANNEL_NAME = "Pebble Service"
-        const val ACTION_STOP = "STOP"
 
         private val logger = Logger.withTag("PebbleService")
     }
@@ -54,15 +53,6 @@ class PebbleService: Service(), KoinComponent {
     private val commonPrefs: Preferences by inject()
     private var ringObserverJob: Job? = null
     private var firstRingRun: Boolean = true
-
-    private fun handleIntent(intent: Intent) {
-        when (intent.action) {
-            ACTION_STOP -> {
-                logger.i { "Stopping service due to intent request" }
-                stopSelf()
-            }
-        }
-    }
 
     private fun startRecordingDebugNotificationJob() {
         recordingDebugNotificationJob?.cancel()
@@ -96,9 +86,6 @@ class PebbleService: Service(), KoinComponent {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         logger.v { "onStartCommand()" }
-        if (intent != null) {
-            handleIntent(intent)
-        }
         val notificationChannel = NotificationChannelCompat.Builder(
             NOTIFICATION_CHANNEL_ID,
             NotificationManager.IMPORTANCE_MIN)
@@ -140,13 +127,26 @@ class PebbleService: Service(), KoinComponent {
             stopSelf(startId)
             return START_NOT_STICKY
         }
+        if (!MainApplication.koinStarted) {
+            logger.w { "Koin not started; stopping" }
+            stopSelf(startId)
+            return START_NOT_STICKY
+        }
+        if (!pebbleBackgroundManager.onServiceStarted()) {
+            logger.i { "Service started but shouldn't be running; stopping" }
+            stopSelf(startId)
+            return START_NOT_STICKY
+        }
         startRingSyncJob()
         startRecordingDebugNotificationJob()
-        pebbleBackgroundManager.onServiceStarted()
         return START_STICKY
     }
 
     override fun onDestroy() {
+        if (!MainApplication.koinStarted) {
+            super.onDestroy()
+            return
+        }
         pebbleBackgroundManager.onServiceStopped()
         ringObserverJob?.cancel()
         ringObserverJob = null

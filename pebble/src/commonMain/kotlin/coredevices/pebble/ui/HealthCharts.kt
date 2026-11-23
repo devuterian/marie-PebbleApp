@@ -1,7 +1,6 @@
 package coredevices.pebble.ui
 
 import localization.localized
-import localization.localizedClockTime
 
 import kotlin.math.roundToInt
 import androidx.compose.foundation.Canvas
@@ -37,6 +36,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coredevices.util.formatTimeOfDay
+import coredevices.util.isLocale24HourFormat
 import io.rebble.libpebblecommon.health.OverlayType
 
 internal val ActivityHeaderColor = Color(0xFF00A982)
@@ -253,11 +254,12 @@ internal fun StackedBarChart(data: List<StackedSleepEntry>, scrub: ScrubState, t
 @Composable
 internal fun DailySleepTimeline(segments: List<SleepSegmentUi>, totalH: Float, deepH: Float) {
     var scrubFraction by remember { mutableStateOf<Float?>(null) }
+    val is24Hour = remember { isLocale24HourFormat() }
     val scrubTime = scrubFraction?.let { frac ->
         val windowHours = 18f
         val hourOfDay = (18f + frac * windowHours) % 24f
         val h = hourOfDay.toInt(); val m = ((hourOfDay - h) * 60).toInt()
-        localizedClockTime(h, m)
+        formatTimeOfDay(h, m, is24Hour)
     }
     val scrubInSegment = scrubFraction?.let { frac ->
         // Deep segments are drawn after light segments and visually overlap; pick the last
@@ -274,7 +276,7 @@ internal fun DailySleepTimeline(segments: List<SleepSegmentUi>, totalH: Float, d
             Spacer(Modifier.height(4.dp))
         }
         Row(Modifier.fillMaxWidth(), Arrangement.SpaceBetween) {
-            for (l in listOf(localized("6 PM"), localized("12 AM"), localized("6 AM"), localized("12 PM")))
+            for (l in if (is24Hour) listOf("18:00", "00:00", "06:00", "12:00") else listOf(localized("6 PM"), localized("12 AM"), localized("6 AM"), localized("12 PM")))
                 Text(l, style = MaterialTheme.typography.labelSmall, color = Color.White.copy(alpha = 0.5f))
         }
         Spacer(Modifier.height(4.dp))

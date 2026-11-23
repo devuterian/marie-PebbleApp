@@ -62,7 +62,7 @@ internal data class GitHubFirmwareRelease(
             ?: return FirmwareUpdateCheckResult.UpdateCheckFailed("공식 릴리즈의 버전을 읽지 못했습니다.")
         val newer = compareValuesBy(version, running, { it.major }, { it.minor }, { it.patch }) > 0
         return if (reinstall || running.isRecovery || newer) {
-            FirmwareUpdateCheckResult.FoundUpdate(version, asset.url, body.orEmpty(), canDowngrade = reinstall)
+            FirmwareUpdateCheckResult.FoundUpdate(version, asset.url, body.orEmpty(), installsDirectly = false)
         } else {
             FirmwareUpdateCheckResult.FoundNoUpdate
         }
@@ -86,7 +86,7 @@ internal data class GitHubFirmwareRelease(
         val newer = baseComparison > 0 ||
             (baseComparison == 0 && revision > (marieRevision(running.stringVersion) ?: 0))
         return if (running.isRecovery || newer) {
-            FirmwareUpdateCheckResult.FoundUpdate(version, asset.url, body.orEmpty())
+            FirmwareUpdateCheckResult.FoundUpdate(version, asset.url, body.orEmpty(), installsDirectly = false)
         } else {
             FirmwareUpdateCheckResult.FoundNoUpdate
         }

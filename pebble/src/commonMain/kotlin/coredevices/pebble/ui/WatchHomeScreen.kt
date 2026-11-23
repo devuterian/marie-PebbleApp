@@ -15,6 +15,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.shrinkHorizontally
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
@@ -32,6 +33,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.DirectionsRun
 import androidx.compose.material.icons.automirrored.outlined.Notes
 import androidx.compose.material.icons.filled.BrowseGallery
+import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Notifications
@@ -41,6 +43,8 @@ import androidx.compose.material.icons.outlined.Watch
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Badge
 import androidx.compose.material3.BadgedBox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -110,6 +114,7 @@ import coredevices.pebble.Platform
 import coredevices.pebble.rememberLibPebble
 import coredevices.ui.M3Dialog
 import coredevices.ui.SecondaryProfileWarningDialog
+import coredevices.util.CoreConfig
 import coredevices.util.CoreConfigFlow
 import coredevices.util.CoreConfigHolder
 import coredevices.util.Permission
@@ -157,17 +162,22 @@ class WatchOnboardingFinished {
 }
 
 class WatchHomeViewModel(
-    coreConfig: CoreConfigFlow,
-    libPebble: LibPebble,
-    libIndex: LibIndex,
+    private val coreConfig: CoreConfigFlow,
+    private val libPebble: LibPebble,
+    private val libIndex: LibIndex,
 ) : ViewModel() {
-    val selectedTab = mutableStateOf(
-        when {
+    /** Null until the bar's tabs are known; then [launchTab]. */
+    val selectedTab = mutableStateOf<WatchHomeNavTab?>(null)
+
+    fun launchTab(barTabs: List<WatchHomeNavTab>): WatchHomeNavTab {
+        val automatic = when {
+            coreConfig.value.startOnFirstNavBarTab -> null
             coreConfig.value.enableIndex && libIndex.isAnyRingPaired() -> WatchHomeNavTab.Index
             libPebble.haveSeenFullyConnectedWatch() -> WatchHomeNavTab.WatchFaces
             else -> WatchHomeNavTab.Watches
         }
-    )
+        return automatic?.takeIf { it in barTabs } ?: barTabs.first()
+    }
     private val actionsFlow = MutableStateFlow<@Composable RowScope.() -> Unit>({})
     private val searchStateFlow = MutableStateFlow<SearchState?>(null)
     private val titleFlow = MutableStateFlow("")
@@ -177,15 +187,9 @@ class WatchHomeViewModel(
      *  the user doesn't see two stacked top bars. */
     private val hiddenFlow = MutableStateFlow(false)
     val disableNextTransitionAnimation = mutableStateOf(false)
-    val indexEnabled = coreConfig.flow.map {
-        it.enableIndex
-    }.stateIn(viewModelScope, SharingStarted.Lazily, coreConfig.value.enableIndex)
     val healthTrackingEnabled = libPebble.healthSettings.map {
         it.trackingEnabled
     }.stateIn(viewModelScope, SharingStarted.Lazily, null)
-    val preferHealthTab = coreConfig.flow.map {
-        it.preferHealthTab
-    }.stateIn(viewModelScope, SharingStarted.Lazily, coreConfig.value.preferHealthTab)
     val paramsFlow = combine(actionsFlow, searchStateFlow, titleFlow, canGoBackFlow, hiddenFlow) { actions, searchState, title, canGoBack, hidden ->
         Params(actions, searchState, title, canGoBack, hidden)
     }.debounce(50.milliseconds)
@@ -228,9 +232,9 @@ fun WatchHomeScreen(
     Box(modifier = Modifier.background(MaterialTheme.colorScheme.background)) {
         val scope = rememberCoroutineScope()
         val viewModel = koinViewModel<WatchHomeViewModel>()
-        val indexEnabled = viewModel.indexEnabled.collectAsState()
+        val coreConfigHolder: CoreConfigHolder = koinInject()
+        val coreConfig by coreConfigHolder.config.collectAsState()
         val healthEnabledValue = viewModel.healthTrackingEnabled.collectAsState()
-        val preferHealthTab = viewModel.preferHealthTab.collectAsState()
         val watchOnboardingFinished: WatchOnboardingFinished = koinInject()
 
         // Create a SaveableStateHolder to preserve state for each tab
@@ -266,10 +270,11 @@ fun WatchHomeScreen(
             return
         }
 
-        val currentEntries = WatchHomeNavTab.navBarEntries(indexEnabled.value, healthEnabled, preferHealthTab.value)
-        val currentTab = viewModel.selectedTab.value.let { tab ->
-            if (tab in currentEntries) tab else currentEntries.first().also { viewModel.selectedTab.value = it }
-        }
+        val tabs = WatchHomeNavTab.availableTabs(coreConfig, healthEnabled)
+        val barTabs = WatchHomeNavTab.barTabs(coreConfig, tabs)
+        val moreTabs = tabs.drop(barTabs.size)
+        val currentTab = viewModel.selectedTab.value?.takeIf { it in tabs }
+            ?: viewModel.launchTab(barTabs).also { viewModel.selectedTab.value = it }
         val pebbleNavHostController = navControllers[currentTab]!!
 
         LaunchedEffect(Unit) {
@@ -353,6 +358,35 @@ fun WatchHomeScreen(
                 },
             )
         }
+        val pendingBootConfig by deepLinkHandler.pendingBootConfig.collectAsState()
+        pendingBootConfig?.let { pending ->
+            AlertDialog(
+                onDismissRequest = deepLinkHandler::dismissPendingBootConfig,
+                title = { Text(localized("Change Pebble services?", "Pebble 서비스를 바꿀까요?")) },
+                text = {
+                    Text(
+                        localized(
+                            "A link wants to sign you in to Pebble web services at ${pending.host}. " +
+                                "This server will receive your app store, locker and watchapp " +
+                                "account data. Only continue if you trust it.",
+                            "링크가 ${pending.host}의 Pebble 웹 서비스로 로그인하려고 해요. " +
+                                "이 서버가 앱스토어, 보관함, 워치앱 계정 데이터를 받아요. " +
+                                "믿을 수 있는 서버일 때만 계속하세요.",
+                        )
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = deepLinkHandler::confirmPendingBootConfig) {
+                        Text(localized("Continue"))
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = deepLinkHandler::dismissPendingBootConfig) {
+                        Text(localized("Cancel"))
+                    }
+                },
+            )
+        }
         LaunchedEffect(Unit) {
             scope.launch {
                 deepLinkHandler.snackBarMessages.collect { message ->
@@ -393,8 +427,6 @@ fun WatchHomeScreen(
         val params by viewModel.paramsFlow.collectAsState(Params())
         val settings: Settings = koinInject()
 
-        val coreConfigHolder: CoreConfigHolder = koinInject()
-        val coreConfig by coreConfigHolder.config.collectAsState()
         val permissionRequester: PermissionRequester = koinInject()
         val missingPermissions = permissionRequester.missingPermissions.collectAsState()
         val missingRequiredPermissions by remember(missingPermissions) {
@@ -470,9 +502,7 @@ fun WatchHomeScreen(
         val rings by ringsFlow.collectAsState(initial = libIndex.rings.value)
         var hasSeenWatchOnboarding by remember { mutableStateOf(settings.hasSeenWatchOnboarding())}
         var hasSeenRingOnboarding by remember { mutableStateOf(settings.hasSeenRingOnboarding())}
-        val pluginsEnabled = libPebble.config.collectAsState().value.watchConfig.enablePlugins
-        // Re-read when plugins are switched, because switching them off resets it.
-        var hasSeenPermissionsIntro by remember(pluginsEnabled) { mutableStateOf(settings.hasSeenPermissionsIntro()) }
+        var hasSeenPermissionsIntro by remember { mutableStateOf(settings.hasSeenPermissionsIntro()) }
         var startingOnboarding = false
         if (watches.any { it is CommonConnectedDevice } && !hasSeenWatchOnboarding) {
             hasSeenWatchOnboarding = true
@@ -487,7 +517,7 @@ fun WatchHomeScreen(
             startingOnboarding = true
         }
         // Watch and ring onboarding show this themselves, so only people past one get the dialog.
-        if (!startingOnboarding && (hasSeenWatchOnboarding || hasSeenRingOnboarding) && pluginsEnabled &&
+        if (!startingOnboarding && (hasSeenWatchOnboarding || hasSeenRingOnboarding) &&
             !hasSeenPermissionsIntro
         ) {
             PermissionsIntroDialog(onDismissRequest = {
@@ -607,24 +637,25 @@ fun WatchHomeScreen(
                 }
             },
             bottomBar = {
+                fun selectTab(route: WatchHomeNavTab) {
+                    if (viewModel.selectedTab.value == route) {
+                        val popped = pebbleNavHostController.popBackStack(route.route::class, false)
+                        if (!popped) {
+                            scrollToTopFlow.tryEmit(Unit)
+                        }
+                    } else {
+                        // Disable animations when switching between tabs
+                        viewModel.disableNextTransitionAnimation.value = true
+                    }
+                    viewModel.selectedTab.value = route
+                }
                 NavigationBar(
                     modifier = Modifier.height(navBarHeight),
                 ) {
-                    WatchHomeNavTab.navBarEntries(indexEnabled.value, healthEnabled, preferHealthTab.value).forEach { route ->
+                    barTabs.forEach { route ->
                         NavigationBarItem(
                             selected = viewModel.selectedTab.value == route,
-                            onClick = {
-                                if (viewModel.selectedTab.value == route) {
-                                    val popped = pebbleNavHostController.popBackStack(route.route::class, false)
-                                    if (!popped) {
-                                        scrollToTopFlow.tryEmit(Unit)
-                                    }
-                                } else {
-                                    // Disable animations when switching between tabs
-                                    viewModel.disableNextTransitionAnimation.value = true
-                                }
-                                viewModel.selectedTab.value = route
-                            },
+                            onClick = { selectTab(route) },
                             icon = {
                                 BadgedBox(
                                     badge = {
@@ -652,6 +683,54 @@ fun WatchHomeScreen(
                                     color = if (viewModel.selectedTab.value == route) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant,
                                     maxLines = 1,
                                 )
+                            },
+                            colors = NavigationBarItemDefaults.colors(
+                                indicatorColor = Color.Transparent
+                            ),
+                        )
+                    }
+                    if (moreTabs.isNotEmpty()) {
+                        var showMore by remember { mutableStateOf(false) }
+                        val color = if (currentTab in moreTabs) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                        NavigationBarItem(
+                            selected = currentTab in moreTabs,
+                            onClick = { showMore = true },
+                            icon = {
+                                BadgedBox(
+                                    badge = {
+                                        val badgeNum = moreTabs.sumOf { it.badge?.invoke() ?: 0 }
+                                        if (badgeNum > 0) {
+                                            Badge {
+                                                Text(text = "$badgeNum")
+                                            }
+                                        }
+                                    },
+                                ) {
+                                    Icon(Icons.Filled.MoreHoriz, contentDescription = null, tint = color)
+                                }
+                                DropdownMenu(expanded = showMore, onDismissRequest = { showMore = false }) {
+                                    moreTabs.forEach { route ->
+                                        DropdownMenuItem(
+                                            text = { Text(stringResource(route.title)) },
+                                            leadingIcon = { Icon(route.icon, contentDescription = null) },
+                                            trailingIcon = {
+                                                val badgeNum = route.badge?.invoke() ?: 0
+                                                if (badgeNum > 0) {
+                                                    Badge {
+                                                        Text(text = "$badgeNum")
+                                                    }
+                                                }
+                                            },
+                                            onClick = {
+                                                showMore = false
+                                                selectTab(route)
+                                            },
+                                        )
+                                    }
+                                }
+                            },
+                            label = {
+                                Text(localized("More", "더보기"), fontSize = 9.sp, color = color, maxLines = 1)
                             },
                             colors = NavigationBarItemDefaults.colors(
                                 indicatorColor = Color.Transparent
@@ -838,19 +917,25 @@ enum class WatchHomeNavTab(
         { settingsBadgeTotal() });
 
     companion object {
-        fun navBarEntries(
-            indexEnabled: Boolean,
-            healthEnabled: Boolean,
-            preferHealthTab: Boolean,
-        ): List<WatchHomeNavTab> {
-            val tabs = mutableListOf(WatchFaces)
-            if (indexEnabled) tabs.add(Index)
-            tabs.add(Watches)
-            if (healthEnabled && (!indexEnabled || preferHealthTab)) tabs.add(Health)
-            if (!indexEnabled || !healthEnabled || !preferHealthTab) tabs.add(Notifications)
-            tabs.add(Settings)
-            return tabs
-        }
+        /** Every tab in the user's order; tabs missing from the config go last. */
+        fun orderedTabs(config: CoreConfig): List<WatchHomeNavTab> =
+            entries.sortedBy { tab ->
+                config.navBarTabs.orEmpty().indexOf(tab.name).takeIf { it >= 0 } ?: Int.MAX_VALUE
+            }
+
+        fun isAvailable(tab: WatchHomeNavTab, config: CoreConfig, healthEnabled: Boolean): Boolean =
+            (tab != Index || config.enableIndex) && (tab != Health || healthEnabled)
+
+        fun availableTabs(config: CoreConfig, healthEnabled: Boolean): List<WatchHomeNavTab> =
+            orderedTabs(config).filter { isAvailable(it, config, healthEnabled) }
+
+        fun barSlots(config: CoreConfig): Int = config.navBarSlots.coerceIn(2, MAX_BAR_SLOTS)
+
+        /** The leading [tabs] that go in the bar; if they don't all fit, one slot is More. */
+        fun barTabs(config: CoreConfig, tabs: List<WatchHomeNavTab>): List<WatchHomeNavTab> =
+            tabs.take(if (tabs.size <= barSlots(config)) tabs.size else barSlots(config) - 1)
+
+        const val MAX_BAR_SLOTS = 6
     }
 }
 
@@ -876,6 +961,7 @@ fun TopBarIconButtonWithToolTip(
     icon: ImageVector,
     description: String,
     enabled: Boolean = true,
+    badge: @Composable BoxScope.() -> Unit = {},
 ) {
     val tooltipState = remember { TooltipState(isPersistent = false) }
     TooltipBox(
@@ -888,10 +974,12 @@ fun TopBarIconButtonWithToolTip(
         state = tooltipState
     ) {
         IconButton(onClick = onClick, enabled = enabled) {
-            Icon(
-                imageVector = icon,
-                contentDescription = description
-            )
+            BadgedBox(badge = badge) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = description
+                )
+            }
         }
     }
 }

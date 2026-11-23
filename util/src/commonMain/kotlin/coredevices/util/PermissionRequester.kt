@@ -40,6 +40,7 @@ fun Permission.name(): String = when (this) {
     Permission.BatteryOptimization -> localized("Exempt from Battery Optimizations", "배터리 최적화 제외")
     Permission.Beeper -> localized("Access Beeper", "Beeper 접근")
     Permission.Reminders -> localized("Access Reminders", "미리 알림 접근")
+    Permission.AlarmKit -> localized("Timers & Alarms", "타이머 및 알람")
 }
 
 fun Permission.description(): String = when (this) {
@@ -59,6 +60,7 @@ fun Permission.description(): String = when (this) {
     Permission.BatteryOptimization -> localized("To handle recordings in the background", "백그라운드에서도 녹음을 처리합니다")
     Permission.Beeper -> localized("To send messages via Beeper", "Beeper로 메시지를 보냅니다")
     Permission.Reminders -> localized("To create reminders", "미리 알림을 만듭니다")
+    Permission.AlarmKit -> localized("To set timers and alarms", "타이머와 알람을 맞출 수 있어요")
 }
 
 abstract class PermissionRequester(

@@ -7,6 +7,7 @@ import io.rebble.libpebblecommon.js.HttpInterceptorManager
 import io.rebble.libpebblecommon.js.JsEngine
 import io.rebble.libpebblecommon.js.JsEngineInterface
 import io.rebble.libpebblecommon.js.JsEngineLocalStorage
+import io.rebble.libpebblecommon.js.RemoteTimelineEmulator
 import io.rebble.libpebblecommon.js.WebSocketManager
 import io.rebble.libpebblecommon.js.XMLHTTPRequestManager
 import io.rebble.libpebblecommon.js.BASE64_JS
@@ -15,7 +16,9 @@ import io.rebble.libpebblecommon.js.FETCH_JS
 import io.rebble.libpebblecommon.js.FETCH_REGISTRY
 import io.rebble.libpebblecommon.js.GEOLOCATION_JS
 import io.rebble.libpebblecommon.js.WEBSOCKET_JS
+import io.rebble.libpebblecommon.permissions.DataUsageRecorder
 import io.rebble.libpebblecommon.permissions.NetworkAccess
+import io.rebble.libpebblecommon.permissions.PermissionDecision
 import io.rebble.libpebblecommon.permissions.RunningApps
 import io.rebble.libpebblecommon.plugin.files.PluginFileAccess
 import io.rebble.libpebblecommon.plugin.files.PluginFileSystem
@@ -65,13 +68,16 @@ class JsPlugin(
     private val httpClient: HttpClient,
     private val httpInterceptorManager: HttpInterceptorManager,
     private val networkAccess: (prompt: Boolean) -> NetworkAccess,
+    private val queryPermission: suspend (String) -> PermissionDecision,
     private val runningApps: RunningApps,
     private val fileAccess: PluginFileAccess,
     private val fileSystem: PluginFileSystem,
     private val logs: PluginLogs,
+    private val dataUsage: DataUsageRecorder,
     /** Host-side hosted OAuth, when available. Only reachable by plugins that declare a connector. */
     private val oauthApi: PluginOAuthApi? = null,
     private val otherSources: PluginSources,
+    private val timeline: RemoteTimelineEmulator,
 ) : Plugin, ConfigMessageTarget {
 
     override val description: String = manifest.description
@@ -97,6 +103,7 @@ class JsPlugin(
         val item: String,
         val properties: List<String>?,
         val iconPixelSize: IconPixelSize?,
+        val limit: Int?,
         val prompt: Boolean,
         val send: (SourceUpdate) -> Unit,
     )
@@ -111,6 +118,7 @@ class JsPlugin(
         item: String,
         properties: List<String>?,
         iconPixelSize: IconPixelSize?,
+        limit: Int?,
         prompt: Boolean,
     ): Flow<SourceUpdate> = callbackFlow {
         val declaration = sources.firstOrNull { it.serves(category, item) }
@@ -120,14 +128,14 @@ class JsPlugin(
         }
         val key = "$category/$item"
         val id = nextObserverId.getAndIncrement()
-        observers.update { it + (id to Observer(category, item, properties, iconPixelSize, prompt) { update -> trySend(update) }) }
+        observers.update { it + (id to Observer(category, item, properties, iconPixelSize, limit, prompt) { update -> trySend(update) }) }
         val job = launch {
             while (true) {
                 if (retired) {
                     close(IllegalStateException("$name was updated or removed; subscribe again"))
                     break
                 }
-                val raw = request(sourceRequestJson(category, item, properties, iconPixelSize, null), prompt, setOf(id))
+                val raw = request(sourceRequestJson(category, item, properties, iconPixelSize, limit, null), prompt, setOf(id))
                 send(answerOf(raw))
                 withTimeoutOrNull(declaration.suggestedRefreshIntervalSec.coerceAtLeast(1).seconds) {
                     refreshRequests.first { it == key }
@@ -146,14 +154,16 @@ class JsPlugin(
         item: String,
         properties: List<String>?,
         iconPixelSize: IconPixelSize?,
+        limit: Int?,
         trigger: SourceRequest?,
     ): String {
         val size = iconPixelSize?.let { ""","iconPixelSize":{"w":${it.w},"h":${it.h}}""" }.orEmpty()
         val wanted = properties?.joinToString(",") { quote(it) }?.let { ""","properties":[$it]""" }.orEmpty()
+        val max = limit?.let { ""","limit":$it""" }.orEmpty()
         val triggered = trigger
             ?.let { ""","trigger":{"category":${quote(it.category)},"item":${quote(it.item)}}""" }
             .orEmpty()
-        return """{"kind":"source","category":${quote(category)},"item":${quote(item)}$wanted$size$triggered}"""
+        return """{"kind":"source","category":${quote(category)},"item":${quote(item)}$wanted$size$max$triggered}"""
     }
 
     private fun answerOf(raw: String?): SourceUpdate =
@@ -162,11 +172,11 @@ class JsPlugin(
     /** Something [owners] subscribed to changed: one run per distinct request among them, each answer to all who asked. */
     private suspend fun rerun(owners: Set<Int>, trigger: SourceRequest) {
         val groups = observers.value.filterKeys { it in owners }.entries
-            .groupBy { (_, o) -> listOf(o.category, o.item, o.properties, o.iconPixelSize) }
+            .groupBy { (_, o) -> listOf(o.category, o.item, o.properties, o.iconPixelSize, o.limit) }
         for (group in groups.values) {
             val first = group.first().value
             val raw = request(
-                sourceRequestJson(first.category, first.item, first.properties, first.iconPixelSize, trigger),
+                sourceRequestJson(first.category, first.item, first.properties, first.iconPixelSize, first.limit, trigger),
                 first.prompt,
                 group.map { it.key }.toSet(),
             )
@@ -261,6 +271,7 @@ class JsPlugin(
             appUuid = pluginUuid,
             client = httpClient,
             networkAccess = networkAccess(prompt),
+            dataUsage = dataUsage,
             jsTarget = FETCH_REGISTRY,
         )
         val webSockets = WebSocketManager(
@@ -269,6 +280,7 @@ class JsPlugin(
             client = httpClient,
             appUuid = pluginUuid,
             networkAccess = networkAccess(prompt),
+            dataUsage = dataUsage,
         )
         // Same settings scope PKJS uses for this uuid, so a pbw's plugin and its watchapp JS
         // share one set of stored values.
@@ -286,14 +298,15 @@ class JsPlugin(
         val sourcesBridge = PluginSourcesJsBridge(scope, { js -> evals.trySend(js) }) { request ->
             upstreams.latest(request) ?: otherSources.read(metadata, request)
         }
+        val permissionsBridge = PluginPermissionsJsBridge(scope, { js -> evals.trySend(js) }, queryPermission)
         val interfaces = listOfNotNull(
             Bridge(runsRequests), xhr, webSockets, localStorage, geolocation, oauthBridge, secureStorageBridge, fileSystemBridge,
-            sourcesBridge,
+            sourcesBridge, permissionsBridge,
         )
         val engine = JsEngine(appContext, scope, name, interfaces)
         return Session(
             engine, xhr, webSockets, localStorage, geolocation, oauthBridge, secureStorageBridge, fileSystemBridge,
-            sourcesBridge, evals, scope.launch { for (js in evals) engine.eval(js) },
+            sourcesBridge, permissionsBridge, evals, scope.launch { for (js in evals) engine.eval(js) },
         )
     }
 
@@ -307,6 +320,7 @@ class JsPlugin(
         private val secureStorageBridge: PluginSecureStorageJsBridge,
         private val fileSystemBridge: PluginFileSystemJsBridge,
         private val sourcesBridge: PluginSourcesJsBridge,
+        private val permissionsBridge: PluginPermissionsJsBridge,
         private val evals: Channel<String>,
         private val pump: Job,
     ) {
@@ -323,6 +337,7 @@ class JsPlugin(
             engine.eval(PluginSecureStorageJsBridge.INSTALL_JS)
             engine.eval(PluginFileSystemJsBridge.INSTALL_JS)
             engine.eval(PluginSourcesJsBridge.INSTALL_JS)
+            engine.eval(PluginPermissionsJsBridge.INSTALL_JS)
             engine.eval(script())
         }
 
@@ -337,6 +352,7 @@ class JsPlugin(
             secureStorageBridge.close()
             fileSystemBridge.close()
             sourcesBridge.close()
+            permissionsBridge.close()
             engine.stop()
         }
     }
@@ -403,7 +419,7 @@ class JsPlugin(
     /** What plugin JS calls back into: settling a request, and console output. */
     private inner class Bridge(private val runsRequests: Boolean) : JsEngineInterface {
         override val name = "_JsBridge"
-        override val methods = listOf("respond", "log", "configMessage", "refreshSources", "subscribeSource")
+        override val methods = listOf("respond", "log", "configMessage", "refreshSources", "subscribeSource", "showNotification", "insertTimelinePin", "deleteTimelinePin")
 
         override fun dispatch(method: String, args: List<Any?>): Any? = when (method) {
             "respond" -> {
@@ -424,6 +440,21 @@ class JsPlugin(
             }
             "configMessage" -> {
                 _configMessages.tryEmit(args[0].toString())
+                null
+            }
+            "showNotification" -> {
+                val notification = args[0].toString()
+                scope.launch { timeline.showNotification(pluginUuid, notification) }
+                null
+            }
+            "insertTimelinePin" -> {
+                val pin = args[0].toString()
+                scope.launch { if (timeline.mayAddPins(pluginUuid)) timeline.insertPin(pin, pluginUuid) }
+                null
+            }
+            "deleteTimelinePin" -> {
+                val id = args[0].toString()
+                scope.launch { timeline.deletePin(pluginUuid, id) }
                 null
             }
             "refreshSources" -> {

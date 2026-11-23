@@ -1,7 +1,6 @@
 package coredevices.pebble.ui
 
 import localization.localized
-import localization.localizedClockTime
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -9,6 +8,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import coredevices.util.formatTimeOfDay
 import io.rebble.libpebblecommon.connection.KnownPebbleDevice
 import io.rebble.libpebblecommon.connection.LibPebble
 import io.rebble.libpebblecommon.database.dao.DailyMovementAggregate
@@ -219,8 +219,8 @@ class HealthViewModel(
         )
 
         val segments = buildDailySleepSegments(dayStart, sleepSession)
-        val bedtimeStr = sleepSession?.let { formatTimeOfDay(it.firstStart, tz) } ?: ""
-        val wakeStr = sleepSession?.let { formatTimeOfDay(it.lastEnd, tz) } ?: ""
+        val bedtimeStr = sleepSession?.let { formatEpochTimeOfDay(it.firstStart, tz) } ?: ""
+        val wakeStr = sleepSession?.let { formatEpochTimeOfDay(it.lastEnd, tz) } ?: ""
 
         _sleep.value = SleepUiState(
             segments = segments,
@@ -453,10 +453,9 @@ internal fun buildDailySleepSegments(dayStart: Long, dailySleep: DailySleep?): L
         intervals.filter { it.isDeep }.mapNotNull { toSegment(it.start, it.end, true) }
 }
 
-private fun formatTimeOfDay(epochSec: Long, tz: TimeZone): String {
+private fun formatEpochTimeOfDay(epochSec: Long, tz: TimeZone): String {
     val dt = Instant.fromEpochSeconds(epochSec).toLocalDateTime(tz)
-    val h = dt.hour; val m = dt.minute
-    return localizedClockTime(h, m)
+    return formatTimeOfDay(dt.hour, dt.minute)
 }
 
 internal fun averageTimeOfDay(secondsOfDay: List<Long>): Long {
@@ -475,8 +474,5 @@ internal fun averageTimeOfDay(secondsOfDay: List<Long>): Long {
     return ((normalized.average().toLong()) % fullDay + fullDay) % fullDay
 }
 
-private fun formatTimeFromSeconds(secOfDay: Long): String {
-    val h = ((secOfDay / 3600) % 24).toInt()
-    val m = ((secOfDay % 3600) / 60).toInt()
-    return localizedClockTime(h, m)
-}
+private fun formatTimeFromSeconds(secOfDay: Long): String =
+    formatTimeOfDay(((secOfDay / 3600) % 24).toInt(), ((secOfDay % 3600) / 60).toInt())

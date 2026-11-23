@@ -5,8 +5,12 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import coredevices.haversine.KMPHaversineSatelliteManager
 import coredevices.ring.RingDelegate
+import coredevices.ring.agent.ShortcutActionHandler
 import coredevices.ring.agent.integrations.obsidian.IosObsidianVault
 import coredevices.ring.agent.integrations.obsidian.ObsidianVault
+import coredevices.ring.clock.IosLocalClockNotifier
+import coredevices.ring.clock.LocalClock
+import coredevices.ring.clock.LocalClockNotifier
 import coredevices.ring.database.IntegrationTokenStorageImpl
 import coredevices.ring.database.Preferences
 import coredevices.ring.database.room.RingDatabase
@@ -18,14 +22,17 @@ import coredevices.ring.service.RingOta
 import coredevices.ring.service.RingSync
 import coredevices.ring.util.AudioPlayer
 import coredevices.ring.util.AudioRecorder
+import coredevices.ring.ui.viewmodel.LocalClockViewModel
 import coredevices.util.integrations.IntegrationTokenStorage
 import coredevices.util.transcription.CactusModelPathProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.koin.core.module.dsl.factoryOf
 import org.koin.core.module.dsl.singleOf
+import org.koin.core.module.dsl.viewModel
 import org.koin.dsl.bind
 import org.koin.dsl.module
+import coredevices.ring.reminders.ReminderScheduler
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
 import platform.Foundation.NSUserDomainMask
@@ -33,6 +40,7 @@ import platform.Foundation.NSUserDomainMask
 actual val platformRingModule = module {
     single<CactusModelPathProvider> { CactusModelProvider() }
     singleOf(::RingDelegate)
+    singleOf(::ReminderScheduler)
     factoryOf(::AudioRecorder)
     factoryOf(::AudioPlayer)
     factory {
@@ -63,9 +71,12 @@ actual val platformRingModule = module {
     single {
         RingOta(get(), get(), get())
     }
-    singleOf(::PlatformIndexNotificationManager)
+    single { PlatformIndexNotificationManager(get(), get(), lazy { get<ShortcutActionHandler>() }) }
     singleOf(::BackgroundRingService)
     singleOf(::IntegrationTokenStorageImpl) bind IntegrationTokenStorage::class
     single { EncryptionKeyManager() }
     single<ObsidianVault> { IosObsidianVault() }
+    single<LocalClockNotifier> { IosLocalClockNotifier() }
+    single { LocalClock(get(), get()) }
+    viewModel { LocalClockViewModel(get()) }
 }

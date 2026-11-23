@@ -65,7 +65,7 @@ data class NewCalendarEvent(
 
 private fun CalendarEvent.generateCompositeBackingId() = "${calendarId}T${baseEventId}T${startTime}"
 
-private fun transformDescription(rawDescription: String): String {
+internal fun transformDescription(rawDescription: String): String {
     val regex = Regex("<[^>]*>", setOf(RegexOption.MULTILINE))
     return rawDescription.replace(regex, "").trimWithEllipsis(300)
 }

@@ -1,17 +1,21 @@
 package coredevices.ring.agent
 
+import com.russhwolf.settings.Settings
 import coredevices.indexai.agent.ServletRepository
 import coredevices.indexai.data.McpServerDefinition
 import coredevices.mcp.client.McpIntegration
+import coredevices.pebble.ui.showDebugOptions
+import coredevices.ring.agent.builtin_servlets.bugreport.BugReportServlet
+import coredevices.ring.agent.builtin_servlets.bugreport.CreateBugReportTool
 import coredevices.ring.agent.builtin_servlets.calendar.CalendarServlet
 import coredevices.ring.agent.builtin_servlets.clock.ClockServlet
+import coredevices.ring.agent.builtin_servlets.clock.clockUnavailableReason
 import coredevices.ring.agent.builtin_servlets.js.JsServlet
 import coredevices.ring.agent.builtin_servlets.messaging.MessagingServlet
 import coredevices.ring.agent.builtin_servlets.notes.CreateNoteTool
 import coredevices.ring.agent.builtin_servlets.notifications.NotificationReplyServlet
 import coredevices.ring.agent.builtin_servlets.notifications.ReplyToWatchNotificationTool
 import coredevices.ring.agent.builtin_servlets.notes.NoteServlet
-import coredevices.ring.agent.builtin_servlets.plugins.PluginsServlet
 import coredevices.ring.agent.builtin_servlets.reminders.ReminderServlet
 import coredevices.util.Platform
 import coredevices.util.isAndroid
@@ -22,18 +26,10 @@ import org.koin.core.component.inject
 
 const val ANDROID_ONLY_REASON = "Only available on Android"
 
-/**
- * TODO(RING-84): the local Cactus model isn't trained on these tools yet, so they are only usable
- *  via the online Nenya agent. Remove once the on-device model supports them.
- */
-val LOCAL_MODEL_UNSUPPORTED_SERVLETS = setOf(
-    CalendarServlet.NAME,
-    MessagingServlet.name,
-    PluginsServlet.NAME,
-    NotificationReplyServlet.NAME,
-)
-
-internal fun builtinServletDefinitions(isAndroid: Boolean): List<McpServerDefinition> {
+internal fun builtinServletDefinitions(
+    isAndroid: Boolean,
+    clockUnavailableReason: String? = null,
+): List<McpServerDefinition> {
     val androidOnly = if (isAndroid) null else ANDROID_ONLY_REASON
     return listOf(
         McpServerDefinition(
@@ -51,7 +47,7 @@ internal fun builtinServletDefinitions(isAndroid: Boolean): List<McpServerDefini
         McpServerDefinition(
             name = ClockServlet.name,
             title = "Timers & Alarms",
-            unavailableReason = androidOnly
+            unavailableReason = clockUnavailableReason
         ),
         McpServerDefinition(
             name = MessagingServlet.name,
@@ -62,12 +58,17 @@ internal fun builtinServletDefinitions(isAndroid: Boolean): List<McpServerDefini
             name = NotificationReplyServlet.NAME,
             title = "Reply to Notifications",
             unavailableReason = androidOnly
+        ),
+        McpServerDefinition(
+            name = BugReportServlet.NAME,
+            title = "Bug Reports"
         )
     )
 }
 
 class BuiltinServletRepository: KoinComponent, ServletRepository {
     private val platform: Platform by inject()
+    private val settings: Settings by inject()
 
     /**
      * Includes servlets unavailable on this platform so settings can show them greyed out.
@@ -75,7 +76,8 @@ class BuiltinServletRepository: KoinComponent, ServletRepository {
      * is false; [resolveName] returns null for them.
      */
     override fun getAllServlets(): List<McpServerDefinition> =
-        builtinServletDefinitions(platform.isAndroid)
+        builtinServletDefinitions(platform.isAndroid, clockUnavailableReason())
+            .filter { it.name != BugReportServlet.NAME || settings.showDebugOptions() }
 
     override fun resolveName(name: String): McpIntegration? {
         return when (name) {
@@ -83,14 +85,15 @@ class BuiltinServletRepository: KoinComponent, ServletRepository {
                 createNoteTool = CreateNoteTool(get()),
                 providers = get(),
             )
-            ClockServlet.name -> ClockServlet.takeIf { platform.isAndroid }
+            ClockServlet.name -> ClockServlet.takeIf { clockUnavailableReason() == null }
             JsServlet.name -> JsServlet
-            ReminderServlet.NAME -> ReminderServlet(get(), get())
+            ReminderServlet.NAME -> ReminderServlet(get(), get(), get())
             CalendarServlet.NAME -> CalendarServlet
             MessagingServlet.name -> MessagingServlet.takeIf { platform.isAndroid }
             NotificationReplyServlet.NAME -> NotificationReplyServlet(
                 replyTool = ReplyToWatchNotificationTool(get<LibPebble>())
             ).takeIf { platform.isAndroid }
+            BugReportServlet.NAME -> BugReportServlet(CreateBugReportTool(get())).takeIf { settings.showDebugOptions() }
             else -> null
         }
     }

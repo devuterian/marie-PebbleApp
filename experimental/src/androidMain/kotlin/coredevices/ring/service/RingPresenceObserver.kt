@@ -2,20 +2,30 @@ package coredevices.ring.service
 
 import android.companion.CompanionDeviceManager
 import android.companion.ObservingDevicePresenceRequest
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.os.Build
+import android.os.PowerManager
 import androidx.annotation.RequiresApi
+import androidx.core.content.ContextCompat
 import co.touchlab.kermit.Logger
 import com.russhwolf.settings.Settings
+import coredevices.haversine.KMPHaversineSatelliteManager
 import coredevices.ring.database.Preferences
+import coredevices.ring.util.IndexVendorHacks
 import coredevices.util.CoreConfigHolder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeMark
 import kotlin.time.TimeSource
@@ -24,28 +34,42 @@ import kotlin.time.TimeSource
  * Asks the system to watch for the paired ring via its CompanionDeviceManager association. The
  * system's own BLE scan is not subject to the OEM screen-off restrictions placed on app scans
  * (Xiaomi "Deep Doze" refuses non-system scans), so when the ring wakes the system binds
- * [RingCompanionDeviceService] and the presence is handed to haversine as an advertisement.
+ * [RingCompanionDeviceService]. The presence is used to confirm the app's own scan still sees the
+ * ring, restarting it via [RingScanWatchdog] when it has locked up.
  */
 class RingPresenceObserver(
     private val context: Context,
     private val preferences: Preferences,
-    private val coreConfigHolder: CoreConfigHolder
+    private val coreConfigHolder: CoreConfigHolder,
+    private val scanWatchdog: RingScanWatchdog,
+    private val satelliteManager: KMPHaversineSatelliteManager,
 ) {
     private val logger = Logger.withTag("RingPresence")
     private val scope = CoroutineScope(Dispatchers.Main)
+    private val wakeLock: PowerManager.WakeLock? by lazy {
+        context.getSystemService(PowerManager::class.java)
+            ?.newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "coreapp:ringScanWatchdog")
+            ?.apply { setReferenceCounted(false) }
+    }
     private var observed: Observation? = null
+    private var idleRestart: Job? = null
     private val lastLogged = mutableMapOf<String, TimeMark>()
 
     // ObservingDevicePresenceRequest only exists on Android 16+; a field of that type fails to resolve on older versions.
     private class Observation(val address: String, val request: Any?)
 
     fun start() {
+        if (IndexVendorHacks.getScanStoppedInDoze()) {
+            logger.i { "Manufacturer '${Build.MANUFACTURER}' stops scan in doze - enabling idle-restart workaround" }
+            observeDeviceIdle()
+        }
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
         if (coreConfigHolder.config.value.disableCompanionDeviceManager) return
         if (!context.packageManager.hasSystemFeature(PackageManager.FEATURE_COMPANION_DEVICE_SETUP)) {
             logger.i { "Companion device setup unavailable; not observing ring presence" }
             return
         }
+        scanWatchdog.start(scope)
         preferences.ringPaired
             .map { it?.toBleAddress() }
             .distinctUntilChanged()
@@ -59,6 +83,49 @@ class RingPresenceObserver(
 
     fun onRingAppeared(address: String) {
         logThrottled("Ring $address appeared (companion presence)")
+        // The system only keeps the CPU awake for this callback; the watchdog's wait and any
+        // restart need it held a little longer.
+        holdWakeLockDuring(scanWatchdog.onRingPresent() ?: return)
+    }
+
+    // The Oplus Bluetooth stack stops scanning on entering deep Doze and only resumes it for a
+    // scan started afterwards.
+    private fun observeDeviceIdle() {
+        val powerManager = context.getSystemService(PowerManager::class.java) ?: return
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(context: Context, intent: Intent) {
+                idleRestart?.cancel()
+                if (!powerManager.isDeviceIdleMode) return
+                idleRestart = scope.launch {
+                    delay(IDLE_RESTART_DELAY)
+                    logger.i { "Device idle; restarting scan" }
+                    satelliteManager.forceRestartScan()
+                }.also { holdWakeLockDuring(it) }
+            }
+        }
+        ContextCompat.registerReceiver(
+            context,
+            receiver,
+            IntentFilter(PowerManager.ACTION_DEVICE_IDLE_MODE_CHANGED),
+            ContextCompat.RECEIVER_NOT_EXPORTED,
+        )
+    }
+
+    private fun holdWakeLockDuring(job: Job) {
+        try {
+            wakeLock?.acquire(WAKE_LOCK_TIMEOUT.inWholeMilliseconds)
+        } catch (e: Exception) {
+            logger.w(e) { "Unable to acquire scan watchdog wake lock" }
+        }
+        job.invokeOnCompletion { releaseWakeLock() }
+    }
+
+    private fun releaseWakeLock() {
+        try {
+            wakeLock?.takeIf { it.isHeld }?.release()
+        } catch (e: Exception) {
+            logger.w(e) { "Unable to release scan watchdog wake lock" }
+        }
     }
 
     fun onRingDisappeared(address: String) {
@@ -118,6 +185,8 @@ class RingPresenceObserver(
 
     private companion object {
         val LOG_THROTTLE = 30.seconds
+        val IDLE_RESTART_DELAY = 2.seconds
+        val WAKE_LOCK_TIMEOUT = 10.seconds
     }
 }
 

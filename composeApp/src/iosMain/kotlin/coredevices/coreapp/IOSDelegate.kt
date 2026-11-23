@@ -9,7 +9,6 @@ import cocoapods.FirebaseMessaging.FIRMessagingAPNSTokenType
 import cocoapods.GoogleSignIn.GIDSignIn
 import coil3.ImageLoader
 import coil3.SingletonImageLoader
-import coil3.memory.MemoryCache
 import coil3.request.crossfade
 import coil3.svg.SvgDecoder
 import com.eygraber.uri.toUri
@@ -18,6 +17,7 @@ import com.mmk.kmpnotifier.notification.NotifierManager
 import com.mmk.kmpnotifier.notification.configuration.NotificationPlatformConfiguration
 import coredevices.ExperimentalDevices
 import coredevices.analytics.AnalyticsBackend
+import coredevices.analytics.CoreAnalytics
 import coredevices.coreapp.di.apiModule
 import coredevices.coreapp.di.iosDefaultModule
 import coredevices.coreapp.di.utilModule
@@ -32,14 +32,15 @@ import io.rebble.libpebblecommon.connection.AppContext
 import io.rebble.libpebblecommon.connection.LibPebble
 import coredevices.pebble.permissions.handlePermissionNotificationResponse
 import coredevices.pebble.watchModule
-import coredevices.ring.agent.builtin_servlets.reminders.IOSBuiltInReminderIntegration
 import coredevices.ring.reminders.ReminderCompleter
 import coredevices.ring.reminders.ReminderDeepLinkResolver
+import coredevices.ring.reminders.ReminderScheduler
 import coredevices.util.CoreConfig
 import coredevices.util.CoreConfigHolder
 import coredevices.util.DoneInitialOnboarding
 import coredevices.util.OAuthRedirectHandler
 import coredevices.util.sync.IosSyncScheduler
+import coredevices.util.clock.NativeAlarmKitBridge
 import coredevices.util.transcription.NativeSpeechAnalyzerBridge
 import dev.gitlive.firebase.Firebase
 import dev.gitlive.firebase.crashlytics.crashlytics
@@ -67,6 +68,7 @@ import platform.Foundation.NSData
 import platform.Foundation.NSNotificationCenter
 import platform.Foundation.NSProcessInfo
 import platform.Foundation.NSProcessInfoPowerStateDidChangeNotification
+import platform.Foundation.NSDate
 import platform.Foundation.NSURL
 import platform.Foundation.NSUserActivity
 import platform.Foundation.NSUserActivityTypeBrowsingWeb
@@ -89,6 +91,7 @@ object IOSDelegate : KoinComponent {
     private val coreConfigHolder: CoreConfigHolder by inject()
     private val experimentalDevices: ExperimentalDevices by inject()
     private val oAuthRedirectHandler: OAuthRedirectHandler by inject()
+    private var exitReporter: MetricKitExitReporter? = null
     private val bgTaskScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
 
     fun registerNativeSpeechAnalyzer(
@@ -109,6 +112,18 @@ object IOSDelegate : KoinComponent {
 
     fun setNativeSpeechAnalyzerLanguages(tags: List<String>) {
         NativeSpeechAnalyzerBridge.supportedLanguageTags.value = tags
+    }
+
+    fun registerNativeAlarmKit(
+        authorizationState: () -> String,
+        requestAuthorization: ((Boolean) -> Unit) -> Unit,
+        schedule: (String, String, NSDate, String, (String?) -> Unit) -> Unit,
+        cancel: (String) -> Unit,
+    ) {
+        NativeAlarmKitBridge.authorizationState = authorizationState
+        NativeAlarmKitBridge.requestAuthorization = requestAuthorization
+        NativeAlarmKitBridge.schedule = schedule
+        NativeAlarmKitBridge.cancel = cancel
     }
 
     fun handleOpenUrl(url: NSURL): Boolean {
@@ -181,11 +196,7 @@ object IOSDelegate : KoinComponent {
         SingletonImageLoader.setSafe { context ->
             ImageLoader.Builder(context)
                 .crossfade(true)
-                .memoryCache {
-                    MemoryCache.Builder()
-                        .maxSizePercent(context, 0.25)
-                        .build()
-                }
+                .memoryCache(null)
                 .components {
                     add(AnimatedSkiaImageDecoder.Factory())
                     add(SvgDecoder.Factory())
@@ -248,6 +259,7 @@ object IOSDelegate : KoinComponent {
                     "launchState=${application.applicationState.stateName()}"
         }
         reportPreviousRunOutcome()
+        exitReporter = MetricKitExitReporter(get<CoreAnalytics>()).also { it.start() }
         // Can only use Koin after this point
 
         // Initialize NotifierManager early to prevent crashes when PushMessaging tries to use it
@@ -298,7 +310,7 @@ object IOSDelegate : KoinComponent {
         if (itemId != null) {
             // "Done" button (MOB-8439): mark the backing item complete in the background without
             // opening the app. Completing it cancels the reminder and dismisses the notification.
-            if (response.actionIdentifier == IOSBuiltInReminderIntegration.REMINDER_ACTION_DONE) {
+            if (response.actionIdentifier == ReminderScheduler.REMINDER_ACTION_DONE) {
                 val completer: ReminderCompleter = get()
                 bgTaskScope.launch {
                     runCatching { completer.markDone(itemId) }
@@ -325,7 +337,12 @@ object IOSDelegate : KoinComponent {
         val deepLinkToHandle = actionDeepLink ?: deepLink
         if (deepLinkToHandle != null) {
             logger.d { "Handling deep link from notification: $deepLinkToHandle" }
-            handleOpenUrl(NSURL.URLWithString(deepLinkToHandle)!!)
+            val url = NSURL.URLWithString(deepLinkToHandle)!!
+            if (url.scheme == "https" || url.scheme == "http") {
+                UIApplication.sharedApplication.openURL(url, emptyMap<Any?, Any>(), null)
+            } else {
+                handleOpenUrl(url)
+            }
         }
         completionHandler()
     }

@@ -234,6 +234,9 @@ navigator.geolocation.clearWatch = (id) => {
     const actionCalls = new Map();
     let actionCallIdCounter = 0;
 
+    const permissionQueries = new Map();
+    let permissionQueryIdCounter = 0;
+
     const dispatchPebbleEvent = (type, detail = {}) => {
         const event = {type: type, bubbles: false, cancelable: false};
         Object.assign(event, detail);
@@ -335,6 +338,12 @@ navigator.geolocation.clearWatch = (id) => {
         } catch (e) {
             call({ ok: false, code: "UNKNOWN", message: "malformed host response" });
         }
+    }
+    global._signalPermissionQuery = (callId, state) => {
+        const resolve = permissionQueries.get(callId);
+        if (!resolve) return;
+        permissionQueries.delete(callId);
+        resolve(state);
     }
     global.signalAppMessageNack = (data) => {
         const payload = data ? JSON.parse(data) : {};
@@ -481,6 +490,7 @@ navigator.geolocation.clearWatch = (id) => {
                 plugin: config.plugin,
                 maxStalenessMs: config.maxStalenessMs,
                 iconPixelSize: config.iconPixelSize,
+                limit: config.limit,
             };
             try {
                 _Pebble.subscribeToSource(subscriptionId, JSON.stringify(request));
@@ -547,24 +557,26 @@ navigator.geolocation.clearWatch = (id) => {
     global.Pebble.subscribeToSource = PebbleAPI.subscribeToSource;
     global.Pebble.enumeratePlugins = PebbleAPI.enumeratePlugins;
     global.Pebble.invokeAction = PebbleAPI.invokeAction;
+    global.Pebble.permissions = Object.freeze({
+        query: (permission) => new Promise((resolve, reject) => {
+            const callId = ++permissionQueryIdCounter;
+            permissionQueries.set(callId, resolve);
+            try {
+                _Pebble.queryPermission(callId, String(permission));
+            } catch (e) {
+                permissionQueries.delete(callId);
+                reject(e);
+            }
+        }),
+    });
     /** Push at this app's config page, while it is open. No reply. */
     global.Pebble.sendConfigMessage = (message) => {
         _Pebble.sendConfigMessage(JSON.stringify(message === undefined ? null : message));
     };
 
-    // The WebView's WebSocket can't be intercepted natively.
-    if (typeof _PebbleNet !== 'undefined' && typeof WebSocket !== 'undefined') {
-        const NativeWebSocket = WebSocket;
-        const GatedWebSocket = function (url, protocols) {
-            if (!_PebbleNet.allowed(String(url))) {
-                throw new DOMException("This app may not connect to " + url, "SecurityError");
-            }
-            return protocols === undefined ? new NativeWebSocket(url) : new NativeWebSocket(url, protocols);
-        };
-        GatedWebSocket.prototype = NativeWebSocket.prototype;
-        Object.defineProperty(NativeWebSocket.prototype, "constructor", { value: GatedWebSocket });
-        ["CONNECTING", "OPEN", "CLOSING", "CLOSED"].forEach((key) => { GatedWebSocket[key] = NativeWebSocket[key]; });
-        global.WebSocket = GatedWebSocket;
+    // Android only (realm_guard.js): WebRTC and workers bypass the native request check.
+    if (typeof __pebbleGuardRealms === 'function') {
+        __pebbleGuardRealms(global, null, true);
     }
 
     // Enable intercepting XHR calls (on Android - this doesn't work on iOS so we don't add

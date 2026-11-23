@@ -3,7 +3,6 @@ package io.rebble.libpebblecommon.connection.endpointmanager.audio
 import co.touchlab.kermit.Logger
 import io.rebble.libpebblecommon.voice.forWatch
 import io.rebble.libpebblecommon.SystemAppIDs
-import io.rebble.libpebblecommon.WatchConfigFlow
 import io.rebble.libpebblecommon.connection.endpointmanager.CompanionAppLifecycleManager
 import io.rebble.libpebblecommon.di.ConnectionCoroutineScope
 import io.rebble.libpebblecommon.packets.AudioStream
@@ -50,7 +49,6 @@ class VoiceSessionManager(
     private val companionAppLifecycleManager: CompanionAppLifecycleManager,
     private val audioFrameDecoder: AudioFrameDecoder,
     private val permissions: AppPermissions,
-    private val watchConfig: WatchConfigFlow,
 ) {
     companion object Companion {
         private val logger = Logger.withTag("VoiceSession")
@@ -134,11 +132,6 @@ class VoiceSessionManager(
         val encoderInfo = setupRequest.encoderInfo
         val sessionId = setupRequest.sessionId.toUShort()
         val subject = permissions.subjectOf(setupRequest.appUuid)
-        if (!watchConfig.value.enablePlugins) { // Only enable for apps if plugins are enabled, otherwise we would default-allow
-            logger.w { "Audio stream from ${setupRequest.appUuid} refused: permissions not enabled" }
-            voiceService.send(makeAudioStreamSetupResult(Result.FailDisabled, sessionId, appInitiated))
-            return
-        }
         if (subject == null || permissions.request(subject, PluginPermissions.WATCH_MICROPHONE) != PermissionDecision.Granted) {
             logger.w { "Audio stream from ${setupRequest.appUuid} refused: microphone permission not granted" }
             voiceService.send(makeAudioStreamSetupResult(Result.FailDisabled, sessionId, appInitiated))

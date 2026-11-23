@@ -5,6 +5,7 @@ import coredevices.indexai.data.McpServerDefinition
 import coredevices.mcp.client.McpIntegration
 import coredevices.ring.agent.builtin_servlets.calendar.CalendarServlet
 import coredevices.ring.agent.builtin_servlets.clock.ClockServlet
+import coredevices.ring.agent.builtin_servlets.clock.IOS_26_REQUIRED_REASON
 import coredevices.ring.agent.builtin_servlets.messaging.MessagingServlet
 import coredevices.ring.agent.builtin_servlets.notes.NoteServlet
 import coredevices.ring.agent.builtin_servlets.notifications.NotificationReplyServlet
@@ -73,13 +74,13 @@ class IndexActionsRepositoryTest {
         pluginUuid = WatchStatePlugin.BUILT_IN_WATCH_STATE_UUID,
     )
 
-    private val thingsUuid = Uuid.parse("00000000-0000-0000-0002-000000000001")
+    private val thingsUuid = Uuid.parse("00000000-0000-0000-0003-000000000001")
     private val things = FakePlugin(
         actions = listOf(ActionDeclaration(name = "create_todo"), ActionDeclaration(name = "complete_todo")),
         name = "Things",
         pluginUuid = thingsUuid,
     )
-    private val weatherUuid = Uuid.parse("00000000-0000-0000-0002-000000000002")
+    private val weatherUuid = Uuid.parse("00000000-0000-0000-0003-000000000002")
     private val weather = FakePlugin(
         name = "Weather",
         pluginUuid = weatherUuid,
@@ -88,10 +89,10 @@ class IndexActionsRepositoryTest {
     private val both = FakePlugin(
         actions = listOf(ActionDeclaration(name = "toggle")),
         name = "Home",
-        pluginUuid = Uuid.parse("00000000-0000-0000-0002-000000000003"),
+        pluginUuid = Uuid.parse("00000000-0000-0000-0003-000000000003"),
         sources = listOf(SourceDeclaration(category = "home", items = listOf("light", "lock"))),
     )
-    private val empty = FakePlugin(name = "Empty", pluginUuid = Uuid.parse("00000000-0000-0000-0002-000000000004"))
+    private val empty = FakePlugin(name = "Empty", pluginUuid = Uuid.parse("00000000-0000-0000-0003-000000000004"))
 
     @Test
     fun androidOnlyActionsAreListedButUnavailableOnIos() {
@@ -99,22 +100,25 @@ class IndexActionsRepositoryTest {
         val ios = builtinServletDefinitions(isAndroid = false).associateBy { it.name }
 
         assertEquals(android.keys, ios.keys)
-        assertTrue(ClockServlet.name in ios)
         assertTrue(MessagingServlet.name in ios)
 
-        assertNull(android.getValue(ClockServlet.name).unavailableReason)
         assertNull(android.getValue(MessagingServlet.name).unavailableReason)
-        assertEquals(ANDROID_ONLY_REASON, ios.getValue(ClockServlet.name).unavailableReason)
         assertEquals(ANDROID_ONLY_REASON, ios.getValue(MessagingServlet.name).unavailableReason)
+        assertNull(android.getValue(ClockServlet.name).unavailableReason)
+        assertTrue(ios.getValue(ClockServlet.name).available)
         assertTrue(ios.getValue(NoteServlet.NAME).available)
+
+        val olderIos = builtinServletDefinitions(isAndroid = false, clockUnavailableReason = IOS_26_REQUIRED_REASON)
+            .associateBy { it.name }
+        assertEquals(IOS_26_REQUIRED_REASON, olderIos.getValue(ClockServlet.name).unavailableReason)
     }
 
     @Test
     fun androidOnlyActionsSurfaceTheirReasonOnIos() = runTest {
         val actions = Fixture(isAndroid = false).repo.actions.first()
-        val clock = actions.single { it.name == ClockServlet.name }
-        assertEquals(ANDROID_ONLY_REASON, clock.disabledReason)
-        assertEquals(false, clock.enabled)
+        val messaging = actions.single { it.name == MessagingServlet.name }
+        assertEquals(ANDROID_ONLY_REASON, messaging.disabledReason)
+        assertEquals(false, messaging.enabled)
     }
 
     @Test

@@ -121,18 +121,18 @@ kotlin {
             version = "8.0.0"
             linkOnly = true
         }
-        pod("FirebaseCore", "11.10.0")
+        pod("FirebaseCore", "12.19.3")
         pod("FirebaseAuth") {
-            version = "11.10.0"
+            version = "12.19.0"
             linkOnly = true
             extraOpts += listOf("-compiler-option", "-fmodules")
         }
         pod("FirebaseFirestore") {
             linkOnly = true
             source = git("https://github.com/invertase/firestore-ios-sdk-frameworks.git") {
-                // 11.10.0 — keep in step with :composeApp, or the two modules resolve
+                // 12.19.3 — keep in step with :composeApp, or the two modules resolve
                 // different Firestore builds
-                commit = "e43715cc392c819b522c7a189bed9400e757c788"
+                commit = "cc9a5e005ca9b5a08e0811490a76a189f50642bb"
             }
         }
         pod("nanopb") {
@@ -145,15 +145,15 @@ kotlin {
             linkOnly = true
         }
         pod("FirebaseStorage") {
-            version = "11.10.0"
+            version = "12.19.0"
             linkOnly = true
         }
         pod("FirebaseCrashlytics") {
-            version = "11.10.0"
+            version = "12.19.0"
             linkOnly = true
         }
         pod("FirebaseMessaging") {
-            version = "11.10.0"
+            version = "12.19.0"
             linkOnly = true
         }
     }
@@ -175,6 +175,7 @@ kotlin {
         }
         commonMain {
             dependencies {
+                implementation(project(":toolschemaannotations"))
                 implementation(compose.runtime)
                 implementation(compose.foundation)
                 implementation(libs.compose.material3)
@@ -201,6 +202,8 @@ kotlin {
                 implementation(libs.room.runtime)
                 implementation(libs.room.paging)
                 implementation(libs.sqlite.bundled)
+                implementation(libs.swmansion.kmpMaps.core)
+                implementation(libs.compass.geocoder)
 
                 implementation(libs.firebase.auth)
                 implementation(libs.firebase.firestore)
@@ -243,6 +246,7 @@ kotlin {
                 implementation(libs.androidx.credentials)
                 implementation(libs.zxing.core)
                 implementation(libs.androidx.documentfile)
+                implementation(libs.gms.location)
             }
         }
 
@@ -285,12 +289,39 @@ buildkonfig {
     }
 }
 
+val localModelCheckpointDir = layout.projectDirectory.dir("local-model-schemas")
+
+ksp {
+    arg("toolSchema.package", "coredevices.ring.agent.toolschema")
+    // A checkpoint of the tool schemas is written here once per version, then left frozen.
+    arg("toolSchema.localModelVersion", libs.versions.cactus.lm.weights.get())
+    arg("toolSchema.localModelCheckpointDir", localModelCheckpointDir.asFile.path)
+    // TODO(RING-84): servlets the on-device model isn't trained on, so only cloud agents get them.
+    arg(
+        "toolSchema.localModelExcludedServlets",
+        listOf(
+            "builtin_calendar",
+            "builtin_messaging",
+            "builtin_plugins",
+            "builtin_notification_reply",
+            "builtin_bug_report",
+        ).joinToString(",")
+    )
+}
+
+tasks.matching { it.name.startsWith("ksp") }.configureEach {
+    inputs.dir(localModelCheckpointDir)
+}
+
 dependencies {
     add("kspCommonMainMetadata", libs.room.compiler)
     add("kspAndroid", libs.room.compiler)
+    add("kspAndroid", project(":toolschemagen"))
     add("kspIosArm64", libs.room.compiler)
+    add("kspIosArm64", project(":toolschemagen"))
     if (!ideSync) {
         //add("kspIosX64", libs.room.compiler)
         add("kspIosSimulatorArm64", libs.room.compiler)
+        add("kspIosSimulatorArm64", project(":toolschemagen"))
     }
 }

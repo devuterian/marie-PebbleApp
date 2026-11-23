@@ -17,6 +17,7 @@ import coredevices.ring.model.CactusModelProvider
 import coredevices.ring.service.PlatformIndexNotificationManager
 import coredevices.ring.service.RingOta
 import coredevices.ring.service.RingPresenceObserver
+import coredevices.ring.service.RingScanWatchdog
 import coredevices.ring.service.RingSync
 import coredevices.ring.transcription.AndroidInferenceBoostProvider
 import coredevices.ring.transcription.InferenceBoostProvider
@@ -26,6 +27,7 @@ import coredevices.ring.util.AudioRecorder
 import coredevices.util.integrations.IntegrationTokenStorage
 import coredevices.util.transcription.CactusModelPathProvider
 import coredevices.util.transcription.InferenceBoost
+import coredevices.ring.reminders.ReminderScheduler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import org.koin.core.module.dsl.factoryOf
@@ -38,7 +40,16 @@ actual val platformRingModule = module {
     single<InferenceBoostProvider> { AndroidInferenceBoostProvider(get()) } bind InferenceBoost::class
     single<CactusModelPathProvider> { CactusModelProvider() }
     singleOf(::RingDelegate)
+    singleOf(::ReminderScheduler)
     singleOf(::RingPresenceObserver)
+    single {
+        val satelliteManager = get<KMPHaversineSatelliteManager>()
+        RingScanWatchdog(
+            advertisements = satelliteManager.advertisements,
+            hadRecentConnection = get<RingSync>()::hadRecentConnection,
+            restartScan = satelliteManager::forceRestartScan,
+        )
+    }
     single {
         val prefs = get<Preferences>()
         val ringOTA = get<RingOta>()

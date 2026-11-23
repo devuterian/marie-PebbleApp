@@ -62,7 +62,8 @@ class Cohorts(
                 version = latestFwVersion,
                 url = normalFw.url,
                 notes = normalFw.notes.orEmpty(),
-                canDowngrade = reinstall,
+                // Set by FirmwareUpdateManager, which knows what the watch is running.
+                installsDirectly = false,
             )
         } else {
             return FirmwareUpdateCheckResult.FoundNoUpdate
