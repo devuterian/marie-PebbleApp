@@ -1,5 +1,8 @@
 package coredevices.pebble.ui
 
+import localization.isKoreanUi
+import localization.localized
+
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
@@ -68,8 +71,8 @@ private const val TOP_CHART_LIMIT = 50
 private const val TOP_CHART_CAROUSEL_SIZE = 10
 
 enum class TopChartSort(val slug: String, val label: String) {
-    MostUsed("top-used", "Most used"),
-    MostHearted("top-hearted", "Most hearted"),
+    MostUsed("top-used", localized("Most used", "많이 쓰는 순")),
+    MostHearted("top-hearted", localized("Most hearted", "하트 많은 순")),
 }
 
 enum class TopChartPeriod(val value: String, val label: String) {
@@ -85,6 +88,17 @@ private fun AppType.topChartSorts(): List<TopChartSort> =
 
 /** Faces are filtered by latest release; apps rank by hearts received in the period. */
 private fun AppType.topChartPeriodVerb(): String = if (this == AppType.Watchface) "Updated" else "Hearted"
+
+private fun AppType.topChartPeriodLabel(period: TopChartPeriod): String {
+    if (!isKoreanUi()) return "${topChartPeriodVerb()} ${period.label}"
+    val verb = if (this == AppType.Watchface) "업데이트" else "하트"
+    return when (period) {
+        TopChartPeriod.SinceOct2025 -> "2025년 10월 이후 $verb"
+        TopChartPeriod.Last30Days -> "최근 30일 $verb"
+        TopChartPeriod.Last7Days -> "최근 7일 $verb"
+        TopChartPeriod.AllTime -> "전체 기간 $verb"
+    }
+}
 
 data class TopChartSelection(val sort: TopChartSort, val period: TopChartPeriod)
 
@@ -184,7 +198,7 @@ private fun TopChartControls(type: AppType, modifier: Modifier = Modifier) {
         } else {
             Text(selection.sort.label, color = Color.Gray)
         }
-        TopChartDropdown(selection.period, TopChartPeriod.entries, { "${type.topChartPeriodVerb()} ${it.label}" }) {
+        TopChartDropdown(selection.period, TopChartPeriod.entries, { type.topChartPeriodLabel(it) }) {
             viewModel.select(type, selection.copy(period = it))
         }
     }
