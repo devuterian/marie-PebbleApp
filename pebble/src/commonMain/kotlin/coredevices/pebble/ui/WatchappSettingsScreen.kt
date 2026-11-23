@@ -337,8 +337,8 @@ fun WatchappSettingsScreen(
                     // Launched: showing waits until it's dismissed.
                     launch {
                         val result = snackbarHostState.showSnackbar(
-                            message = "$title wants to ${requestSummary(new, definedPermissions)}",
-                            actionLabel = "Review",
+                            message = localized("$title wants to ${requestSummary(new, definedPermissions)}", "${title}에서 권한을 요청해요: ${requestSummary(new, definedPermissions)}"),
+                            actionLabel = localized("Review", "검토"),
                             duration = SnackbarDuration.Long,
                         )
                         if (result == SnackbarResult.ActionPerformed) showPermissions = true

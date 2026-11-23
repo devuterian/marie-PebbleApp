@@ -1,6 +1,7 @@
 package coredevices.util.storage
 
 import io.rebble.libpebblecommon.connection.AppContext
+import localization.localized
 
 data class StorageUsage(val label: String, val bytes: Long)
 
@@ -34,8 +35,8 @@ fun formatBytes(bytes: Long): String {
 /** "12.3 MB · 1.1 MB mobile · 345 requests", or with [split] sent and received separately. */
 fun formatDataUsage(sentBytes: Long, receivedBytes: Long, mobileBytes: Long, requests: Long, split: Boolean = false): String =
     listOfNotNull(
-        if (split) "${formatBytes(sentBytes)} sent" else (sentBytes + receivedBytes).takeIf { it > 0 }?.let(::formatBytes),
-        if (split) "${formatBytes(receivedBytes)} received" else null,
-        mobileBytes.takeIf { it > 0 }?.let { "${formatBytes(it)} mobile" },
-        if (requests == 1L) "1 request" else "$requests requests",
+        if (split) localized("${formatBytes(sentBytes)} sent", "${formatBytes(sentBytes)} 보냄") else (sentBytes + receivedBytes).takeIf { it > 0 }?.let(::formatBytes),
+        if (split) localized("${formatBytes(receivedBytes)} received", "${formatBytes(receivedBytes)} 받음") else null,
+        mobileBytes.takeIf { it > 0 }?.let { localized("${formatBytes(it)} mobile", "모바일 ${formatBytes(it)}") },
+        localized(if (requests == 1L) "1 request" else "$requests requests", "요청 ${requests}회"),
     ).joinToString(" · ")

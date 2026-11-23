@@ -47,6 +47,7 @@ import kotlinx.io.files.Path
 import kotlinx.io.files.SystemFileSystem
 import kotlinx.io.files.SystemTemporaryDirectory
 import kotlinx.io.writeString
+import localization.localized
 import org.koin.compose.koinInject
 import theme.currentColorScheme
 import kotlin.uuid.Uuid
@@ -67,7 +68,7 @@ fun PluginSourceScreen(topBarParams: TopBarParams, uuid: Uuid?, pbwUrl: String?,
             TopBarIconButtonWithToolTip(
                 onClick = { wrap = !wrap },
                 icon = Icons.AutoMirrored.Filled.WrapText,
-                description = if (wrap) "Don't wrap lines" else "Wrap lines",
+                description = if (wrap) localized("Don't wrap lines", "줄 바꿈 끄기") else localized("Wrap lines", "줄 바꿈"),
             )
             val source = loaded?.text
             TopBarIconButtonWithToolTip(
@@ -85,7 +86,7 @@ fun PluginSourceScreen(topBarParams: TopBarParams, uuid: Uuid?, pbwUrl: String?,
                             throw e
                         } catch (e: Exception) {
                             Logger.withTag("PluginSourceScreen").w(e) { "Failed to save $script" }
-                            topBarParams.showSnackbar("Couldn't save ${path.name}")
+                            topBarParams.showSnackbar(localized("Couldn't save ${path.name}", "${path.name} 파일을 저장할 수 없어요"))
                         } finally {
                             runCatching { SystemFileSystem.delete(path, mustExist = false) }
                             saving = false
@@ -93,7 +94,7 @@ fun PluginSourceScreen(topBarParams: TopBarParams, uuid: Uuid?, pbwUrl: String?,
                     }
                 },
                 icon = Icons.Filled.Download,
-                description = "Download",
+                description = localized("Download", "다운로드"),
                 enabled = uiContext != null && source != null && !saving,
             )
         }
@@ -103,7 +104,7 @@ fun PluginSourceScreen(topBarParams: TopBarParams, uuid: Uuid?, pbwUrl: String?,
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         when {
             loaded == null -> CircularProgressIndicator()
-            text == null -> Text("Couldn't load $script")
+            text == null -> Text(localized("Couldn't load $script", "${script} 파일을 불러올 수 없어요"))
             else -> SelectionContainer {
                 val dark = currentColorScheme().isDark
                 val highlighted by produceState(AnnotatedString(text), text, dark) {

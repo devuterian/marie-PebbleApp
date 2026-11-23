@@ -54,6 +54,8 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
+import localization.isKoreanUi
+import localization.localized
 import org.koin.compose.koinInject
 import kotlin.time.Instant
 import kotlin.uuid.Uuid
@@ -67,7 +69,7 @@ fun AppActivityScreen(nav: NavBarNav, topBarParams: TopBarParams) {
     LaunchedEffect(Unit) {
         topBarParams.searchAvailable(null)
         topBarParams.actions {}
-        topBarParams.title("App activity")
+        topBarParams.title(localized("App activity", "앱 활동"))
     }
     val libPebble = rememberLibPebble()
     val log by remember { libPebble.pluginActionLog() }.collectAsState(null)
@@ -84,9 +86,9 @@ fun AppActivityScreen(nav: NavBarNav, topBarParams: TopBarParams) {
         item {
             Text(
                 if (entries.isEmpty()) {
-                    "None of your apps have taken actions using plugins in the last $PLUGIN_ACTION_LOG_KEPT_DAYS days."
+                    localized("None of your apps have taken actions using plugins in the last $PLUGIN_ACTION_LOG_KEPT_DAYS days.", "최근 ${PLUGIN_ACTION_LOG_KEPT_DAYS}일 동안 플러그인으로 동작을 실행한 앱이 없어요.")
                 } else {
-                    "What actions your apps took using plugins over the last $PLUGIN_ACTION_LOG_KEPT_DAYS days."
+                    localized("What actions your apps took using plugins over the last $PLUGIN_ACTION_LOG_KEPT_DAYS days.", "최근 ${PLUGIN_ACTION_LOG_KEPT_DAYS}일 동안 앱이 플러그인으로 실행한 동작이에요.")
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -97,7 +99,7 @@ fun AppActivityScreen(nav: NavBarNav, topBarParams: TopBarParams) {
             item {
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(horizontal = 16.dp)) {
                     ActivityGrouping.entries.forEach {
-                        FilterChip(selected = grouping == it, onClick = { grouping = it }, label = { Text(it.label) })
+                        FilterChip(selected = grouping == it, onClick = { grouping = it }, label = { Text(localized(it.label, if (it == ActivityGrouping.ByApp) "앱별" else "플러그인별")) })
                     }
                 }
             }
@@ -141,12 +143,12 @@ private fun ActivityGroupRow(
             leadingContent = { AppOrPluginIcon(uuid, 56.dp, icons, nav) },
             headlineContent = { Text(title, fontWeight = FontWeight.Bold) },
             supportingContent = {
-                Text("${entries.size} actions · last ${relativeTime(Instant.fromEpochMilliseconds(entries.first().atMs))}")
+                Text(localized("${entries.size} actions · last ${relativeTime(Instant.fromEpochMilliseconds(entries.first().atMs))}", "동작 ${entries.size}개 · 마지막 ${relativeTime(Instant.fromEpochMilliseconds(entries.first().atMs))}"))
             },
             trailingContent = {
                 Icon(
                     if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                    contentDescription = if (expanded) "Hide actions" else "Show actions",
+                    contentDescription = if (expanded) localized("Hide actions", "동작 숨기기") else localized("Show actions", "동작 보기"),
                 )
             },
         )
@@ -172,7 +174,7 @@ private fun ActionLogPreview(
     entries.take(PREVIEW_ACTIONS).forEach { ActionLogRow(it, describer, showCaller, icons, nav) }
     if (entries.size > PREVIEW_ACTIONS) {
         TextButton(onClick = showAll, modifier = Modifier.padding(horizontal = 4.dp)) {
-            Text("Show all ${entries.size}")
+            Text(localized("Show all ${entries.size}", "${entries.size}개 모두 보기"))
         }
     }
 }
@@ -188,10 +190,10 @@ fun AppActivitySection(appUuid: Uuid, nav: NavBarNav) {
     var open by rememberSaveable(appUuid.toString()) { mutableStateOf(false) }
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            SectionHeader("Recent activity", open) { open = !open }
+            SectionHeader(localized("Recent activity", "최근 활동"), open) { open = !open }
             if (!open) {
                 Text(
-                    "${entries.size} actions in the last $PLUGIN_ACTION_LOG_KEPT_DAYS days",
+                    localized("${entries.size} actions in the last $PLUGIN_ACTION_LOG_KEPT_DAYS days", "최근 ${PLUGIN_ACTION_LOG_KEPT_DAYS}일 동안 동작 ${entries.size}개"),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -216,7 +218,7 @@ fun ActionLogScreen(nav: NavBarNav, topBarParams: TopBarParams, callerUuid: Uuid
     val icons = rememberActionLogIcons(entries.map { if (callerUuid == null) it.appUuid else it.pluginUuid }.toSet())
     val title = callerUuid?.let { describer.appName(it) }
         ?: pluginUuid?.let { describer.pluginName(it) }
-        ?: "App activity"
+        ?: localized("App activity", "앱 활동")
     LaunchedEffect(title) {
         topBarParams.searchAvailable(null)
         topBarParams.actions {}
@@ -245,7 +247,7 @@ private fun ActionLogRow(
         Column {
             Text(describer.describe(entry), style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
             val caller = if (showCaller) "${describer.appName(entry.appUuid)} · " else ""
-            val error = entry.error?.let { " · Failed: $it" }.orEmpty()
+            val error = entry.error?.let { localized(" · Failed: $it", " · 실패: ${it}") }.orEmpty()
             Text(
                 caller + relativeTime(Instant.fromEpochMilliseconds(entry.atMs)) + error,
                 style = MaterialTheme.typography.bodySmall,
@@ -316,12 +318,13 @@ internal class ActionDescriber(
     private val watchPrefs: List<WatchPreference<*>>,
     /** Null while loading. */
     private val appTitles: Map<Uuid, String>?,
+    private val korean: Boolean = isKoreanUi(),
 ) {
     /** Blank until the titles load. */
-    fun appName(appUuid: Uuid): String = if (appTitles == null) "" else appTitles[appUuid] ?: "Removed app"
+    fun appName(appUuid: Uuid): String = if (appTitles == null) "" else appTitles[appUuid] ?: if (korean) "삭제된 앱" else "Removed app"
 
     fun pluginName(pluginUuid: Uuid): String = plugins.firstOrNull { it.pluginUuid == pluginUuid }?.name
-        ?: if (appTitles == null) "" else appTitles[pluginUuid] ?: "Removed plugin"
+        ?: if (appTitles == null) "" else appTitles[pluginUuid] ?: if (korean) "삭제된 플러그인" else "Removed plugin"
 
     fun describe(entry: PluginActionLogEntity): String {
         if (entry.pluginUuid == WatchSettingsPlugin.BUILT_IN_WATCH_SETTINGS_UUID) {
@@ -344,18 +347,18 @@ internal class ActionDescriber(
         val name = pref?.displayName ?: id
         return when (action) {
             WatchSettingsPlugin.ACTION_SET_ON -> args["on"]?.jsonPrimitive?.booleanOrNull?.let {
-                "Turned watch setting $name ${if (it) "on" else "off"}"
+                if (korean) "시계 설정 ${if (it) "켬" else "끔"}: ${name}" else "Turned watch setting $name ${if (it) "on" else "off"}"
             }
             WatchSettingsPlugin.ACTION_SET_VALUE -> args["value"]?.jsonPrimitive?.contentOrNull?.let { value ->
                 val shown = if (pref is QuicklaunchWatchPref) quickLaunchApp(value) else value
-                "Set watch setting $name to $shown"
+                if (korean) "시계 설정 변경: ${name} → ${shown}" else "Set watch setting $name to $shown"
             }
             else -> null
         }
     }
 
     private fun quickLaunchApp(value: String): String {
-        if (value.isBlank()) return "nothing"
+        if (value.isBlank()) return if (korean) "없음" else "nothing"
         val uuid = try {
             Uuid.parse(value)
         } catch (e: IllegalArgumentException) {

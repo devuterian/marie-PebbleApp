@@ -599,7 +599,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
     LaunchedEffect(modelDownloadStatus) {
         when (modelDownloadStatus) {
             is ModelDownloadStatus.Failed -> {
-                snackbarDisplay.showSnackbar("Failed to download model")
+                snackbarDisplay.showSnackbar(localized("Failed to download model", "모델을 다운로드할 수 없어요"))
             }
             else -> {}
         }
@@ -922,7 +922,7 @@ fun rememberSettingsItemsState(navBarNav: NavBarNav?, snackbarDisplay: SnackbarD
                         val window = coreConfig.autoFirmwareUpdateWindow
                         ListItem(
                             headlineContent = {
-                                Text("Only update during time window")
+                                Text(localized("Only update during time window", "정해진 시간에만 업데이트"))
                             },
                             leadingContent = {
                                 Checkbox(

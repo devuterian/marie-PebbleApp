@@ -46,14 +46,17 @@ import io.rebble.libpebblecommon.permissions.domainOf
 import io.rebble.libpebblecommon.plugin.PluginPermissions
 import kotlin.uuid.Uuid
 import kotlinx.coroutines.flow.map
+import localization.localized
 import org.koin.compose.koinInject
+
+private const val LEGACY_INFO_KO = "이 앱은 사용할 웹사이트를 밝혀야 하는 규칙이 생기기 전에 만들어져서, 모든 웹사이트에 접속할 수 있고 데이터 사용량을 웹사이트별로 나눠 볼 수 없어요."
 
 private const val LEGACY_INFO = "This app was made before apps had to declare which websites they use, so it can " +
     "reach any website and its data usage can't be split up by website."
 
 private fun PermissionDataUsage.label(): String = domainOf(permission) ?: when (permission) {
-    PluginPermissions.LOCAL_NETWORK -> "Local network"
-    else -> "Any website"
+    PluginPermissions.LOCAL_NETWORK -> localized("Local network", "로컬 네트워크")
+    else -> localized("Any website", "모든 웹사이트")
 }
 
 @Composable
@@ -61,7 +64,7 @@ fun AppDataUsageScreen(nav: NavBarNav, topBarParams: TopBarParams) {
     LaunchedEffect(Unit) {
         topBarParams.searchAvailable(null)
         topBarParams.actions {}
-        topBarParams.title("Data usage")
+        topBarParams.title(localized("Data usage", "데이터 사용량"))
     }
     val libPebble = rememberLibPebble()
     val usage by remember { libPebble.appDataUsage(DATA_USAGE_KEPT_DAYS).map { it.byApp() } }.collectAsState(null)
@@ -73,9 +76,9 @@ fun AppDataUsageScreen(nav: NavBarNav, topBarParams: TopBarParams) {
         item {
             Text(
                 if (apps.isEmpty()) {
-                    "None of your apps have sent or received anything in the last $DATA_USAGE_KEPT_DAYS days."
+                    localized("None of your apps have sent or received anything in the last $DATA_USAGE_KEPT_DAYS days.", "최근 ${DATA_USAGE_KEPT_DAYS}일 동안 데이터를 주고받은 앱이 없어요.")
                 } else {
-                    "How much your apps have sent and received over the last $DATA_USAGE_KEPT_DAYS days."
+                    localized("How much your apps have sent and received over the last $DATA_USAGE_KEPT_DAYS days.", "최근 ${DATA_USAGE_KEPT_DAYS}일 동안 앱이 주고받은 데이터 양이에요.")
                 },
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
@@ -109,12 +112,12 @@ private fun AppUsageRow(
                     entry?.let { AppImage(it, Modifier.clip(RoundedCornerShape(8.dp)), 56.dp) }
                 }
             },
-            headlineContent = { Text(entry?.title ?: if (removed) "Removed app" else "", fontWeight = FontWeight.Bold) },
+            headlineContent = { Text(entry?.title ?: if (removed) localized("Removed app", "삭제된 앱") else "", fontWeight = FontWeight.Bold) },
             supportingContent = { Text(formatDataUsage(app.sentBytes, app.receivedBytes, app.mobileBytes, app.requests)) },
             trailingContent = {
                 Icon(
                     if (expanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                    contentDescription = if (expanded) "Hide domains" else "Show domains",
+                    contentDescription = if (expanded) localized("Hide domains", "도메인 숨기기") else localized("Show domains", "도메인 보기"),
                 )
             },
         )
@@ -129,9 +132,9 @@ private fun AppUsageRow(
 @Composable
 private fun AppUsageDetails(app: AppDataUsageSummary, modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
-        UsageDetailRow("Total", app.sentBytes, app.receivedBytes, app.mobileBytes, app.requests)
+        UsageDetailRow(localized("Total", "합계"), app.sentBytes, app.receivedBytes, app.mobileBytes, app.requests)
         app.byPermission.forEach {
-            val info = LEGACY_INFO.takeIf { _ -> it.permission == PluginPermissions.GLOBAL_INTERNET }
+            val info = localized(LEGACY_INFO, LEGACY_INFO_KO).takeIf { _ -> it.permission == PluginPermissions.GLOBAL_INTERNET }
             UsageDetailRow(it.label(), it.sentBytes, it.receivedBytes, it.mobileBytes, it.requests, info)
         }
     }
@@ -148,10 +151,10 @@ fun AppDataUsageSection(appUuid: Uuid) {
     var open by rememberSaveable(appUuid.toString()) { mutableStateOf(false) }
     Column(modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)) {
         Column(modifier = Modifier.padding(horizontal = 16.dp)) {
-            SectionHeader("Data usage", open) { open = !open }
+            SectionHeader(localized("Data usage", "데이터 사용량"), open) { open = !open }
             if (!open) {
                 Text(
-                    "Last $DATA_USAGE_KEPT_DAYS days: ${formatDataUsage(app.sentBytes, app.receivedBytes, app.mobileBytes, app.requests)}",
+                    localized("Last $DATA_USAGE_KEPT_DAYS days: ${formatDataUsage(app.sentBytes, app.receivedBytes, app.mobileBytes, app.requests)}", "최근 ${DATA_USAGE_KEPT_DAYS}일: ${formatDataUsage(app.sentBytes, app.receivedBytes, app.mobileBytes, app.requests)}"),
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -176,7 +179,7 @@ private fun UsageDetailRow(
             onDismissRequest = { showInfo = false },
             title = { Text(label) },
             text = { Text(info) },
-            confirmButton = { TextButton(onClick = { showInfo = false }) { Text("OK") } },
+            confirmButton = { TextButton(onClick = { showInfo = false }) { Text(localized("OK", "확인")) } },
         )
     }
     Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp)) {
@@ -184,7 +187,7 @@ private fun UsageDetailRow(
             Text(label, style = MaterialTheme.typography.bodyMedium, fontWeight = FontWeight.Medium)
             if (info != null) {
                 IconButton(onClick = { showInfo = true }, modifier = Modifier.size(32.dp)) {
-                    Icon(Icons.Outlined.Info, contentDescription = "About $label", modifier = Modifier.size(18.dp))
+                    Icon(Icons.Outlined.Info, contentDescription = localized("About $label", "${label} 정보"), modifier = Modifier.size(18.dp))
                 }
             }
         }

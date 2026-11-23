@@ -15,6 +15,8 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import kotlin.uuid.Uuid
+import localization.isKoreanUi
+import localization.localized
 
 /** A running app's runtime requests, answered together by the notification's actions. */
 data class PermissionRequestNotification(
@@ -75,21 +77,21 @@ class PermissionRequestNotifier(
 
     private fun notify(notification: PermissionRequestNotification) {
         notifyPermissionRequest(appContext, notification)
-        val suffix = if (notification.permissions.size > 1) " all" else ""
+        val all = notification.permissions.size > 1
         val data = Json.encodeToString(listOf(notification.appUuid.toString()) + notification.permissions)
         watchNotifier.send(
             key = watchKey(notification.appUuid),
             title = notification.title,
             body = notification.body,
             actions = listOfNotNull(
-                WatchNotificationAction("Allow$suffix", watchActionType(true), data).takeIf { notification.canAllow },
-                WatchNotificationAction("Deny$suffix", watchActionType(false), data),
+                WatchNotificationAction(if (all) localized("Allow all", "모두 허용") else localized("Allow", "허용"), watchActionType(true), data).takeIf { notification.canAllow },
+                WatchNotificationAction(if (all) localized("Deny all", "모두 거부") else localized("Deny", "거부"), watchActionType(false), data),
             ),
         )
     }
 
     private suspend fun notificationFor(appUuid: Uuid, keys: List<String>): PermissionRequestNotification {
-        val appName = libPebble.getLockerApp(appUuid).first()?.properties?.title ?: "An app"
+        val appName = libPebble.getLockerApp(appUuid).first()?.properties?.title ?: localized("An app", "앱")
         val labels = requestLabels(keys, libPebble.pluginPermissions().first())
         val (body, complete) = requestBody(labels)
         return PermissionRequestNotification(
@@ -107,22 +109,27 @@ class PermissionRequestNotifier(
         fun keyOf(appUuid: Uuid) = "permissions/$appUuid".hashCode()
 
         /** As many of [labels] as the watch can show, then how many more; and whether that's all of them. */
-        internal fun requestBody(labels: List<String>): Pair<String, Boolean> {
-            val full = "Wants to ${requestSummary(labels)}"
-            return if (full.fitsOnWatch()) full to true else shortenedRequest(labels) to false
+        internal fun requestBody(labels: List<String>, korean: Boolean = isKoreanUi()): Pair<String, Boolean> {
+            val summary = requestSummary(labels, korean)
+            val full = if (korean) "권한 요청: $summary" else "Wants to $summary"
+            return if (full.fitsOnWatch()) full to true else shortenedRequest(labels, korean) to false
         }
 
-        private fun shortenedRequest(labels: List<String>): String =
+        private fun shortenedRequest(labels: List<String>, korean: Boolean): String =
             (labels.size - 1 downTo 1).asSequence()
                 .map { shown ->
-                    val listed = labels.take(shown) + "${labels.size - shown} more"
-                    "Wants to ${requestSummary(listed)}. Review them in the Pebble app."
+                    if (korean) {
+                        "권한 요청: ${requestSummary(labels.take(shown), korean)} 외 ${labels.size - shown}개. Pebble 앱에서 확인해 주세요."
+                    } else {
+                        val listed = labels.take(shown) + "${labels.size - shown} more"
+                        "Wants to ${requestSummary(listed, korean)}. Review them in the Pebble app."
+                    }
                 }
                 .firstOrNull { it.fitsOnWatch() }
-                ?: if (labels.size == 1) {
-                    "Wants a permission. Review it in the Pebble app."
-                } else {
-                    "Wants ${labels.size} permissions. Review them in the Pebble app."
+                ?: when {
+                    korean -> "권한 ${labels.size}개를 요청해요. Pebble 앱에서 확인해 주세요."
+                    labels.size == 1 -> "Wants a permission. Review it in the Pebble app."
+                    else -> "Wants ${labels.size} permissions. Review them in the Pebble app."
                 }
 
         private fun String.fitsOnWatch() = encodeToByteArray().size <= TimelineAttribute.Body.maxLength

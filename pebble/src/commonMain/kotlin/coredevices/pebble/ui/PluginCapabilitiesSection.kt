@@ -40,6 +40,7 @@ import androidx.compose.ui.unit.dp
 import coredevices.pebble.ui.PluginCapabilities.ActionSummary
 import coredevices.pebble.ui.PluginCapabilities.SourceGroup
 import io.rebble.libpebblecommon.plugin.PluginMetadata
+import localization.localized
 
 /** What a plugin's manifest declares it serves and can do. Rows expand on tap for the detail. */
 @Composable
@@ -48,18 +49,18 @@ fun PluginCapabilitiesSection(metadata: PluginMetadata) {
     if (capabilities.isEmpty) return
     Column(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)) {
         if (capabilities.sources.isNotEmpty()) {
-            SectionTitle("Sources", SOURCES_INFO)
+            SectionTitle(localized("Sources", "제공 정보"), localized(SOURCES_INFO, SOURCES_INFO_KO))
             capabilities.sources.forEach { SourceGroupRow(it) }
         }
         if (capabilities.actions.isNotEmpty()) {
-            SectionTitle("Actions", ACTIONS_INFO)
+            SectionTitle(localized("Actions", "동작"), localized(ACTIONS_INFO, ACTIONS_INFO_KO))
             var showAll by remember(metadata) { mutableStateOf(false) }
             val actions = capabilities.actions
             val shown = if (showAll) actions else actions.take(PluginCapabilities.ACTIONS_PREVIEW)
             shown.forEach { ActionRow(it) }
             if (actions.size > PluginCapabilities.ACTIONS_PREVIEW) {
                 TextButton(onClick = { showAll = !showAll }, modifier = Modifier.align(Alignment.End)) {
-                    Text(if (showAll) "Show less" else "Show all ${actions.size}")
+                    Text(if (showAll) localized("Show less", "접기") else localized("Show all ${actions.size}", "${actions.size}개 모두 보기"))
                 }
             }
         }
@@ -73,6 +74,10 @@ private const val ACTIONS_INFO = "The things this plugin can do, like turning on
     "plugins and Index can ask it to do them; apps need your permission first. What apps have done is listed in " +
     "Settings › Apps › App activity."
 
+private const val SOURCES_INFO_KO = "날씨나 다음 캘린더 일정처럼 이 플러그인이 제공하는 정보예요. 허용하면 워치페이스, 앱, 다른 플러그인에서 보여 줄 수 있어요."
+
+private const val ACTIONS_INFO_KO = "조명 켜기처럼 이 플러그인이 할 수 있는 동작이에요. 워치페이스, 앱, 다른 플러그인, Index가 이 동작을 요청할 수 있고, 앱은 먼저 권한을 받아야 해요. 앱이 실행한 동작은 설정 › 앱 › 앱 활동에서 볼 수 있어요."
+
 @Composable
 private fun SectionTitle(text: String, info: String) {
     var showInfo by remember { mutableStateOf(false) }
@@ -81,13 +86,13 @@ private fun SectionTitle(text: String, info: String) {
             onDismissRequest = { showInfo = false },
             title = { Text(text) },
             text = { Text(info) },
-            confirmButton = { TextButton(onClick = { showInfo = false }) { Text("OK") } },
+            confirmButton = { TextButton(onClick = { showInfo = false }) { Text(localized("OK", "확인")) } },
         )
     }
     Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp, bottom = 4.dp)) {
         Text(text, style = MaterialTheme.typography.titleMedium)
         IconButton(onClick = { showInfo = true }, modifier = Modifier.size(32.dp)) {
-            Icon(Icons.Outlined.Info, contentDescription = "About $text", modifier = Modifier.size(18.dp))
+            Icon(Icons.Outlined.Info, contentDescription = localized("About $text", "${text} 정보"), modifier = Modifier.size(18.dp))
         }
     }
 }
@@ -143,8 +148,8 @@ private fun ActionRow(action: ActionSummary) {
     ) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(action.label, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.weight(1f))
-            if (action.requiresConfirmation) Tag("Asks first", MaterialTheme.colorScheme.onSurfaceVariant)
-            if (action.destructive) Tag("Destructive", MaterialTheme.colorScheme.error)
+            if (action.requiresConfirmation) Tag(localized("Asks first", "먼저 물어봄"), MaterialTheme.colorScheme.onSurfaceVariant)
+            if (action.destructive) Tag(localized("Destructive", "되돌릴 수 없음"), MaterialTheme.colorScheme.error)
         }
         if (action.description.isNotEmpty()) {
             Text(

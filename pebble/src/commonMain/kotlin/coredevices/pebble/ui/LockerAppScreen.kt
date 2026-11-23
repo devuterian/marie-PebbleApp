@@ -375,7 +375,7 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                                                             }
                                                             reloadFromStore(useCache = false)
                                                         } else {
-                                                            topBarParams.showSnackbar("Failed to heart app")
+                                                            topBarParams.showSnackbar(localized("Failed to heart app", "하트를 추가할 수 없어요"))
                                                         }
                                                     } else {
                                                         isChanging = true
@@ -390,7 +390,7 @@ fun LockerAppScreen(topBarParams: TopBarParams, uuid: Uuid?, navBarNav: NavBarNa
                                                             }
                                                             reloadFromStore(useCache = false)
                                                         } else {
-                                                            topBarParams.showSnackbar("Failed to remove heart")
+                                                            topBarParams.showSnackbar(localized("Failed to remove heart", "하트를 취소할 수 없어요"))
                                                         }
                                                     }
                                                 }
@@ -1068,7 +1068,7 @@ suspend fun LibPebble.launchApp(
     if (!entry.isSynced()) {
         try {
             withTimeout(15.seconds) {
-                snackbarDisplay.showSnackbar("Waiting to sync $typeText to watch...")
+                snackbarDisplay.showSnackbar(localized("Waiting to sync $typeText to watch...", "시계와 ${typeText} 동기화를 기다리는 중…"))
                 setAppOrder(entry.uuid, orderIndexForInsert(entry.type))
             }
         } catch (_: TimeoutCancellationException) {

@@ -19,6 +19,7 @@ class ActionDescriberTest {
         plugins = listOf(PluginMetadata(OTHER_PLUGIN, "Lights", "", emptyList(), listOf(ActionDeclaration("toggle", "Toggle a light")))),
         watchPrefs = listOf(WatchPreference(BoolWatchPref.StandbyMode, null), WatchPreference(QuicklaunchWatchPref.QlUp, null)),
         appTitles = mapOf(APP to "Weather"),
+        korean = false,
     )
 
     private fun entry(pluginUuid: Uuid, action: String, args: String) =
@@ -49,7 +50,7 @@ class ActionDescriberTest {
 
     @Test
     fun namesAreBlankUntilTheTitlesLoad() {
-        val loading = ActionDescriber(emptyList(), emptyList(), appTitles = null)
+        val loading = ActionDescriber(emptyList(), emptyList(), appTitles = null, korean = false)
         assertEquals("", loading.appName(APP))
         assertEquals("", loading.pluginName(OTHER_PLUGIN))
         assertEquals("Weather", describer.appName(APP))

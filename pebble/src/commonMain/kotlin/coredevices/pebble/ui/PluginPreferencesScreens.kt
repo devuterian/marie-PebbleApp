@@ -79,6 +79,8 @@ import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
+import localization.isKoreanUi
+import localization.localized
 import org.koin.compose.koinInject
 import sh.calvin.reorderable.ReorderableItem
 import sh.calvin.reorderable.rememberReorderableLazyListState
@@ -96,7 +98,7 @@ private fun List<PluginMetadata>.byServedSource(): Map<SourceRef, List<PluginMet
         .entries.sortedWith(compareBy({ it.key.category }, { it.key.item }))
         .associate { it.key to it.value }
 
-private fun ordinal(n: Int) = when {
+private fun ordinal(n: Int) = if (isKoreanUi()) "${n}번째" else when {
     n % 100 in 11..13 -> "${n}th"
     n % 10 == 1 -> "${n}st"
     n % 10 == 2 -> "${n}nd"
@@ -113,10 +115,10 @@ fun ComplicationsScreen(nav: NavBarNav, topBarParams: TopBarParams) {
             TopBarIconButtonWithToolTip(
                 onClick = { confirmingReset = true },
                 icon = Icons.Default.RestartAlt,
-                description = "Reset to defaults",
+                description = localized("Reset to defaults", "기본값으로 재설정"),
             )
         }
-        topBarParams.title("Complications")
+        topBarParams.title(localized("Complications", "컴플리케이션"))
     }
     val preferences: PreferencesPlugin = koinInject()
     val slots by preferences.complications.collectAsState()
@@ -124,34 +126,37 @@ fun ComplicationsScreen(nav: NavBarNav, topBarParams: TopBarParams) {
     if (confirmingReset) {
         AlertDialog(
             onDismissRequest = { confirmingReset = false },
-            title = { Text("Reset to defaults?") },
-            text = { Text("Your complication slots will be replaced with the default readings.") },
+            title = { Text(localized("Reset to defaults?", "기본값으로 재설정할까요?")) },
+            text = { Text(localized("Your complication slots will be replaced with the default readings.", "컴플리케이션 슬롯이 기본 항목으로 바뀌어요.")) },
             confirmButton = {
                 TextButton(onClick = {
                     preferences.resetComplications()
                     confirmingReset = false
-                }) { Text("Reset") }
+                }) { Text(localized("Reset", "재설정")) }
             },
-            dismissButton = { TextButton(onClick = { confirmingReset = false }) { Text("Cancel") } },
+            dismissButton = { TextButton(onClick = { confirmingReset = false }) { Text(localized("Cancel", "취소")) } },
         )
     }
     var showingInfo by remember { mutableStateOf(false) }
     if (showingInfo) {
         AlertDialog(
             onDismissRequest = { showingInfo = false },
-            title = { Text("Complications") },
+            title = { Text(localized("Complications", "컴플리케이션")) },
             text = {
                 Text(
-                    "Complications are small pieces of information a watchface shows alongside the time, " +
+                    localized(
+"Complications are small pieces of information a watchface shows alongside the time, " +
                         "like the weather, your phone's battery or your next event.\n\n" +
                         "Instead of each watchface asking you to set these up separately, you choose them once here. " +
                         "Every watchface can see this list, and the ones that support it fill their complication " +
                         "slots from it, usually in this order, so put the ones you care about most first.\n\n" +
                         "Watchfaces have to opt in to using this list. Some don't, and will show their own " +
-                        "choices or have their own settings instead."
+                        "choices or have their own settings instead.",
+"컴플리케이션은 날씨, 휴대폰 배터리, 다음 일정처럼 워치페이스가 시간 옆에 보여 주는 작은 정보예요.\n\n워치페이스마다 따로 설정하지 않고 여기서 한 번만 고르면 돼요. 모든 워치페이스가 이 목록을 볼 수 있고, 지원하는 워치페이스는 보통 이 순서대로 슬롯을 채워요. 중요한 걸 맨 위에 두는 게 좋아요.\n\n워치페이스가 이 목록을 쓰도록 만들어져 있어야 해요. 지원하지 않는 워치페이스는 자체 선택지나 설정을 보여 줘요.",
+)
                 )
             },
-            confirmButton = { TextButton(onClick = { showingInfo = false }) { Text("OK") } },
+            confirmButton = { TextButton(onClick = { showingInfo = false }) { Text(localized("OK", "확인")) } },
         )
     }
     editing?.let { position ->
@@ -183,13 +188,13 @@ fun ComplicationsScreen(nav: NavBarNav, topBarParams: TopBarParams) {
                 modifier = Modifier.padding(start = 16.dp, end = 4.dp, top = 8.dp, bottom = 8.dp),
             ) {
                 Text(
-                    "Choose which data you would like watchfaces to display in complication slots, in order",
+                    localized("Choose which data you would like watchfaces to display in complication slots, in order", "워치페이스 컴플리케이션 슬롯에 표시할 데이터와 순서를 정할 수 있어요"),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f),
                 )
                 IconButton(onClick = { showingInfo = true }) {
-                    Icon(Icons.Outlined.Info, contentDescription = "About complications")
+                    Icon(Icons.Outlined.Info, contentDescription = localized("About complications", "컴플리케이션 정보"))
                 }
             }
         }
@@ -199,7 +204,7 @@ fun ComplicationsScreen(nav: NavBarNav, topBarParams: TopBarParams) {
                 val reading = rememberReadings(source).getOrNull(slot?.index ?: 0)
                 ListItem(
                     leadingContent = { Text("${position + 1}", style = MaterialTheme.typography.titleMedium) },
-                    headlineContent = { Text(slot?.let { humanize(it.property) } ?: "Empty") },
+                    headlineContent = { Text(slot?.let { humanize(it.property) } ?: localized("Empty", "비어 있음")) },
                     supportingContent = source?.let {
                         { Text(listOfNotNull(it.label, reading?.name()).joinToString(" · ")) }
                     },
@@ -213,7 +218,7 @@ fun ComplicationsScreen(nav: NavBarNav, topBarParams: TopBarParams) {
                                     onDragStopped = { hapticFeedback.performHapticFeedback(HapticFeedbackType.GestureEnd) },
                                 ),
                             ) {
-                                Icon(Icons.Default.DragHandle, contentDescription = "Reorder")
+                                Icon(Icons.Default.DragHandle, contentDescription = localized("Reorder", "순서 변경"))
                             }
                         }
                     },
@@ -265,17 +270,17 @@ private fun ComplicationEditor(slot: ComplicationSlot?, onSave: (ComplicationSlo
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Complication") },
+        title = { Text(localized("Complication", "컴플리케이션")) },
         text = {
             Column(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.verticalScroll(rememberScrollState()),
             ) {
                 Picker(
-                    label = "Source",
+                    label = localized("Source", "제공처"),
                     options = listOf<SourceRef?>(null) + served,
                     selected = source,
-                    text = { it?.label ?: "Nothing" },
+                    text = { it?.label ?: localized("Nothing", "없음") },
                     onSelect = {
                         source = it
                         index = 0
@@ -284,12 +289,12 @@ private fun ComplicationEditor(slot: ComplicationSlot?, onSave: (ComplicationSlo
                 )
                 if (readings.size > 1 || index > 0) {
                     Picker(
-                        label = "Which",
+                        label = localized("Which", "항목"),
                         options = readings.indices.toList().ifEmpty { listOf(index) },
                         selected = index,
                         text = { i ->
                             val name = readings.getOrNull(i)?.name()
-                            if (name == null) ordinal(i + 1) else "${ordinal(i + 1)} (currently: $name)"
+                            if (name == null) ordinal(i + 1) else localized("${ordinal(i + 1)} (currently: $name)", "${ordinal(i + 1)}(현재: ${name})")
                         },
                         onSelect = { index = it },
                     )
@@ -314,9 +319,9 @@ private fun ComplicationEditor(slot: ComplicationSlot?, onSave: (ComplicationSlo
         confirmButton = {
             TextButton(onClick = {
                 onSave(source?.let { ref -> chosenProperty?.let { ComplicationSlot(ref.category, ref.item, index, it) } })
-            }) { Text("Save") }
+            }) { Text(localized("Save", "저장")) }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text(localized("Cancel", "취소")) } },
     )
 }
 
@@ -425,7 +430,7 @@ fun PreferredSourcesScreen(nav: NavBarNav, topBarParams: TopBarParams) {
     LaunchedEffect(Unit) {
         topBarParams.searchAvailable(null)
         topBarParams.actions {}
-        topBarParams.title("Preferred sources")
+        topBarParams.title(localized("Preferred sources", "기본 제공처"))
     }
     val libPebble = rememberLibPebble()
     val preferred by libPebble.preferredSourcePlugins.collectAsState()
@@ -433,7 +438,7 @@ fun PreferredSourcesScreen(nav: NavBarNav, topBarParams: TopBarParams) {
     LazyColumn(modifier = Modifier.fillMaxSize(), verticalArrangement = Arrangement.spacedBy(4.dp)) {
         item {
             Text(
-                "When more than one plugin offers the same thing, apps that don't ask for a particular one get the plugin chosen here.",
+                localized("When more than one plugin offers the same thing, apps that don't ask for a particular one get the plugin chosen here.", "같은 데이터를 제공하는 플러그인이 여러 개면, 특정 플러그인을 지정하지 않은 앱은 여기서 고른 플러그인을 써요."),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -448,11 +453,11 @@ fun PreferredSourcesScreen(nav: NavBarNav, topBarParams: TopBarParams) {
                     Box {
                         TextButton(onClick = { expanded = true }) {
                             // With no choice made, the plugin that answers is the automatic one.
-                            Text(chosen?.name ?: "Automatic (${remember(preferred) { libPebble.sourcePlugin(ref.category, ref.item)?.name }})")
+                            Text(chosen?.name ?: "${localized(localized("Automatic", "자동"), "자동")} (${remember(preferred) { libPebble.sourcePlugin(ref.category, ref.item)?.name }})")
                         }
                         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                             DropdownMenuItem(
-                                text = { Text("Automatic") },
+                                text = { Text(localized("Automatic", "자동")) },
                                 onClick = {
                                     libPebble.setPreferredSourcePlugin(ref.category, ref.item, null)
                                     expanded = false

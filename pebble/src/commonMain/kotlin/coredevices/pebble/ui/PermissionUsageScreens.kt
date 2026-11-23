@@ -34,6 +34,7 @@ import io.rebble.libpebblecommon.permissions.packageOf
 import io.rebble.libpebblecommon.permissions.permissionOf
 import io.rebble.libpebblecommon.plugin.PluginPermissions
 import kotlinx.coroutines.flow.map
+import localization.localized
 import org.koin.compose.koinInject
 import kotlin.time.Instant
 
@@ -45,17 +46,17 @@ internal fun holdersByPermission(all: List<AppPermissionStatus>?): Map<String, L
 
 /** What the domain, package or file versions of [name] add up to. */
 private fun permissionGroupLabel(name: String, defined: Map<String, PluginDefinedPermission>) = when (name) {
-    PluginPermissions.INTERNET -> "Connect to websites"
-    PluginPermissions.NOTIFICATIONS -> "Read your notifications"
-    PluginPermissions.PEBBLEKIT_2 -> "Exchange messages with phone apps"
+    PluginPermissions.INTERNET -> localized("Connect to websites", "웹사이트에 연결")
+    PluginPermissions.NOTIFICATIONS -> localized("Read your notifications", "알림 읽기")
+    PluginPermissions.PEBBLEKIT_2 -> localized("Exchange messages with phone apps", "휴대폰 앱과 메시지 주고받기")
     else -> permissionLabel(name, defined)
 }
 
 /** Which domain, package or file [key] is for; null for a permission that has none. */
 private fun parameterLabel(key: String): String? =
     domainOf(key) ?: packageOf(key) ?: fileScopeOf(key)?.let(::fileScopeLabel) ?: when (key) {
-        PluginPermissions.INTERNET -> "Any website"
-        PluginPermissions.NOTIFICATIONS -> "All apps"
+        PluginPermissions.INTERNET -> localized("Any website", "모든 웹사이트")
+        PluginPermissions.NOTIFICATIONS -> localized("All apps", "모든 앱")
         else -> null
     }
 
@@ -64,7 +65,7 @@ fun PermissionUsageScreen(nav: NavBarNav, topBarParams: TopBarParams) {
     LaunchedEffect(Unit) {
         topBarParams.searchAvailable(null)
         topBarParams.actions {}
-        topBarParams.title("Permissions in use")
+        topBarParams.title(localized("Permissions in use", "권한 사용 현황"))
     }
     val libPebble = rememberLibPebble()
     val defined = rememberPluginPermissions()
@@ -74,7 +75,7 @@ fun PermissionUsageScreen(nav: NavBarNav, topBarParams: TopBarParams) {
         if (names.isEmpty()) {
             item {
                 Text(
-                    "No app can use any permissions yet.",
+                    localized("No app can use any permissions yet.", "아직 권한을 쓸 수 있는 앱이 없어요."),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
@@ -88,7 +89,7 @@ fun PermissionUsageScreen(nav: NavBarNav, topBarParams: TopBarParams) {
                     .clickable { nav.navigateTo(PebbleNavBarRoutes.PermissionHoldersRoute(name)) }
                     .padding(horizontal = 16.dp, vertical = 4.dp),
             ) {
-                PermissionRow(name, defined, if (count == 1) "1 app" else "$count apps", permissionGroupLabel(name, defined)) {}
+                PermissionRow(name, defined, localized(if (count == 1) "1 app" else "$count apps", "앱 ${count}개"), permissionGroupLabel(name, defined)) {}
             }
         }
     }
@@ -117,8 +118,8 @@ fun PermissionHoldersScreen(nav: NavBarNav, topBarParams: TopBarParams, permissi
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(holders, key = { (appUuid, _) -> appUuid.toString() }) { (appUuid, statuses) ->
             val lastUsedAtMs = statuses.mapNotNull { it.lastUsedAtMs }.maxOrNull()
-            val used = if (lastUsedAtMs == null) "Not used yet" else "Used ${relativeTime(Instant.fromEpochMilliseconds(lastUsedAtMs))}"
-            val usage = if (statuses.all { it.status == PermissionStatus.AllowedAutomatically }) "Allowed automatically · $used" else used
+            val used = if (lastUsedAtMs == null) localized("Not used yet", "아직 사용 안 함") else localized("Used ${relativeTime(Instant.fromEpochMilliseconds(lastUsedAtMs))}", "${relativeTime(Instant.fromEpochMilliseconds(lastUsedAtMs))} 사용")
+            val usage = if (statuses.all { it.status == PermissionStatus.AllowedAutomatically }) localized("Allowed automatically · $used", "자동 허용됨 · ${used}") else used
             val parameters = statuses.mapNotNull { parameterLabel(it.permission) }.distinct()
             val entry = loadLockerEntry(appUuid, sharedViewModel.watchType.value)
             ListItem(
